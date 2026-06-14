@@ -18,6 +18,7 @@ export class Hook extends Phaser.GameObjects.Container {
 
   readonly #maxRopeLength: number;
   #swingTime: number = 0;
+  #reelSpeed: number = BASE_REEL_SPEED;
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y);
     this.#maxRopeLength = scene.scale.height - y;
@@ -29,6 +30,23 @@ export class Hook extends Phaser.GameObjects.Container {
       if (this.#state === HookState.SWINGING)
         this.#updateHookState(HookState.FIRING);
     });
+  }
+
+  get tipWorldX(): number {
+    return this.x + Math.sin(this.#swingAngle) * this.#ropeLength;
+  }
+
+  get tipWorldY(): number {
+    return this.y + Math.cos(this.#swingAngle) * this.#ropeLength;
+  }
+
+  get hookState(): HookStateType {
+    return this.#state;
+  }
+
+  catchObject(weight: number): void {
+    this.#reelSpeed = BASE_REEL_SPEED / weight;
+    this.#updateHookState(HookState.REELING);
   }
 
   update(dt: number): void {
@@ -47,10 +65,12 @@ export class Hook extends Phaser.GameObjects.Container {
         }
         break;
       case HookState.REELING:
-        this.#ropeLength -= BASE_REEL_SPEED * (dt / 1000);
+        this.#ropeLength -= this.#reelSpeed * (dt / 1000);
         if (this.#ropeLength <= HOOK_MIN_LEN) {
           this.#ropeLength = HOOK_MIN_LEN;
+          this.#reelSpeed = BASE_REEL_SPEED;
           this.#updateHookState(HookState.SWINGING);
+          this.emit("reelComplete");
         }
         break;
       default:

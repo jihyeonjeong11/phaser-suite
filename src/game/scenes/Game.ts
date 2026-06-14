@@ -1,14 +1,15 @@
 import { Scene } from "phaser";
-import { Hook } from "../gameobjects/hook";
-import { Minables } from "../gameobjects/Minables";
 import { MINING_TYPES } from "../utils/constants";
 import Phaser from "phaser";
+import { Minables } from "../gameobjects/minables";
+import { Hook } from "../gameobjects/Hooks";
 
 export class Game extends Scene {
   background: Phaser.GameObjects.Image;
   msg_text: Phaser.GameObjects.Text;
   minables: Minables[] = [];
   hook: Hook;
+  #caughtMinable: Minables | null = null;
 
   constructor() {
     super("Game");
@@ -18,17 +19,52 @@ export class Game extends Scene {
    */
   create() {
     const { width, height } = this.scale;
-    this.add.image(width / 2, height / 2, "background").setDisplaySize(width, height);
-    this.renderHUD();
-    this.renderMiningHook();
-    this.spawnMinables();
+    this.add
+      .image(width / 2, height / 2, "background")
+      .setDisplaySize(width, height);
+    this.#renderHUD();
+    this.#renderMiningHook();
+    this.#spawnMinables();
+    this.hook.on("reelComplete", this.#onReelComplete, this);
   }
 
   update(_time: number, delta: number): void {
     this.hook.update(delta);
+    this.#checkCollision();
+    this.#trackCaughtMinable();
   }
 
-  private spawnMinables(): void {
+  #onReelComplete(): void {
+    if (!this.#caughtMinable) return;
+    const value = this.#caughtMinable.collect();
+    console.log(`Collected! value: ${value}`);
+    this.minables = this.minables.filter((m) => m !== this.#caughtMinable);
+    this.#caughtMinable = null;
+  }
+
+  #checkCollision(): void {
+    if (this.hook.hookState !== "FIRING") return;
+    const tx = this.hook.tipWorldX;
+    const ty = this.hook.tipWorldY;
+    for (const m of this.minables) {
+      if (m.isCaught) continue;
+      const dx = tx - m.x;
+      const dy = ty - m.y;
+      if (Math.sqrt(dx * dx + dy * dy) < m.radius) {
+        m.catch();
+        this.#caughtMinable = m;
+        this.hook.catchObject(m.weight);
+        break;
+      }
+    }
+  }
+
+  #trackCaughtMinable(): void {
+    if (!this.#caughtMinable) return;
+    this.#caughtMinable.setPosition(this.hook.tipWorldX, this.hook.tipWorldY);
+  }
+
+  #spawnMinables(): void {
     const { width, height } = this.scale;
     const HUD_HEIGHT = 100;
     const types = Object.values(MINING_TYPES);
@@ -40,17 +76,19 @@ export class Game extends Scene {
     }
   }
 
-  private renderMiningHook(): void {
+  #renderMiningHook(): void {
     this.hook = new Hook(this, this.scale.width / 2, 80);
   }
 
-  private renderMiner() {
+  #renderMiner() {
     this.add.image(this.scale.width / 2, 40, "miner").setDisplaySize(64, 64);
   }
 
-  private renderHUD() {
-    const hud = this.add.rectangle(0, 0, this.scale.width, 100, 0xffff00).setOrigin(0, 0);
+  #renderHUD() {
+    const hud = this.add
+      .rectangle(0, 0, this.scale.width, 100, 0xffff00)
+      .setOrigin(0, 0);
     this.add.existing(hud);
-    this.renderMiner();
+    this.#renderMiner();
   }
 }
