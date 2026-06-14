@@ -1,0 +1,5 @@
+const HOOK_SWING_ANGLE = 65 * (Math.PI / 180);
+const HOOK_SWING_SPEED = 1.1;
+const HOOK_FIRE_SPEED = 400;
+const BASE_REEL_SPEED = 280;
+const HOOK_MIN_LEN = 20;

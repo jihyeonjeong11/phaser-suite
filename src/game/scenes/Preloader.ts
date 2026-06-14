@@ -28,6 +28,8 @@ export class Preloader extends Scene {
 
     this.load.image("logo", "logo.png");
     this.load.image("background", "background.jpg");
+    this.load.image("miner", "miner.png");
+    this.load.image("hook", "hook.png");
   }
 
   create() {

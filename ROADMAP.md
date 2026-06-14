@@ -1,5 +1,16 @@
 ## 1. More mini-games phaser + typescript https://github.com/phaserjs/template-vite-ts
 
+- create GameScene
+  - Folder Structure + constants + type
+  - Miner + hook assets + rendering
+  - Hook instance
+  - Minable Objects
+  - Randomized mine generation
+  - Scoring
+  - Dynamite
+
+-
+
 ## 2. An Electron Wrapper for executables https://github.com/digitsensitive/phaser3-electron
 
 ## 3. An Showcase app, loaded as webview. - see https://phaser.io/create phaser desktop app.
