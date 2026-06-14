@@ -10,10 +10,11 @@ export class MainMenu extends Scene {
   }
 
   create() {
-    this.logo = this.add.image(512, 300, "logo");
+    const { width, height } = this.scale;
+    this.logo = this.add.image(width / 2, height * 0.45, "logo");
 
     this.title = this.add
-      .text(512, 460, "Main Menu", {
+      .text(width / 2, height * 0.75, "Main Menu", {
         fontFamily: "Arial Black",
         fontSize: 38,
         color: "#ffffff",

@@ -30,6 +30,9 @@ export class Preloader extends Scene {
     this.load.image("background", "background.jpg");
     this.load.image("miner", "miner.png");
     this.load.image("hook", "hook.png");
+    this.load.image("gold", "gold_chunk.png");
+    this.load.image("rock", "rock.png");
+    this.load.spritesheet("diamond", "diamonds32x5.png", { frameWidth: 64, frameHeight: 64 });
   }
 
   create() {

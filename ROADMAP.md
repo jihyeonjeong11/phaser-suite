@@ -3,11 +3,19 @@
 - create GameScene
   - Folder Structure + constants + type
   - Miner + hook assets + rendering
-  - Hook instance
+  - Hook instance 1
+    - pendulum anim
+    - firing
+    - reeling
   - Minable Objects
-  - Randomized mine generation
+
+  - Hook class 2
+    - collision
+    - catching
+
   - Scoring
   - Dynamite
+  - Randomized mine generation
 
 -
 

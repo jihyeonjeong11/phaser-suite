@@ -8,7 +8,7 @@ export class GameOver extends Scene {
   }
 
   create() {
-    this.gameover_text = this.add.text(512, 384, "Game Over", {
+    this.gameover_text = this.add.text(this.scale.width / 2, this.scale.height / 2, "Game Over", {
       fontFamily: "Arial Black",
       fontSize: 64,
       color: "#ffffff",
