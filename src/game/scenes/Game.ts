@@ -21,6 +21,10 @@ export class Game extends Scene {
     });
   }
 
+  update(_time: number, delta: number): void {
+    this.hook.update(delta);
+  }
+
   /*
     Render the mining hook.
   */

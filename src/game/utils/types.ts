@@ -4,3 +4,5 @@ export const HookState = {
   REELING: "REELING",
   RETURNING: "RETURNING",
 } as const;
+
+export type HookStateType = (typeof HookState)[keyof typeof HookState];
