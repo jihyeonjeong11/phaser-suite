@@ -1,15 +1,16 @@
-# Phaser Vite Template
+# Phaser Vite TypeScript Template
 
-This is a Phaser 4 project template that uses Vite for bundling. It supports hot-reloading for quick development workflow and includes scripts to generate production-ready builds.
+This is a Phaser project template that uses Vite for bundling. It supports hot-reloading for quick development workflow, includes TypeScript support and scripts to generate production-ready builds.
 
-**[This Template is also available as a TypeScript version.](https://github.com/phaserjs/template-vite-ts)**
+**[This Template is also available as a JavaScript version.](https://github.com/phaserjs/template-vite)**
 
 ### Versions
 
 This template has been updated for:
 
-- [Phaser 4.0.0](https://github.com/phaserjs/phaser)
+- [Phaser 4](https://github.com/phaserjs/phaser)
 - [Vite 6.3.1](https://github.com/vitejs/vite)
+- [TypeScript 5.7.2](https://github.com/microsoft/TypeScript)
 
 ![screenshot](screenshot.png)
 
@@ -27,7 +28,6 @@ This template has been updated for:
 | `npm run dev-nolog` | Launch a development web server without sending anonymous data (see "About log.js" below) |
 | `npm run build-nolog` | Create a production build in the `dist` folder without sending anonymous data (see "About log.js" below) |
 
-
 ## Writing Code
 
 After cloning the repo, run `npm install` from your project directory. Then, you can start the local development server by running `npm run dev`.
@@ -40,15 +40,20 @@ Once the server is running you can edit any of the files in the `src` folder. Vi
 
 We have provided a default project structure to get you started. This is as follows:
 
+## Template Project Structure
+
+We have provided a default project structure to get you started:
+
 | Path                         | Description                                                |
 |------------------------------|------------------------------------------------------------|
 | `index.html`                 | A basic HTML page to contain the game.                     |
 | `public/assets`              | Game sprites, audio, etc. Served directly at runtime.      |
 | `public/style.css`           | Global layout styles.                                      |
-| `src/main.js`                | Application bootstrap.                                     |
+| `src/main.ts`                | Application bootstrap.                                     |
 | `src/game`                   | Folder containing the game code.                           |
-| `src/game/main.js`           | Game entry point: configures and starts the game.          |
+| `src/game/main.ts`           | Game entry point: configures and starts the game.          |
 | `src/game/scenes`            | Folder with all Phaser game scenes.                        | 
+
 
 ## Handling Assets
 
