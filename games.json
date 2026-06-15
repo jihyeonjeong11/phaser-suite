@@ -8,6 +8,15 @@
       "thumbnail": "games/gold-miner/public/assets/hook.png",
       "tags": ["arcade", "casual"],
       "enabled": true
+    },
+    {
+      "id": "flappy",
+      "title": "Flappy",
+      "description": "중력을 받아 점프하며 장애물을 피하는 게임",
+      "entry": "games/flappy/dist/index.html",
+      "thumbnail": "",
+      "tags": ["arcade", "casual"],
+      "enabled": true
     }
   ]
 }
