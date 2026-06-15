@@ -1,4 +1,4 @@
-import { GameObjects, Math as PhaserMath, Scene } from "phaser";
+import { GameObjects, Math as PhaserMath, Scene, Utils } from "phaser";
 import { MINING_TYPES } from "../utils/constants";
 
 export class Minable extends GameObjects.Container {
@@ -27,9 +27,8 @@ export class Minable extends GameObjects.Container {
     }
 
     const rawKey = config.textureKey;
-    const textureKey = Array.isArray(rawKey)
-      ? rawKey[Math.floor(Math.random() * rawKey.length)]
-      : rawKey;
+    const textureKey =
+      typeof rawKey === "string" ? rawKey : Utils.Array.GetRandom([...rawKey]);
     const frame = textureKey === "diamond" ? 4 : undefined;
     const img = scene.add.image(0, 0, textureKey, frame);
     img.setDisplaySize(config.displaySize, config.displaySize);

@@ -44,21 +44,21 @@ export const MINING_TYPES = {
     value: 10,
     radius: 12,
     displaySize: 44,
-    textureKey: "rock",
+    textureKey: "rock" as const,
   },
   ROCK_LARGE: {
     weight: 5,
     value: 20,
     radius: 18,
     displaySize: 65,
-    textureKey: "rock",
+    textureKey: "rock" as const,
   },
   DIAMOND: {
     weight: 1,
     value: 800,
     radius: 10,
     displaySize: 22,
-    textureKey: "diamond",
+    textureKey: "diamond" as const,
   },
   MYSTERY_BAG: {
     isRandom: true as const,
@@ -66,6 +66,6 @@ export const MINING_TYPES = {
     valueRange: [50, 900] as [number, number],
     radius: 15,
     displaySize: 48,
-    textureKey: "bag",
+    textureKey: "bag" as const,
   },
 };

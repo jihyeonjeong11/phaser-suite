@@ -2,6 +2,7 @@ import { GameObjects, Scene, Scenes } from "phaser";
 import { HUD_H } from "../utils/constants";
 import { REG } from "../utils/registry";
 
+// TODO: Find better way for Responsive HUD!
 export class Hud extends GameObjects.Container {
   #moneyText: GameObjects.Text;
   #timeText: GameObjects.Text;
