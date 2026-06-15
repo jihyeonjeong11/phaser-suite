@@ -10,6 +10,7 @@
     "build:games": "pnpm --filter \"game-*\" build",
     "build:electron": "pnpm --filter electron build",
     "build": "pnpm build:games && pnpm build:electron",
+    "preview:electron": "pnpm --filter electron preview",
     "dev:game": "pnpm --filter game-gold-miner dev"
   }
 }
