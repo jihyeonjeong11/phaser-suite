@@ -1,0 +1,120 @@
+.arcade {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 게임 목록 화면 */
+.game-list {
+  padding: 40px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.arcade-title {
+  font-size: 3rem;
+  letter-spacing: 0.5rem;
+  color: #f0e040;
+  text-align: center;
+  margin-bottom: 40px;
+  text-shadow: 0 0 20px #f0e04088;
+}
+
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.game-card {
+  background: #1a1a2e;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 24px;
+  cursor: pointer;
+  text-align: left;
+  color: #fff;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.game-card:hover {
+  border-color: #f0e040;
+  transform: translateY(-2px);
+}
+
+.game-card-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #f0e040;
+}
+
+.game-card-desc {
+  font-size: 0.85rem;
+  color: #aaa;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.game-card-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 0.7rem;
+  background: #2a2a4a;
+  color: #88aaff;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* 게임 실행 화면 */
+.game-view {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.game-bar {
+  background: #111;
+  padding: 8px 16px;
+  border-bottom: 1px solid #333;
+  flex-shrink: 0;
+}
+
+.back-btn {
+  background: none;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 4px 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+.back-btn:hover {
+  border-color: #f0e040;
+  color: #f0e040;
+}
+
+.game-webview {
+  flex: 1;
+  width: 100%;
+  border: none;
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #0a0a0a;
+  color: #fff;
+  font-family: 'Courier New', monospace;
+  overflow: hidden;
+}

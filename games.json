@@ -1,0 +1,13 @@
+{
+  "games": [
+    {
+      "id": "gold-miner",
+      "title": "Gold Miner",
+      "description": "광부가 되어 금괴를 캐는 아케이드 게임",
+      "entry": "games/gold-miner/dist/index.html",
+      "thumbnail": "games/gold-miner/public/assets/hook.png",
+      "tags": ["arcade", "casual"],
+      "enabled": true
+    }
+  ]
+}
