@@ -1,15 +1,19 @@
-import { Scene, Sound } from "phaser";
+import { Scene } from "phaser";
 import { Minable } from "../gameobjects/Minable";
 import { Hook } from "../gameobjects/Hook";
 import { Hud } from "../gameobjects/Hud";
-import { HOOK_ANCHOR_Y, HUD_H, MINE_PADDING } from "../utils/constants";
-import { getLevelGoal, LEVEL_TEMPLATES } from "../utils/levels";
+import {
+  AUDIO_CONFIG,
+  HOOK_ANCHOR_Y,
+  HUD_H,
+  MINE_PADDING,
+} from "../utils/constants";
+import { getLevelGoal, LEVEL_TEMPLATES, pickTemplate } from "../utils/levels";
 import { REG, REGISTRY_DEFAULTS } from "../utils/registry";
 
 export class Game extends Scene {
   #hook!: Hook;
   #minables: Minable[] = [];
-  #audios: Record<string, Sound.BaseSound> = {};
 
   #caughtMinable: Minable | null = null;
 
@@ -32,7 +36,6 @@ export class Game extends Scene {
       .image(width / 2, height / 2, "background")
       .setDisplaySize(width, height);
     new Hud(this);
-    this.#loadAudios();
     this.#hook = new Hook(this, this.scale.width / 2, HOOK_ANCHOR_Y);
     this.#minables = this.#spawnMinables(
       this.registry.get(REG.LEVEL) as number,
@@ -52,32 +55,36 @@ export class Game extends Scene {
     this.#trackCaught();
   }
 
-  #onTimerTick(): void {
-    const remaining = (this.registry.get(REG.TIME) as number) - 1;
-    this.registry.set(REG.TIME, remaining);
-    if (remaining > 0) return;
-
-    const money = this.registry.get(REG.MONEY) as number;
-    const goal = this.registry.get(REG.GOAL) as number;
-    this.stopAudio("rope_creaking");
-    if (money >= goal) {
-      const nextLevel = (this.registry.get(REG.LEVEL) as number) + 1;
-      this.scene.start(
-        LEVEL_TEMPLATES[nextLevel] ? "GoalAnnounce" : "GameComplete",
-        { level: nextLevel },
-      );
+  playAudio(key: string, loop = false): void {
+    if (loop) {
+      if (!this.sound.get(key)?.isPlaying) {
+        this.sound.play(key, { loop: true, ...AUDIO_CONFIG[key] });
+      }
     } else {
-      this.scene.start("GameOver");
+      this.sound.play(key, AUDIO_CONFIG[key]);
     }
   }
 
-  #onReelComplete(): void {
-    if (!this.#caughtMinable) return;
-    this.playAudio("collect");
-    const value = this.#caughtMinable.collect();
-    const current = this.registry.get(REG.MONEY) as number;
-    this.registry.set(REG.MONEY, current + value);
-    this.#caughtMinable = null;
+  stopAudio(key: string): void {
+    this.sound.stopByKey(key);
+  }
+
+  #spawnMinables(level: number): Minable[] {
+    const { minables } = pickTemplate(level);
+    const { width, height } = this.scale;
+    const left = MINE_PADDING;
+    const right = width - MINE_PADDING;
+    const top = HUD_H + MINE_PADDING;
+    const bottom = height - MINE_PADDING;
+    return minables.map(
+      ({ type, nx, ny }) =>
+        new Minable(
+          this,
+          left + nx * (right - left),
+          top + ny * (bottom - top),
+          type,
+        ),
+    );
   }
 
   #checkCollision(): void {
@@ -85,6 +92,7 @@ export class Game extends Scene {
     const tx = this.#hook.tipWorldX;
     const ty = this.#hook.tipWorldY;
     for (const m of this.#minables) {
+      // todo: review catch logic
       if (m.isCaught) continue;
       const dx = tx - m.x;
       const dy = ty - m.y;
@@ -97,48 +105,40 @@ export class Game extends Scene {
     }
   }
 
-  #spawnMinables(level: number): Minable[] {
-    const pool = LEVEL_TEMPLATES[level];
-    const template = pool[Math.floor(Math.random() * pool.length)];
-    const { width, height } = this.scale;
-    const top = HUD_H + MINE_PADDING;
-    const bottom = height - MINE_PADDING;
-    const left = MINE_PADDING;
-    const right = width - MINE_PADDING;
-    return template.minables.map(
-      ({ type, nx, ny }) =>
-        new Minable(
-          this,
-          left + nx * (right - left),
-          top + ny * (bottom - top),
-          type,
-        ),
-    );
-  }
-
-  #loadAudios(): void {
-    this.#audios = {
-      collect: this.sound.add("collect"),
-      hook_catch: this.sound.add("hook_catch"),
-      rope_creaking: this.sound.add("rope_creaking", { volume: 0.6 }),
-    };
-  }
-
-  playAudio(key: string, loop = false): void {
-    const snd = this.#audios[key];
-    if (loop) {
-      if (!snd.isPlaying) snd.play({ loop: true });
-    } else {
-      snd.play();
-    }
-  }
-
-  stopAudio(key: string): void {
-    this.#audios[key].stop();
-  }
-
   #trackCaught(): void {
     if (!this.#caughtMinable) return;
     this.#caughtMinable.setPosition(this.#hook.tipWorldX, this.#hook.tipWorldY);
+  }
+
+  #onReelComplete(): void {
+    const caught = this.#caughtMinable;
+    if (!caught) return;
+    this.playAudio("collect");
+    const current = this.registry.get(REG.MONEY) as number;
+    this.registry.set(REG.MONEY, current + caught.value);
+    this.#minables = this.#minables.filter((m) => m !== caught);
+    caught.destroy();
+    this.#caughtMinable = null;
+  }
+
+  #onTimerTick(): void {
+    const remaining = (this.registry.get(REG.TIME) as number) - 1;
+    if (remaining > 0) {
+      this.registry.set(REG.TIME, remaining);
+      return;
+    }
+
+    this.stopAudio("rope_creaking");
+    const money = this.registry.get(REG.MONEY) as number;
+    const goal = this.registry.get(REG.GOAL) as number;
+    if (money >= goal) {
+      const nextLevel = (this.registry.get(REG.LEVEL) as number) + 1;
+      this.scene.start(
+        LEVEL_TEMPLATES[nextLevel] ? "GoalAnnounce" : "GameComplete",
+        { level: nextLevel },
+      );
+    } else {
+      this.scene.start("GameOver");
+    }
   }
 }

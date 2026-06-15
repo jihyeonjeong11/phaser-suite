@@ -1,6 +1,12 @@
+import type { Types } from "phaser";
+
 export const GAME_WIDTH = 800;
 export const GAME_HEIGHT = 600;
 export const HUD_H = 110;
+
+export const AUDIO_CONFIG: Record<string, Types.Sound.SoundConfig> = {
+  rope_creaking: { volume: 0.6 },
+};
 
 export const HOOK_ANCHOR_Y = 80;
 export const MINE_PADDING = 50;

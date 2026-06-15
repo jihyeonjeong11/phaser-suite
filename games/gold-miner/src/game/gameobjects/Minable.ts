@@ -45,9 +45,4 @@ export class Minable extends GameObjects.Container {
   catch(): void {
     this.#caught = true;
   }
-
-  collect(): number {
-    this.destroy();
-    return this.value;
-  }
 }
