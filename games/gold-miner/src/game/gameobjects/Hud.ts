@@ -6,14 +6,13 @@ export class Hud extends GameObjects.Container {
   #moneyText: GameObjects.Text;
   #timeText: GameObjects.Text;
 
-  constructor(
-    scene: Scene,
-    money: number,
-    goalAmount: number,
-    timeRemaining: number,
-    currentLevel: number,
-  ) {
+  constructor(scene: Scene) {
     super(scene, 0, 0);
+
+    const money = scene.registry.get(REG.MONEY) as number;
+    const goalAmount = scene.registry.get(REG.GOAL) as number;
+    const timeRemaining = scene.registry.get(REG.TIME) as number;
+    const currentLevel = scene.registry.get(REG.LEVEL) as number;
 
     const W = scene.scale.width;
     const cx = W / 2;

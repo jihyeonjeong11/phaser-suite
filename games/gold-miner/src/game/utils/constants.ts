@@ -2,6 +2,8 @@ export const GAME_WIDTH = 800;
 export const GAME_HEIGHT = 600;
 export const HUD_H = 110;
 
+export const HOOK_ANCHOR_Y = 80;
+export const MINE_PADDING = 50;
 export const HOOK_SWING_MAX_ANGLE = 65 * (Math.PI / 180);
 export const HOOK_SWING_MIN_ANGLE = 0;
 export const HOOK_SWING_SPEED = 1.1;

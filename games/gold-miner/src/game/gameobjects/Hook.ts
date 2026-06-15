@@ -1,4 +1,4 @@
-import { GameObjects, Math as PhaserMath, Scene, Sound } from "phaser";
+import { GameObjects, Math as PhaserMath, Scene } from "phaser";
 import { HookState, HookStateType } from "../utils/types";
 import {
   BASE_REEL_SPEED,
@@ -9,7 +9,14 @@ import {
   HOOK_SWING_SPEED,
 } from "../utils/constants";
 
+interface AudioScene extends Scene {
+  playAudio(key: string, loop?: boolean): void;
+  stopAudio(key: string): void;
+}
+
 export class Hook extends GameObjects.Container {
+  declare scene: AudioScene;
+
   #state: HookStateType = HookState.SWINGING;
   #swingAngle: number = HOOK_SWING_MIN_ANGLE;
   #ropeLength: number = HOOK_MIN_LEN;
@@ -18,18 +25,12 @@ export class Hook extends GameObjects.Container {
   #maxRopeLength: number = 0;
   #swingTime: number = 0;
   #reelSpeed: number = BASE_REEL_SPEED;
-  #ropeSound!: Sound.BaseSound;
 
-  constructor(scene: Scene, x: number, y: number) {
+  constructor(scene: AudioScene, x: number, y: number) {
     super(scene, x, y);
     this.#render();
     this.setDepth(11);
-
     this.scene.add.existing(this);
-    this.#ropeSound = scene.sound.add("rope_creaking", {
-      loop: true,
-      volume: 0.6,
-    });
 
     scene.input.on("pointerdown", () => {
       if (this.#state === HookState.SWINGING) {
@@ -53,7 +54,7 @@ export class Hook extends GameObjects.Container {
 
   catchObject(weight: number): void {
     this.#reelSpeed = BASE_REEL_SPEED / weight;
-    this.scene.sound.play("hook_catch");
+    this.scene.playAudio("hook_catch");
     this.#updateHookState(HookState.REELING);
   }
 
@@ -110,9 +111,9 @@ export class Hook extends GameObjects.Container {
   #updateHookState(newState: HookStateType) {
     this.#state = newState;
     if (newState === HookState.FIRING || newState === HookState.REELING) {
-      if (!this.#ropeSound.isPlaying) this.#ropeSound.play();
+      this.scene.playAudio("rope_creaking", true);
     } else {
-      this.#ropeSound.stop();
+      this.scene.stopAudio("rope_creaking");
     }
   }
 
