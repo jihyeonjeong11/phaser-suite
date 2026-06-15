@@ -1,5 +1,6 @@
 export const GAME_WIDTH = 800;
 export const GAME_HEIGHT = 600;
+export const HUD_H = 110;
 
 export const HOOK_SWING_MAX_ANGLE = 65 * (Math.PI / 180);
 export const HOOK_SWING_MIN_ANGLE = 0;
@@ -14,21 +15,21 @@ export const MINING_TYPES = {
     value: 100,
     radius: 12,
     displaySize: 43,
-    textureKey: "gold",
+    textureKey: ["gold", "gold2"] as const,
   },
   GOLD_MEDIUM: {
     weight: 2,
     value: 250,
     radius: 18,
     displaySize: 65,
-    textureKey: "gold",
+    textureKey: ["gold", "gold2"] as const,
   },
   GOLD_LARGE: {
     weight: 4,
     value: 500,
     radius: 30,
     displaySize: 100,
-    textureKey: "gold",
+    textureKey: ["gold", "gold2"] as const,
   },
   ROCK_SMALL: {
     weight: 3,
@@ -51,4 +52,12 @@ export const MINING_TYPES = {
     displaySize: 22,
     textureKey: "diamond",
   },
-} as const;
+  MYSTERY_BAG: {
+    isRandom: true as const,
+    weightRange: [1, 6] as [number, number],
+    valueRange: [50, 900] as [number, number],
+    radius: 15,
+    displaySize: 48,
+    textureKey: "bag",
+  },
+};

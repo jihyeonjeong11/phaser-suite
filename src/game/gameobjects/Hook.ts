@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import { GameObjects, Math as PhaserMath, Scene, Sound } from "phaser";
 import { HookState, HookStateType } from "../utils/types";
 import {
   BASE_REEL_SPEED,
@@ -9,26 +9,33 @@ import {
   HOOK_SWING_SPEED,
 } from "../utils/constants";
 
-export class Hook extends Phaser.GameObjects.Container {
+export class Hook extends GameObjects.Container {
   #state: HookStateType = HookState.SWINGING;
   #swingAngle: number = HOOK_SWING_MIN_ANGLE;
   #ropeLength: number = HOOK_MIN_LEN;
-  #image!: Phaser.GameObjects.Image;
-  #rope!: Phaser.GameObjects.Graphics;
-
-  readonly #maxRopeLength: number;
+  #image!: GameObjects.Image;
+  #rope!: GameObjects.Graphics;
+  #maxRopeLength: number = 0;
   #swingTime: number = 0;
   #reelSpeed: number = BASE_REEL_SPEED;
-  constructor(scene: Phaser.Scene, x: number, y: number) {
+  #ropeSound!: Sound.BaseSound;
+
+  constructor(scene: Scene, x: number, y: number) {
     super(scene, x, y);
-    this.#maxRopeLength = scene.scale.height - y;
     this.#render();
+    this.setDepth(11);
 
     this.scene.add.existing(this);
+    this.#ropeSound = scene.sound.add("rope_creaking", {
+      loop: true,
+      volume: 0.6,
+    });
 
     scene.input.on("pointerdown", () => {
-      if (this.#state === HookState.SWINGING)
+      if (this.#state === HookState.SWINGING) {
+        this.#maxRopeLength = this.#computeMaxRopeLength();
         this.#updateHookState(HookState.FIRING);
+      }
     });
   }
 
@@ -46,6 +53,7 @@ export class Hook extends Phaser.GameObjects.Container {
 
   catchObject(weight: number): void {
     this.#reelSpeed = BASE_REEL_SPEED / weight;
+    this.scene.sound.play("hook_catch");
     this.#updateHookState(HookState.REELING);
   }
 
@@ -55,7 +63,6 @@ export class Hook extends Phaser.GameObjects.Container {
         this.#swingTime += dt / 1000;
         this.#swingAngle =
           Math.sin(this.#swingTime * HOOK_SWING_SPEED) * HOOK_SWING_MAX_ANGLE;
-
         break;
       case HookState.FIRING:
         this.#ropeLength += HOOK_FIRE_SPEED * (dt / 1000);
@@ -79,15 +86,34 @@ export class Hook extends Phaser.GameObjects.Container {
     const tipX = Math.sin(this.#swingAngle) * this.#ropeLength;
     const tipY = Math.cos(this.#swingAngle) * this.#ropeLength;
     this.#image.setPosition(tipX, tipY);
-    this.#image.setAngle(180 - Phaser.Math.RadToDeg(this.#swingAngle));
+    this.#image.setAngle(180 - PhaserMath.RadToDeg(this.#swingAngle));
 
     this.#rope.clear();
     this.#rope.lineStyle(3, 0x8b4513, 1);
     this.#rope.lineBetween(0, 0, tipX, tipY);
   }
 
+  #computeMaxRopeLength(): number {
+    const dx = Math.sin(this.#swingAngle);
+    const dy = Math.cos(this.#swingAngle);
+    const { width, height } = this.scene.scale;
+    let minT = Infinity;
+
+    if (dy > 0) minT = Math.min(minT, (height - this.y) / dy);
+    if (dy < 0) minT = Math.min(minT, -this.y / dy);
+    if (dx > 0) minT = Math.min(minT, (width - this.x) / dx);
+    if (dx < 0) minT = Math.min(minT, -this.x / dx);
+
+    return minT;
+  }
+
   #updateHookState(newState: HookStateType) {
     this.#state = newState;
+    if (newState === HookState.FIRING || newState === HookState.REELING) {
+      if (!this.#ropeSound.isPlaying) this.#ropeSound.play();
+    } else {
+      this.#ropeSound.stop();
+    }
   }
 
   #render() {

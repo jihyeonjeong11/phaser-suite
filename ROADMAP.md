@@ -8,16 +8,16 @@
     - firing
     - reeling
   - Minable Objects
-
   - Hook class 2
     - collision
     - catching
-
   - Scoring
-  - Dynamite
   - Randomized mine generation
+  - Multi levels and goals
+  - Sounds
+  - Code Cleaning
 
--
+  - Dynamite
 
 ## 2. An Electron Wrapper for executables https://github.com/digitsensitive/phaser3-electron
 

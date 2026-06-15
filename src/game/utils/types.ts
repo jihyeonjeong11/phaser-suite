@@ -1,3 +1,15 @@
+import { MINING_TYPES } from "./constants";
+
+export type MinableEntry = {
+  type: keyof typeof MINING_TYPES;
+  nx: number;
+  ny: number;
+};
+
+export type LevelTemplate = {
+  minables: MinableEntry[];
+};
+
 export const HookState = {
   SWINGING: "SWINGING",
   FIRING: "FIRING",
