@@ -31,39 +31,47 @@ export class Game extends Scene {
     this.add
       .image(width / 2, height / 2, "background")
       .setDisplaySize(width, height);
-    this.#renderHUD();
-    this.#renderMiningHook();
+    new Hud(
+      this,
+      this.registry.get(REG.MONEY) as number,
+      this.registry.get(REG.GOAL) as number,
+      this.registry.get(REG.TIME) as number,
+      this.registry.get(REG.LEVEL) as number,
+    );
+    this.#hook = new Hook(this, this.scale.width / 2, 80);
     this.#mine = new Mine(this, this.registry.get(REG.LEVEL) as number);
     this.#collectSound = this.sound.add("collect");
     this.#hook.on("reelComplete", this.#onReelComplete, this);
     this.time.addEvent({
       delay: 1000,
       repeat: REGISTRY_DEFAULTS[REG.TIME] - 1,
-      callback: () => {
-        const remaining = (this.registry.get(REG.TIME) as number) - 1;
-        this.registry.set(REG.TIME, remaining);
-        if (remaining <= 0) {
-          const money = this.registry.get(REG.MONEY) as number;
-          const goal = this.registry.get(REG.GOAL) as number;
-          if (money >= goal) {
-            const nextLevel = (this.registry.get(REG.LEVEL) as number) + 1;
-            if (LEVEL_TEMPLATES[nextLevel]) {
-              this.scene.start("GoalAnnounce", { level: nextLevel });
-            } else {
-              this.scene.start("GameComplete");
-            }
-          } else {
-            this.scene.start("GameOver");
-          }
-        }
-      },
+      callback: this.#onTimerTick,
+      callbackScope: this,
     });
   }
 
   update(_time: number, delta: number): void {
     this.#hook.update(delta);
     this.#checkCollision();
-    this.#trackCaughtMinable();
+    this.#trackCaught();
+  }
+
+  #onTimerTick(): void {
+    const remaining = (this.registry.get(REG.TIME) as number) - 1;
+    this.registry.set(REG.TIME, remaining);
+    if (remaining > 0) return;
+
+    const money = this.registry.get(REG.MONEY) as number;
+    const goal = this.registry.get(REG.GOAL) as number;
+    if (money >= goal) {
+      const nextLevel = (this.registry.get(REG.LEVEL) as number) + 1;
+      this.scene.start(
+        LEVEL_TEMPLATES[nextLevel] ? "GoalAnnounce" : "GameComplete",
+        { level: nextLevel },
+      );
+    } else {
+      this.scene.start("GameOver");
+    }
   }
 
   #onReelComplete(): void {
@@ -93,22 +101,8 @@ export class Game extends Scene {
     }
   }
 
-  #trackCaughtMinable(): void {
+  #trackCaught(): void {
     if (!this.#caughtMinable) return;
     this.#caughtMinable.setPosition(this.#hook.tipWorldX, this.#hook.tipWorldY);
-  }
-
-  #renderMiningHook(): void {
-    this.#hook = new Hook(this, this.scale.width / 2, 80);
-  }
-
-  #renderHUD() {
-    new Hud(
-      this,
-      this.registry.get(REG.MONEY) as number,
-      this.registry.get(REG.GOAL) as number,
-      this.registry.get(REG.TIME) as number,
-      this.registry.get(REG.LEVEL) as number,
-    );
   }
 }
