@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "pnpm": {
-    "onlyBuiltDependencies": ["electron", "esbuild"]
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
   },
   "scripts": {
     "dev": "pnpm --filter electron dev",
@@ -11,6 +14,7 @@
     "build:electron": "pnpm --filter electron build",
     "build": "pnpm build:games && pnpm build:electron",
     "preview:electron": "pnpm --filter electron preview",
-    "dev:game": "pnpm --filter game-gold-miner dev"
+    "dev:game": "pnpm --filter game-gold-miner dev",
+    "dev:flappy": "pnpm --filter game-flappy dev"
   }
 }
