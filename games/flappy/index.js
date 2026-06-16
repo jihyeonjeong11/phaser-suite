@@ -2,17 +2,14 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
+let gameOver = false;
+
+const bgImg = new Image();
+
 const GRAVITY = 0.5;
 const JUMPING_POWER = -3.6;
 
 const X_SPEED = 2;
-
-const birdImg = new Image();
-birdImg.src = "./assets/Bird1-1.png";
-const bgImg = new Image();
-bgImg.src = "./assets/Background4.png";
-const landImg = new Image();
-landImg.src = "./assets/TileStyle1.png";
 
 addEventListener("pointerdown", (e) => {
   Bird.jump();
@@ -35,6 +32,8 @@ addEventListener("keydown", (e) => {
  *   - Not background, make land to go left and draw land to right?
  * steps4: draw pipes
  * steps5: add collision detection
+ *
+ *
  * steps6: add score
  * steps7: add game over screen
  * steps8: add start screen
@@ -89,6 +88,25 @@ const Bird = {
   jump() {
     this.speed = -3.6;
   },
+  hitGround() {
+    if (Bird.y + Bird.height * this.scale >= canvas.height - Ground.height) {
+      gameOver = true;
+    }
+  },
+  hitPipe() {
+    const left = this.x - this.width / 2;
+    const right = left + this.width * this.scale;
+    const top = this.y;
+    const bottom = this.y + this.height * this.scale;
+
+    Pipe.pipes.forEach((p) => {
+      const overlapX = right > p.x && left < p.x + PIPE_W;
+      const outsideGap = top < p.gapY || bottom > p.gapY + PIPE_GAP;
+      if (overlapX && outsideGap) {
+        gameOver = true;
+      }
+    });
+  },
 };
 
 const Ground = {
@@ -128,7 +146,7 @@ const Pipe = {
   sprite: new Image(),
   pipes: [],
 
-  randomGapY() {
+  setupGapBetweenPipes() {
     const groundTop = canvas.height - Ground.height;
     const min = 60;
     const max = groundTop - PIPE_GAP - 60;
@@ -167,7 +185,7 @@ const Pipe = {
 
     const last = this.pipes[this.pipes.length - 1];
     if (!last || last.x <= canvas.width - PIPE_SPACING) {
-      this.pipes.push({ x: canvas.width, gapY: this.randomGapY() });
+      this.pipes.push({ x: canvas.width, gapY: this.setupGapBetweenPipes() });
     }
 
     if (this.pipes.length && this.pipes[0].x < -PIPE_W) {
@@ -176,6 +194,7 @@ const Pipe = {
   },
 };
 
+bgImg.src = "./assets/Background4.png";
 Bird.sprite.src = "./assets/Bird1-1.png";
 Ground.sprite.src = "./assets/TileStyle1.png";
 Pipe.sprite.src = "./assets/PipeStyle1.png";
@@ -190,13 +209,15 @@ function loop(now) {
   Bird.draw();
 
   if (now >= lastTime + 20) {
+    Bird.hitGround();
+    Bird.hitPipe();
     Bird.update();
     Ground.update();
     Pipe.update();
     lastTime += 20;
   }
 
-  requestAnimationFrame(loop);
+  if (!gameOver) requestAnimationFrame(loop);
 }
 
-birdImg.onload = () => requestAnimationFrame(loop);
+requestAnimationFrame(loop);
