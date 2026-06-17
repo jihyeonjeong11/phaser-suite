@@ -2,61 +2,25 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 ctx.imageSmoothingEnabled = false;
 
-let gameOver = false;
+const Options = {
+  gravity: 0.6,
+  jumpPower: -9.3,
+  speed: 2.1,
+  pipeGap: 156,
+  pipeWidth: 100,
+  pipeHeight: 400,
+  pipeSpacing: 220,
+};
+
+const State = { READY: "ready", PLAY: "play", OVER: "over" };
+
+const DEBUG = false;
+
+let gameState = State.READY;
+let score = 0;
+let lastTime = 0;
 
 const bgImg = new Image();
-
-const GRAVITY = 0.5;
-const JUMPING_POWER = -3.6;
-
-const X_SPEED = 2;
-
-addEventListener("pointerdown", (e) => {
-  Bird.jump();
-});
-
-addEventListener("keydown", (e) => {
-  if (e.code === "Space") {
-    Bird.jump();
-  }
-});
-
-/**
- * steps1: draw bird
- *  - Start bird from the center Y of the canvas
- *  - Gravity Makes the bird fall down
- *  - Space key makes the bird jump up
- *  - Calculate this on every 60Hz frame (60 frames per second)
- * steps2: add gravity and jump control
- * steps3: advance map
- *   - Not background, make land to go left and draw land to right?
- * steps4: draw pipes
- * steps5: add collision detection
- *
- *
- * steps6: add score
- * steps7: add game over screen
- * steps8: add start screen
- * steps9: add restart button
- * steps10: add mobile controls
- * steps11: add sound effects
- * steps12: add background music
- * steps13: add animations
- */
-
-function drawBackground() {
-  ctx.drawImage(
-    bgImg,
-    0,
-    0,
-    bgImg.width,
-    bgImg.height,
-    0,
-    0,
-    canvas.width,
-    canvas.height,
-  );
-}
 
 const Bird = {
   sprite: new Image(),
@@ -64,14 +28,17 @@ const Bird = {
   y: canvas.height / 2,
   width: 16,
   height: 16,
-  sprite: new Image(),
-  gravity: 0.1,
   scale: 3,
   speed: 0,
+  hitbox: { top: 3, bottom: 1, left: 2, right: 2 },
+  activeIdx: 0,
+  frameTick: 0,
+  spriteFrame: [0, 16, 32, 48],
   draw() {
+    const nextSprite = this.spriteFrame[this.activeIdx];
     ctx.drawImage(
       this.sprite,
-      0,
+      nextSprite,
       0,
       this.width,
       this.height,
@@ -82,30 +49,29 @@ const Bird = {
     );
   },
   update() {
-    this.speed += this.gravity;
+    this.speed += Options.gravity;
     this.y += this.speed;
-  },
-  jump() {
-    this.speed = -3.6;
-  },
-  hitGround() {
-    if (Bird.y + Bird.height * this.scale >= canvas.height - Ground.height) {
-      gameOver = true;
+
+    this.frameTick += 1;
+    if (this.frameTick % 3 === 0) {
+      this.activeIdx = (this.activeIdx + 1) % this.spriteFrame.length; // 값만 바꿈
     }
   },
-  hitPipe() {
-    const left = this.x - this.width / 2;
-    const right = left + this.width * this.scale;
-    const top = this.y;
-    const bottom = this.y + this.height * this.scale;
+  jump() {
+    // this.sprite.rotate?
 
-    Pipe.pipes.forEach((p) => {
-      const overlapX = right > p.x && left < p.x + PIPE_W;
-      const outsideGap = top < p.gapY || bottom > p.gapY + PIPE_GAP;
-      if (overlapX && outsideGap) {
-        gameOver = true;
-      }
-    });
+    this.speed = Options.jumpPower;
+    SFX.play("flap");
+  },
+  getRect() {
+    const hb = this.hitbox;
+    const spriteX = this.x - this.width / 2;
+    return {
+      left: spriteX + hb.left * this.scale,
+      right: spriteX + (this.width - hb.right) * this.scale,
+      top: this.y + hb.top * this.scale,
+      bottom: this.y + (this.height - hb.bottom) * this.scale,
+    };
   },
 };
 
@@ -132,15 +98,13 @@ const Ground = {
     }
   },
   update() {
-    this.x -= X_SPEED;
+    this.x -= Options.speed;
     if (this.x <= -canvas.width) this.x += canvas.width;
   },
+  hits(rect) {
+    return rect.bottom >= canvas.height - this.height;
+  },
 };
-
-const PIPE_GAP = 150;
-const PIPE_W = 100;
-const PIPE_H = 400;
-const PIPE_SPACING = 220;
 
 const Pipe = {
   sprite: new Image(),
@@ -149,7 +113,7 @@ const Pipe = {
   setupGapBetweenPipes() {
     const groundTop = canvas.height - Ground.height;
     const min = 60;
-    const max = groundTop - PIPE_GAP - 60;
+    const max = groundTop - Options.pipeGap - 60;
     return min + Math.random() * (max - min);
   },
 
@@ -162,9 +126,9 @@ const Pipe = {
         32,
         80,
         p.x,
-        p.gapY - PIPE_H,
-        PIPE_W,
-        PIPE_H,
+        p.gapY - Options.pipeHeight,
+        Options.pipeWidth,
+        Options.pipeHeight,
       );
       ctx.drawImage(
         this.sprite,
@@ -173,24 +137,34 @@ const Pipe = {
         32,
         80,
         p.x,
-        p.gapY + PIPE_GAP,
-        PIPE_W,
-        PIPE_H,
+        p.gapY + Options.pipeGap,
+        Options.pipeWidth,
+        Options.pipeHeight,
       );
     });
   },
 
   update() {
-    this.pipes.forEach((p) => (p.x -= X_SPEED));
+    this.pipes.forEach((p) => (p.x -= Options.speed));
 
     const last = this.pipes[this.pipes.length - 1];
-    if (!last || last.x <= canvas.width - PIPE_SPACING) {
+    if (!last || last.x <= canvas.width - Options.pipeSpacing) {
       this.pipes.push({ x: canvas.width, gapY: this.setupGapBetweenPipes() });
     }
 
-    if (this.pipes.length && this.pipes[0].x < -PIPE_W) {
+    if (this.pipes.length && this.pipes[0].x < -Options.pipeWidth) {
+      score++;
       this.pipes.shift();
     }
+  },
+
+  hits(rect) {
+    return this.pipes.some((p) => {
+      const overlapX = rect.right > p.x && rect.left < p.x + Options.pipeWidth;
+      const outsideGap =
+        rect.top < p.gapY || rect.bottom > p.gapY + Options.pipeGap;
+      return overlapX && outsideGap;
+    });
   },
 };
 
@@ -199,7 +173,134 @@ Bird.sprite.src = "./assets/Bird1-1.png";
 Ground.sprite.src = "./assets/TileStyle1.png";
 Pipe.sprite.src = "./assets/PipeStyle1.png";
 
-let lastTime = 0;
+const SFX = {
+  flap: new Audio("./assets/flap.mp3"),
+  crash: new Audio("./assets/crash.mp3"),
+  play(name) {
+    const audio = this[name];
+    audio.currentTime = 0;
+    audio.play();
+  },
+};
+
+function drawBackground() {
+  ctx.drawImage(
+    bgImg,
+    0,
+    0,
+    bgImg.width,
+    bgImg.height,
+    0,
+    0,
+    canvas.width,
+    canvas.height,
+  );
+}
+
+function drawScore() {
+  ctx.font = "48px sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = "#000";
+  ctx.fillStyle = "#fff";
+  ctx.strokeText(score, canvas.width / 2, 30);
+
+  ctx.fillText(score, canvas.width / 2, 30);
+}
+
+function drawGameOver() {
+  ctx.font = "48px sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = "#000";
+  ctx.strokeText("Game Over", canvas.width / 2, canvas.height / 2 - 50, 200);
+  ctx.fillText("Game Over", canvas.width / 2, canvas.height / 2 - 50, 200);
+
+  ctx.strokeText(score, canvas.width / 2, canvas.height / 2, 100);
+  ctx.fillText(score, canvas.width / 2, canvas.height / 2, 100);
+}
+
+function drawInstruction() {
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = "#000";
+  ctx.fillStyle = "#fff";
+
+  ctx.font = "40px sans-serif";
+  ctx.strokeText("Flappy", canvas.width / 2, canvas.height / 2 - 80);
+  ctx.fillText("Flappy", canvas.width / 2, canvas.height / 2 - 80);
+
+  ctx.font = "24px sans-serif";
+  ctx.strokeText(
+    "Tap or Space to flap",
+    canvas.width / 2,
+    canvas.height / 2 - 20,
+  );
+  ctx.fillText(
+    "Tap or Space to flap",
+    canvas.width / 2,
+    canvas.height / 2 - 20,
+  );
+
+  ctx.strokeText("Avoid the pipes", canvas.width / 2, canvas.height / 2 + 14);
+  ctx.fillText("Avoid the pipes", canvas.width / 2, canvas.height / 2 + 14);
+}
+
+function drawHitboxes() {
+  ctx.strokeStyle = "red";
+  ctx.lineWidth = 2;
+
+  const r = Bird.getRect();
+  ctx.strokeRect(r.left, r.top, r.right - r.left, r.bottom - r.top);
+
+  Pipe.pipes.forEach((p) => {
+    ctx.strokeRect(
+      p.x,
+      p.gapY - Options.pipeHeight,
+      Options.pipeWidth,
+      Options.pipeHeight,
+    );
+    ctx.strokeRect(
+      p.x,
+      p.gapY + Options.pipeGap,
+      Options.pipeWidth,
+      Options.pipeHeight,
+    );
+  });
+}
+
+function reset() {
+  score = 0;
+  Bird.y = canvas.height / 2;
+  Bird.speed = 0;
+  Pipe.pipes = [];
+  Ground.x = 0;
+}
+
+function handleInput() {
+  switch (gameState) {
+    case State.READY:
+      gameState = State.PLAY;
+      Bird.jump();
+      break;
+    case State.PLAY:
+      Bird.jump();
+      break;
+    case State.OVER:
+      reset();
+      gameState = State.READY;
+      break;
+  }
+}
+
+addEventListener("pointerdown", () => handleInput());
+
+addEventListener("keydown", (e) => {
+  if (e.code === "Space") handleInput();
+});
 
 function loop(now) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -208,16 +309,28 @@ function loop(now) {
   Ground.draw();
   Bird.draw();
 
+  if (gameState === State.PLAY) drawScore();
+
+  if (gameState === State.READY) drawInstruction();
+  if (gameState === State.OVER) drawGameOver();
+  if (DEBUG) drawHitboxes();
   if (now >= lastTime + 20) {
-    Bird.hitGround();
-    Bird.hitPipe();
-    Bird.update();
-    Ground.update();
-    Pipe.update();
+    if (gameState === State.PLAY) {
+      Bird.update();
+      Ground.update();
+      Pipe.update();
+
+      const rect = Bird.getRect();
+      if (Ground.hits(rect) || Pipe.hits(rect)) {
+        gameState = State.OVER;
+
+        SFX.play("crash");
+      }
+    }
     lastTime += 20;
   }
 
-  if (!gameOver) requestAnimationFrame(loop);
+  requestAnimationFrame(loop);
 }
 
 requestAnimationFrame(loop);
