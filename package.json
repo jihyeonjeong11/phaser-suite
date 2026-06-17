@@ -9,12 +9,15 @@
     ]
   },
   "scripts": {
+    "game:new": "sh new-game.sh",
     "dev": "pnpm --filter electron dev",
     "build:games": "pnpm --filter \"game-*\" build",
     "build:electron": "pnpm --filter electron build",
     "build": "pnpm build:games && pnpm build:electron",
     "preview:electron": "pnpm --filter electron preview",
     "dev:game": "pnpm --filter game-gold-miner dev",
-    "dev:flappy": "pnpm --filter game-flappy dev"
+    "dev:flappy": "pnpm --filter game-flappy dev",
+    "dev:fishy": "pnpm --filter game-fishy dev",
+    "dev:showcase": "pnpm --filter game-stickfigure-showcase dev"
   }
 }

@@ -4,7 +4,11 @@ A game-clone design preps.
 
 ## Playable References
 
-## Genre
+## Genre and Concepts
+
+## Things to dump for MVP
+
+## Logics I learned from previous games
 
 ## Core logics to learn
 
