@@ -1,7 +1,7 @@
-// 1. acceleration system   ✅
-// 2. Fish entities         ✅ (적 10마리)
-// 3. collision             ✅ (오리지널 AABB: 가로=크기합, 세로=크기합/3)
-// 4. Eating system         ✅ (내가 크면 먹고 성장, 작으면 게임오버)
+// 1. acceleration system
+// 2. Fish entities
+// 3. collision
+// 4. Eating system
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -11,22 +11,21 @@ const H = canvas.height; // 768
 
 const SCALE = 1.5;
 
-const ACCEL = 364 * SCALE; // 가속 px/s²
-const FRICTION = 0.91; // 마찰(비율이라 스케일 무관)
-const PLAYER_START_SIZE = 15 * SCALE; // 시작 반경 px
-const WIN_SIZE = 300 * SCALE; // 이 반경 넘으면 승리
+const ACCEL = 364 * SCALE;
+const FRICTION = 0.91;
+const PLAYER_START_SIZE = 15 * SCALE;
+const WIN_SIZE = 300 * SCALE;
 
-// ── 적 (px 단위, 원본 550 좌표계 수치 × SCALE) ──
 const ENEMY_COUNT = 10;
-const ENEMY_MIN_SIZE = 2 * SCALE; // 최소 반경
-const ENEMY_SIZE_RANGE = 72 * SCALE; // 반경 난수 폭
-const ENEMY_SPEED_UNIT = 30 * SCALE; // s(-6,-4,-2,2,4)에 곱할 단위속도 px/s
-const ENEMY_ENTER_LEFT = -90 * SCALE; // →진행: 왼쪽 밖 등장
-const ENEMY_ENTER_RIGHT = 640 * SCALE; // ←진행: 오른쪽 밖 등장
-const ENEMY_EXIT_RIGHT = 650 * SCALE; // 이 너머 → 리스폰
+const ENEMY_MIN_SIZE = 2 * SCALE;
+const ENEMY_SIZE_RANGE = 72 * SCALE;
+const ENEMY_SPEED_UNIT = 30 * SCALE;
+const ENEMY_ENTER_LEFT = -90 * SCALE;
+const ENEMY_ENTER_RIGHT = 640 * SCALE;
+const ENEMY_EXIT_RIGHT = 650 * SCALE;
 const ENEMY_EXIT_LEFT = -100 * SCALE;
 
-const DEBUG_HITBOX = true; // 개발용: 충돌 판정 박스 표시 (가로 size, 세로 size/3)
+const DEBUG_HITBOX = false;
 
 const State = { READY: "ready", PLAY: "play", OVER: "over", WIN: "win" };
 let gameState = State.READY;
@@ -34,7 +33,19 @@ let score = 0;
 let lastTime = 0;
 
 const sprite = new Image();
-sprite.src = "./assets/fish_blue_outline.png";
+sprite.src = "./assets/fish_orange_outline.png";
+
+const bgImg = new Image();
+bgImg.src = "./assets/StockCake-Serene_Underwater_Pixels-2097335-medium.jpg";
+
+const SFX = {
+  gulp: new Audio("./assets/gulp.mp3"),
+  play(name) {
+    const audio = this[name];
+    audio.currentTime = 0; // 연속 먹기 시 처음부터 재생
+    audio.play();
+  },
+};
 
 const keys = {};
 window.addEventListener("keydown", (e) => {
@@ -120,7 +131,7 @@ const enemies = {
   },
   spawn(e = {}) {
     e.size = Math.random() * ENEMY_SIZE_RANGE + ENEMY_MIN_SIZE;
-    let s = Math.max(Math.floor(Math.random() * 6) - 3) * 2; // {-6,-4,-2,0,2,4}
+    let s = (Math.floor(Math.random() * 6) - 3) * 2; // {-6,-4,-2,0,2,4}
     if (s === 0) s = 2;
     e.vx = s * ENEMY_SPEED_UNIT;
     e.x = s > 0 ? ENEMY_ENTER_LEFT : ENEMY_ENTER_RIGHT;
@@ -143,11 +154,13 @@ function handleCollisions() {
     const sum = player.size + e.size;
     if (Math.abs(e.x - player.x) < sum && Math.abs(e.y - player.y) < sum / 3) {
       if (player.size > e.size) {
+        SFX.play("gulp");
         player.size += e.size / 50;
         score += e.size * 6;
         enemies.spawn(e);
         if (player.size > WIN_SIZE) gameState = State.WIN;
       } else {
+        SFX.play("gulp");
         gameState = State.OVER;
       }
     }
@@ -199,6 +212,7 @@ function loop(now) {
   lastTime = now;
 
   ctx.clearRect(0, 0, W, H);
+  ctx.drawImage(bgImg, 0, 0, W, H); // 배경 (로드 전이면 no-op → 투명)
 
   if (gameState === State.PLAY) {
     player.update(dt);
