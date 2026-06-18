@@ -17,6 +17,7 @@
     "preview:electron": "pnpm --filter electron preview",
     "dev:game": "pnpm --filter game-gold-miner dev",
     "dev:flappy": "pnpm --filter game-flappy dev",
+    "dev:memory": "pnpm --filter game-memory dev",
     "dev:fishy": "pnpm --filter game-fishy dev",
     "dev:showcase": "pnpm --filter game-stickfigure-showcase dev"
   }

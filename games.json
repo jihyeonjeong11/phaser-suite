@@ -17,6 +17,15 @@
       "thumbnail": "",
       "tags": ["arcade", "casual"],
       "enabled": true
+    },
+    {
+      "id": "memory",
+      "title": "Memory",
+      "description": "카드를 뒤집어 같은 국기 짝을 맞추는 기억력 게임",
+      "entry": "games/memory/dist/index.html",
+      "thumbnail": "games/memory/public/memory/KR.svg",
+      "tags": ["puzzle", "casual"],
+      "enabled": true
     }
   ]
 }
