@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="./favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./style.css" />
+    <title>Trigonometry - Lesson</title>
+  </head>
+
+  <body>
+    <div id="app">
+      <div id="trig-container">
+        trigonometry
+
+        <canvas width="600" height="600"></canvas>
+      </div>
+    </div>
+    <script type="module">
+      /* =========================================================
+         🧠 퀴즈 — 캔버스 · 삼각함수 · 원  (답은 각 A: 줄에 직접 적기)
+         ---------------------------------------------------------
+         Q1. (캔버스 좌표)
+             const py = cy - Math.sin(angle) * r;  에서
+             sin을 더하지 않고 "뺀(-)" 이유는?
+             A:
+
+         Q2. (sin/cos의 범위)
+             Math.cos(angle), Math.sin(angle) 의 값 범위는?
+             r(=200)을 곱하면 중심에서 최대 얼마까지 벗어나나?
+             A:
+
+         Q3. (angle과 사분면)
+             angle = Math.PI(약 3.14)일 때 점은 화면의 어느 쪽?
+             그때 cos, sin 값은 대략 얼마?
+             A:
+
+         Q4. (진짜 동력)
+             점이 멈추지 않고 도는 이유를 아래 3단어로 설명:
+             requestAnimationFrame, time, angle
+             A:
+
+         Q5. (응용)
+             지금은 오른쪽에서 시작해 "반시계" 방향으로 돈다.
+             "시계" 방향으로 돌리려면 코드를 어떻게 바꾸면 될까? (하나만)
+             A:
+         ========================================================= */
+
+      const canvas = document.querySelector("canvas");
+      const ctx = canvas.getContext("2d");
+
+      // https://ko.wikipedia.org/wiki/%EB%9D%BC%EB%94%94%EC%95%88
+      // https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Math/sin
+
+      // === 원 위를 도는 점이 만드는 직각삼각형 보여주기 ===
+      const cx = canvas.width / 2; // 원의 중심 x
+      const cy = canvas.height / 2; // 원의 중심 y
+      const r = 200; // 반지름 (= 빗변 길이)
+
+      function draw(time) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const angle = time * 0.001; // 시간을 각도로 → 점이 계속 돈다
+
+        // 원 위 점의 좌표
+        // (캔버스 y는 아래로 +이므로, sin은 빼서 위로 솟게 만든다)
+        const px = cx + Math.sin(angle) * r;
+        const py = cy - Math.cos(angle) * r;
+
+        // --- 보조선: 가로축 / 세로축 ---
+        ctx.strokeStyle = "rgba(0,0,0,0.15)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cx - r - 20, cy);
+        ctx.lineTo(cx + r + 20, cy);
+        ctx.moveTo(cx, cy - r - 20);
+        ctx.lineTo(cx, cy + r + 20);
+        ctx.stroke();
+
+        // --- 원 그리기 ---
+        ctx.strokeStyle = "rgba(0,0,0,0.3)";
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // --- 직각삼각형 ---
+        // 1) 빗변 (반지름): 중심 → 점
+        ctx.strokeStyle = "#333";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(px, py);
+        ctx.stroke();
+
+        // 2) 가로변 (cos): 중심 → 점의 바로 아래(가로축 위)
+        ctx.strokeStyle = "royalblue";
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(px, cy);
+        ctx.stroke();
+
+        // 3) 세로변 (sin): 가로축 → 점
+        ctx.strokeStyle = "crimson";
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(px, cy);
+        ctx.lineTo(px, py);
+        ctx.stroke();
+
+        // --- 점 ---
+        ctx.fillStyle = "#111";
+        ctx.beginPath();
+        ctx.arc(px, py, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // --- 라벨 / 값 ---
+        ctx.font = "16px sans-serif";
+        ctx.fillStyle = "crimson";
+        ctx.fillText(
+          `sin = ${Math.sin(angle).toFixed(2)} (세로변)`,
+          px + 12,
+          (cy + py) / 2,
+        );
+        ctx.fillStyle = "royalblue";
+        ctx.fillText(
+          `cos = ${Math.cos(angle).toFixed(2)} (가로변)`,
+          (cx + px) / 2 - 30,
+          cy + 24,
+        );
+
+        // --- angle 값 표시 (사분면을 움직이는 주체) ---
+        // 0~2π 범위로 접어서 보기 (계속 커지는 angle을 한 바퀴 기준으로)
+        const angleWrapped = angle % (Math.PI * 2);
+        const deg = (angleWrapped * 180) / Math.PI;
+        const quadrant = Math.floor(angleWrapped / (Math.PI / 2)) + 1;
+        ctx.font = "20px sans-serif";
+        ctx.fillStyle = "#111";
+        ctx.fillText(`angle = ${angleWrapped.toFixed(2)} rad`, 16, 30);
+        ctx.fillText(`      = ${deg.toFixed(0)}°`, 16, 56);
+        ctx.fillText(`${quadrant}사분면`, 16, 82);
+
+        requestAnimationFrame(draw);
+      }
+      requestAnimationFrame(draw);
+    </script>
+    <style>
+      #trig-container {
+        display: flex;
+        flex-direction: column;
+        gap: 3rem;
+        height: 100vh;
+        justify-content: center;
+        align-items: center;
+
+        canvas {
+          background: tan;
+        }
+      }
+    </style>
+  </body>
+</html>

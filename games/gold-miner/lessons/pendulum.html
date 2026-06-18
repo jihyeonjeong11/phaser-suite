@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="./favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./style.css" />
+    <title>Pendulum - Lesson</title>
+  </head>
+
+  <body>
+    <div id="app">
+      <div id="pendulum-container">
+        pendulum
+
+        <canvas width="600" height="600"></canvas>
+      </div>
+    </div>
+    <script type="module">
+      const canvas = document.querySelector("canvas");
+      const ctx = canvas.getContext("2d");
+      const rope_length = 100;
+      const r = 25;
+      // 흔들림 최대 각도(라디안 값)
+      const max_angle = 1;
+
+      function draw(time) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // sin을 통해 time의 범위가 -1 ~1 로 고정. * 원하는 각도(라디안)
+        const angle = max_angle * Math.sin(time * 0.001);
+
+        // 2사분면(90도 차이)로 인해 sin이 y를 담당하게 됨.
+        const y = Math.sin(angle) * rope_length;
+        const x = Math.cos(angle) * rope_length;
+
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, canvas.height / 2);
+        ctx.lineTo(canvas.width / 2 + x, canvas.height / 2 + y);
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(
+          canvas.width / 2 + 5 + x,
+          canvas.height / 2 + y,
+          r,
+          0,
+          Math.PI * 2,
+        );
+        ctx.fill();
+
+        requestAnimationFrame(draw);
+      }
+      requestAnimationFrame(draw);
+    </script>
+    <style>
+      #pendulum-container {
+        display: flex;
+        flex-direction: column;
+        gap: 3rem;
+        height: 100vh;
+        justify-content: center;
+        align-items: center;
+
+        canvas {
+          background: tan;
+        }
+      }
+    </style>
+  </body>
+</html>
