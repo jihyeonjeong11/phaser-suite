@@ -19,12 +19,12 @@
       "enabled": true
     },
     {
-      "id": "memory",
-      "title": "Memory",
-      "description": "카드를 뒤집어 같은 국기 짝을 맞추는 기억력 게임",
-      "entry": "games/memory/dist/index.html",
-      "thumbnail": "games/memory/public/memory/KR.svg",
-      "tags": ["puzzle", "casual"],
+      "id": "fishy",
+      "title": "fishy",
+      "description": "Move your fish and conqueor All fishes",
+      "entry": "games/fishy/dist/index.html",
+      "thumbnail": "",
+      "tags": ["arcade"],
       "enabled": true
     }
   ]
