@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react'
-import './App.css'
+import { useEffect, useRef, useState } from 'react'
+import './app.css'
 
 interface Game {
   id: string
@@ -20,24 +20,25 @@ declare global {
   }
 }
 
-export default function App() {
+function App(): React.JSX.Element {
   const [games, setGames] = useState<Game[]>([])
   const [activeGamePath, setActiveGamePath] = useState<string | null>(null)
   const webviewRef = useRef<Electron.WebviewTag | null>(null)
 
   useEffect(() => {
+    console.log('hello')
     if (!window.arcade) return
     window.arcade.listGames().then((list) => {
       setGames(list.filter((g) => g.enabled))
     })
   }, [])
 
-  async function launchGame(game: Game) {
-    const path = await window.arcade.getGameEntryPath(game.entry)
-    setActiveGamePath(`file://${path}`)
+  async function launchGame(game: Game): Promise<void> {
+    const fileUrl = await window.arcade.getGameEntryPath(game.entry)
+    setActiveGamePath(fileUrl)
   }
 
-  function exitGame() {
+  function exitGame(): void {
     setActiveGamePath(null)
   }
 
@@ -46,29 +47,25 @@ export default function App() {
       {activeGamePath ? (
         <div className="game-view">
           <div className="game-bar">
-            <button className="back-btn" onClick={exitGame}>← 목록으로</button>
+            <button className="back-btn" onClick={exitGame}>
+              ← 목록으로
+            </button>
           </div>
-          <webview
-            ref={webviewRef}
-            src={activeGamePath}
-            className="game-webview"
-          />
+          <webview ref={webviewRef} src={activeGamePath} className="game-webview" />
         </div>
       ) : (
         <div className="game-list">
           <h1 className="arcade-title">ARCADE</h1>
           <div className="game-grid">
             {games.map((game) => (
-              <button
-                key={game.id}
-                className="game-card"
-                onClick={() => launchGame(game)}
-              >
+              <button key={game.id} className="game-card" onClick={() => launchGame(game)}>
                 <div className="game-card-title">{game.title}</div>
                 <p className="game-card-desc">{game.description}</p>
                 <div className="game-card-tags">
                   {game.tags.map((tag) => (
-                    <span key={tag} className="tag">{tag}</span>
+                    <span key={tag} className="tag">
+                      {tag}
+                    </span>
                   ))}
                 </div>
               </button>
@@ -79,3 +76,5 @@ export default function App() {
     </div>
   )
 }
+
+export default App

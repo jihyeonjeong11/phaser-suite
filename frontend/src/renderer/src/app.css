@@ -35,7 +35,9 @@
   cursor: pointer;
   text-align: left;
   color: #fff;
-  transition: border-color 0.15s, transform 0.15s;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
 }
 
 .game-card:hover {
