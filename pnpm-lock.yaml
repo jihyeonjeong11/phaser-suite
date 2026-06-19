@@ -48,6 +48,12 @@ importers:
         specifier: ^5.4.0
         version: 5.4.21(@types/node@20.19.43)(terser@5.48.0)
 
+  games/fishy:
+    devDependencies:
+      vite:
+        specifier: ^6.3.1
+        version: 6.4.3(@types/node@20.19.43)(terser@5.48.0)
+
   games/flappy:
     devDependencies:
       vite:
@@ -66,6 +72,21 @@ importers:
       typescript:
         specifier: ~5.7.2
         version: 5.7.3
+      vite:
+        specifier: ^6.3.1
+        version: 6.4.3(@types/node@20.19.43)(terser@5.48.0)
+
+  games/memory:
+    devDependencies:
+      typescript:
+        specifier: ~5.7.2
+        version: 5.7.3
+      vite:
+        specifier: ^6.3.1
+        version: 6.4.3(@types/node@20.19.43)(terser@5.48.0)
+
+  games/stickfigure-assets-showcase:
+    devDependencies:
       vite:
         specifier: ^6.3.1
         version: 6.4.3(@types/node@20.19.43)(terser@5.48.0)

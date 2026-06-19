@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stickman Showcase</title>
+    <style>
+      :root {
+        --card: #ffffff;
+        --ink: #1f2937;
+        --muted: #6b7280;
+        --line: #e5e7eb;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+      body {
+        min-height: 100vh;
+        background: radial-gradient(120% 120% at 50% 0%, #2b3550 0%, #141925 60%);
+        color: var(--ink);
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px;
+      }
+      .stage {
+        background: var(--card);
+        border-radius: 18px;
+        padding: 22px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        align-items: center;
+      }
+      .stage h1 {
+        margin: 0;
+        font-size: 18px;
+        letter-spacing: 0.04em;
+        color: var(--ink);
+      }
+      .stage h1 span {
+        color: var(--muted);
+        font-weight: 400;
+      }
+      canvas {
+        display: block;
+        background: #eef3fa;
+        image-rendering: pixelated;
+        border-radius: 12px;
+      }
+      .controls {
+        display: flex;
+        gap: 10px;
+      }
+      button {
+        font: inherit;
+        font-size: 14px;
+        padding: 9px 16px;
+        border: 0;
+        border-radius: 999px;
+        color: #fff;
+        cursor: pointer;
+        transition: transform 0.08s ease, filter 0.15s ease;
+      }
+      button:hover {
+        filter: brightness(1.08);
+      }
+      button:active {
+        transform: translateY(1px);
+      }
+      #death {
+        background: #ef4444;
+      }
+      #revive {
+        background: #475569;
+      }
+      .legend {
+        display: flex;
+        gap: 18px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      kbd {
+        background: #f3f4f6;
+        border: 1px solid var(--line);
+        border-bottom-width: 2px;
+        border-radius: 6px;
+        padding: 2px 7px;
+        font: inherit;
+        font-size: 12px;
+        color: var(--ink);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="stage">
+      <h1>Stickman <span>· sprite showcase</span></h1>
+
+      <canvas id="game" width="640" height="460"></canvas>
+
+      <div class="controls">
+        <button id="death">💀 Death</button>
+        <button id="revive">↻ Revive</button>
+      </div>
+
+      <div class="legend">
+        <span><kbd>Space</kbd> Jump</span>
+        <span><kbd>F</kbd> Punch</span>
+        <span><kbd>Shift</kbd>/<kbd>→</kbd> Run</span>
+        <span><kbd>Enter</kbd> Revive</span>
+      </div>
+    </div>
+
+    <script type="module" src="/index.js"></script>
+  </body>
+</html>
