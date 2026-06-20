@@ -19,6 +19,7 @@
     "dev:flappy": "pnpm --filter game-flappy dev",
     "dev:memory": "pnpm --filter game-memory dev",
     "dev:fishy": "pnpm --filter game-fishy dev",
+    "dev:fcd": "pnpm --filter game-five-card-draw dev",
     "dev:showcase": "pnpm --filter game-stickfigure-showcase dev"
   }
 }

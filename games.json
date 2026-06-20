@@ -26,6 +26,15 @@
       "thumbnail": "",
       "tags": ["arcade"],
       "enabled": true
+    },
+    {
+      "id": "five-card-draw",
+      "title": "Five Card Draw",
+      "description": "헤즈업 파이브 카드 드로우 포커 (vs AI)",
+      "entry": "games/five-card-draw/dist/index.html",
+      "thumbnail": "",
+      "tags": ["card", "casino"],
+      "enabled": true
     }
   ]
 }
