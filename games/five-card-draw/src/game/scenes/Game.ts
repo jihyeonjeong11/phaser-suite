@@ -2,6 +2,9 @@ import { Scene } from "phaser";
 import { Deck } from "../gameobjects/Deck";
 import { Hand } from "../gameobjects/Hand";
 
+//SOLID
+// 여기서는 클래스 시작과 draw update 렌더만을 다룸
+
 // base logic
 // 1. Create deck
 // 2. Shuffle
