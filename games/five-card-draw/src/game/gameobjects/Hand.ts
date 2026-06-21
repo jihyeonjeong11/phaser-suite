@@ -1,41 +1,54 @@
 import { GameObjects, Scene } from "phaser";
-import { ICard } from "../../utils/types";
-import { cardFrame } from "../../utils/cardFrame";
-import { Card } from "./Card";
+import { ICard } from "../utils/types";
+import { CardDealtPayload, GameEvents } from "../utils/events";
+import { CardSprite } from "./CardSprite";
 
-// SOT 소유 + 시각 컨테이너.
-// cards/held가 진실(같은 인덱스), sprites는 그 진실을 그리는 뷰.
+// 손패가 화면 어디에 어떻게 놓이는지 (Game이 카메라 보고 주입 → Hand는 좌표를 모름)
+export interface HandLayout {
+  deck: { x: number; y: number }; // 카드가 출발하는 덱 더미 위치
+  anchor: { x: number; y: number }; // 첫 번째 슬롯(맨 왼쪽) 위치
+  gap: number; // 슬롯 간격
+}
+
+// 순수 뷰. 상태를 소유하지 않고, 씬이 방송한 "카드 딜" 이벤트를 받아 연출만 한다.
 export class Hand extends GameObjects.Container {
-  private static readonly GAP = 70;
+  private static readonly STAGGER = 120; // 장마다 출발 지연 (ms)
 
-  cards: ICard[]; // SOT: 받은 카드
-  held: boolean[]; // SOT: 잡힘 여부 (cards와 같은 인덱스)
-  private sprites: Card[]; // 뷰 (cards와 같은 인덱스)
+  constructor(
+    scene: Scene,
+    private layout: HandLayout,
+  ) {
+    super(scene, 0, 0); // (0,0)에 두면 컨테이너 로컬좌표 == 월드좌표
 
-  constructor(scene: Scene, cards: ICard[]) {
-    super(scene, 0, 0);
-    this.cards = cards;
-    this.held = cards.map(() => false);
-    this.sprites = cards.map((card, i) => {
-      const sprite = new Card(scene, i * Hand.GAP, 0, cardFrame(card)).setScale(
-        1.5,
-      );
-      // 입력은 상태를 소유한 Hand가 배선한다 (Card는 순수 드로잉 유지)
-      sprite.setInteractive();
-      sprite.on("pointerdown", () => this.toggleHold(i));
-      this.add(sprite);
-      return sprite;
+    scene.events.on(GameEvents.CardDealt, (p: CardDealtPayload) => {
+      this.dealTo(p.index, p.card);
     });
+    scene.events.on(GameEvents.HandReset, () => this.clear());
   }
 
-  // 잡힘 토글: SOT를 바꾸고, 해당 카드에 표시만 지시
-  toggleHold(i: number): void {
-    this.held[i] = !this.held[i];
-    this.sprites[i].setHeld(this.held[i]);
+  // 진행 중인 트윈까지 정리하고 모든 카드 스프라이트를 제거한다.
+  private clear(): void {
+    this.scene.tweens.killTweensOf(this.list); // 딜/플립 도중이어도 안전하게 중단
+    this.removeAll(true); // true = 자식(CardSprite)들을 destroy까지
   }
 
-  // 잡은 카드 / 안 잡은 카드 (SOT에서 파생)
-  get heldCards(): ICard[] {
-    return this.cards.filter((_, i) => this.held[i]);
+  // i번째 슬롯으로 한 장 연출: 덱에서 뒷면으로 출발 → 슬롯으로 이동 → 도착하면 뒤집기
+  private dealTo(i: number, card: ICard): void {
+    const sprite = new CardSprite(
+      this.scene,
+      this.layout.deck.x,
+      this.layout.deck.y,
+    ).setScale(1.5);
+    this.add(sprite);
+
+    this.scene.tweens.add({
+      targets: sprite,
+      x: this.layout.anchor.x + i * this.layout.gap,
+      y: this.layout.anchor.y,
+      duration: 400,
+      delay: i * Hand.STAGGER, // i번째 카드는 그만큼 늦게 출발 → 한 장씩
+      ease: "Cubic.easeOut",
+      onComplete: () => sprite.flipTo(card),
+    });
   }
 }

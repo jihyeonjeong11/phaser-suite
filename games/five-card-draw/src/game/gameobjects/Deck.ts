@@ -1,4 +1,4 @@
-import { CARD_VALUES, ICard, SUITS } from "../../utils/types";
+import { CARD_VALUES, ICard, SUITS } from "../utils/types";
 
 export class Deck {
   cards: ICard[];

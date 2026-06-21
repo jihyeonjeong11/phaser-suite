@@ -1,5 +1,6 @@
-export const SUITS = ["heart", "spade", "diamond", "club"] as const;
-export type Suit = (typeof SUITS)[number]; // "heart" | "spade" | "diamond" | "club"
+import { ICard } from "./types";
+
+// 추후 옵션값으로 빠질 수 있는 값과 정해진 값
 
 export const CARD_VALUES = [
   { value: 1, symbol: "A" },
@@ -17,11 +18,12 @@ export const CARD_VALUES = [
   { value: 13, symbol: "K" },
 ] as const;
 
-export type CardValue = (typeof CARD_VALUES)[number];
-export type CardSymbol = CardValue["symbol"];
+// 게임 시작 시 받는 카드 수 (5-card draw)
 
-export interface ICard {
-  suit: Suit;
-  value: CardValue["value"];
-  symbol: CardSymbol;
-}
+export const SUIT_ROW: Record<ICard["suit"], number> = {
+  heart: 0,
+  diamond: 1,
+  spade: 2,
+  club: 3,
+};
+export const FRAMES_PER_ROW = 19;
