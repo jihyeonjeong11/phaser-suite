@@ -1,5 +1,5 @@
 {
-  "name": "game-sichuan",
+  "name": "game-mahjong-solitaire",
   "description": "Sichuan (Shisen-Sho) - a Mahjong tile-matching puzzle. Phaser + Vite + TypeScript.",
   "version": "1.0.0",
   "private": true,

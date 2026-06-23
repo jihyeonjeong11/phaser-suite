@@ -35,6 +35,15 @@
       "thumbnail": "",
       "tags": ["card", "casino"],
       "enabled": true
+    },
+    {
+      "id": "mahjong",
+      "title": "Mahjong Solitaire",
+      "description": "사천성",
+      "entry": "games/mahjong-solitaire/dist/index.html",
+      "thumbnail": "",
+      "tags": ["mahjong"],
+      "enabled": true
     }
   ]
 }

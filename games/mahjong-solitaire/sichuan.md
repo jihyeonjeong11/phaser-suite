@@ -26,6 +26,8 @@ sichuan
 ## Things to dump for MVP
 
 - Gravity
+- 3d style board
+- Only selected cornered tiles
 
 ## Logics I learned from previous games
 
@@ -53,5 +55,7 @@ sichuan
 - TBD
 
 ## Feedbacks
+
+- Need checklist doc before starting
 
 ## Backlogs
