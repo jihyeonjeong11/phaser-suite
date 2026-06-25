@@ -1,5 +1,3 @@
-// hold
-
 import { ICard } from "../utils/types";
 
 export class Hand {

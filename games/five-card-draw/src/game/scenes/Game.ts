@@ -7,24 +7,11 @@ import { Volume, HANDS } from "../utils/constants";
 import { Phase } from "../utils/constants";
 import { HUD } from "../gameobjects/HUD";
 
-//SOLID
-
-// base logic
-// 1. Create deck
-// 2. Shuffle
-// 3. Handout to player
-// 4. console.log for random cards
-
-// base draw
-// 1. preload card sprites
-// 2. create complete deck
-// 3. draw
-
 export class Game extends Scene {
   pokerGame!: PokerGame;
   cardObject!: CardObject;
 
-  private button!: Button; // 하단 단일 액션 버튼 (재사용)
+  private button!: Button;
   private shuffleDeck!: ShuffleDeck;
   private hud!: HUD;
   private holdButtons: Button[] = [];
@@ -54,10 +41,10 @@ export class Game extends Scene {
     this.hud.setResult("");
 
     this.registry.set("state", Phase.READY);
-    this.spawnButton("DEAL", this.startDeal);
+    this.rerenderButton("DEAL", this.startDeal);
   }
 
-  private spawnButton(label: string, onClick: () => void): void {
+  private rerenderButton(label: string, onClick: () => void): void {
     this.button.setAction(label, onClick).show();
   }
 
@@ -138,7 +125,7 @@ export class Game extends Scene {
             }),
         );
 
-        this.spawnButton("redraw", () =>
+        this.rerenderButton("redraw", () =>
           this.registry.set("state", Phase.REDRAW),
         );
         break;
@@ -181,9 +168,9 @@ export class Game extends Scene {
         }
 
         if (this.registry.get("money") <= 0) {
-          this.spawnButton("NEW GAME", () => this.scene.restart());
+          this.rerenderButton("NEW GAME", () => this.scene.restart());
         } else {
-          this.spawnButton("Another Round", () => this.restart());
+          this.rerenderButton("Another Round", () => this.restart());
         }
         break;
       }

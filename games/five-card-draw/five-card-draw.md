@@ -59,10 +59,7 @@ five-draws
 
 ## Feedbacks
 
-- Flow decision: dropped the faithful pre-draw betting round, keeping a single post-draw betting round (deal → draw → bet → showdown). Reason: the user is new to poker, so this keeps the hand loop learnable while still preserving the interesting part — the Raise/Re-raise betting loop.
-- AI decision: heads-up vs one HONEST AI (no bluff) for MVP. An honest hand-strength AI is enough to exercise the two core new systems (hand evaluation + betting loop) and is far easier to debug than a bluffing one.
-- Art gate: cleared. A CC0 full deck exists, so unlike digdug there is no art-availability hold — this game is OK to build.
-- Scope flag: variable bet sizing + card animations were kept in MVP (not dumped). These add UI/polish work; revisit if MVP slips.
+-
 
 ## Backlogs
 
