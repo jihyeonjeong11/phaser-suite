@@ -19,6 +19,7 @@ export class Button extends GameObjects.Text {
       .on("pointerover", () => this.setAlpha(0.8))
       .on("pointerout", () => this.setAlpha(1))
       .on("pointerdown", onClick);
+
     scene.add.existing(this);
   }
 }

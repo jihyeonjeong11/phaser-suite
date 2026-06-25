@@ -1,4 +1,6 @@
 import { Scene } from "phaser";
+import { CARD_VALUES, SUITS } from "../utils/constants";
+import { getCardFrameKey } from "../utils/helpers";
 
 export class Preloader extends Scene {
   constructor() {
@@ -31,11 +33,23 @@ export class Preloader extends Scene {
   }
 
   create() {
-    //  When all the assets have loaded, it's often worth creating global objects here that the rest of the game can use.
-    //  For example, you can define global animations here, so we can use them in other scenes.
-
-    //  card-bg.png에서 카드 뒷면 한 장만 잘라 "back" 프레임으로 등록 (측정: x48 y71 w51 h73)
     this.textures.get("cardBg").add("back", 0, 48, 71, 51, 73);
+
+    const CARD_W = 48;
+    const CARD_H = 64;
+    const tex = this.textures.get("cardSprite");
+    SUITS.forEach((suit, row) => {
+      for (const { value } of CARD_VALUES) {
+        tex.add(
+          getCardFrameKey({ suit, value }),
+          0,
+          (value - 1) * CARD_W,
+          row * CARD_H,
+          CARD_W,
+          CARD_H,
+        );
+      }
+    });
 
     //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
     this.scene.start("Game");
