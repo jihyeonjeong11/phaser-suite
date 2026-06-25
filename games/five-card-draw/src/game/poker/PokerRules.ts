@@ -1,15 +1,5 @@
 import { ICard } from "../utils/types";
-
-export enum Hands {
-  ROYAL_FLUSH = "ROYAL_FLUSH",
-  STRAIGHT_FLUSH = "STRAIGHT_FLUSH",
-  FOUR_OF_A_KIND = "FOUR_OF_A_KIND",
-  FULL_HOUSE = "FULL_HOUSE",
-  FLUSH = "FLUSH",
-  STRAIGHT = "STRAIGHT",
-  THREE_OF_A_KIND = "THREE_OF_A_KIND",
-  TWO_PAIR = "TWO_PAIR",
-}
+import { Hands } from "../utils/constants";
 
 const sortComparator = (a: ICard, b: ICard): number =>
   a.value > b.value ? 1 : a.value === b.value ? 0 : -1;
@@ -84,28 +74,28 @@ export function evaluateHand(hand: ICard[]): Hands | null {
   }
 
   if (hasRoyal(hand) && hasFlush(hand) && hasStraight(hand)) {
-    return Hands.ROYAL_FLUSH;
+    return "ROYAL_FLUSH";
   }
   if (hasFlush(hand) && hasStraight(hand)) {
-    return Hands.STRAIGHT_FLUSH;
+    return "STRAIGHT_FLUSH";
   }
   if (hasFourOfAKind(hand)) {
-    return Hands.FOUR_OF_A_KIND;
+    return "FOUR_OF_A_KIND";
   }
   if (hasFullHouse(hand)) {
-    return Hands.FULL_HOUSE;
+    return "FULL_HOUSE";
   }
   if (hasFlush(hand)) {
-    return Hands.FLUSH;
+    return "FLUSH";
   }
   if (hasStraight(hand)) {
-    return Hands.STRAIGHT;
+    return "STRAIGHT";
   }
   if (hasThreeOfAKind(hand)) {
-    return Hands.THREE_OF_A_KIND;
+    return "THREE_OF_A_KIND";
   }
   if (hasTwoPair(hand)) {
-    return Hands.TWO_PAIR;
+    return "TWO_PAIR";
   }
 
   return null;

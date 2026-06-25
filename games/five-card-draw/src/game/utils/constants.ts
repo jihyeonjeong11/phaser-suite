@@ -17,16 +17,18 @@ export const CARD_VALUES = [
 export const SUITS = ["HEART", "DIAMOND", "SPADE", "CLUB"] as const;
 
 // poker hand rules from https://github.com/pinkkis/phaser-video-poker
-export const HAND_RANKINGS = {
-  ROYAL_FLUSH: "Royal Flush",
-  STRAIGHT_FLUSH: "Straight Flush",
-  FOUR_OF_A_KIND: "Four of a Kind",
-  FULL_HOUSE: "Full House",
-  FLUSH: "Flush",
-  STRAIGHT: "Straight",
-  THREE_OF_A_KIND: "Three of a Kind",
-  TWO_PAIR: "Two Pair",
+export const HANDS = {
+  ROYAL_FLUSH: { name: "Royal Flush", payout: 100 },
+  STRAIGHT_FLUSH: { name: "Straight Flush", payout: 50 },
+  FOUR_OF_A_KIND: { name: "Four of a Kind", payout: 30 },
+  FULL_HOUSE: { name: "Full House", payout: 13 },
+  FLUSH: { name: "Flush", payout: 7 },
+  STRAIGHT: { name: "Straight", payout: 6 },
+  THREE_OF_A_KIND: { name: "Three of a Kind", payout: 3 },
+  TWO_PAIR: { name: "Two Pair", payout: 3 },
 } as const;
+
+export type Hands = keyof typeof HANDS;
 
 export const Phase = {
   READY: "READY",
@@ -37,8 +39,6 @@ export const Phase = {
   SCORE: "SCORE",
 } as const;
 
-// 값들의 유니온: "READY" | "SHUFFLE" | "DEAL" | "HOLD" | "DRAW" | "SCORE"
-// 같은 이름의 const(값)와 type(타입)은 TS에서 공존 가능 (이름공간 분리)
 export type Phase = (typeof Phase)[keyof typeof Phase];
 
 export const Volume = {

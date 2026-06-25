@@ -1,7 +1,5 @@
 import { Scene, GameObjects } from "phaser";
 
-// 상단 HUD: 순수 뷰. bet / money 값을 표시만 한다.
-// registry 구독·갱신 배선은 Game이 담당 (setBet/setMoney 호출).
 export class HUD extends GameObjects.Container {
   private betText: GameObjects.Text;
   private moneyText: GameObjects.Text;

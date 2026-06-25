@@ -26,7 +26,6 @@ function App(): React.JSX.Element {
   const webviewRef = useRef<Electron.WebviewTag | null>(null)
 
   useEffect(() => {
-    console.log('hello')
     if (!window.arcade) return
     window.arcade.listGames().then((list) => {
       setGames(list.filter((g) => g.enabled))

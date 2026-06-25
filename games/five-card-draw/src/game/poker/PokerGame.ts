@@ -1,7 +1,8 @@
 import { ICard } from "../utils/types";
 import { Deck } from "./Deck";
 import { Hand } from "./Hand";
-import { evaluateHand, Hands } from "./PokerRules";
+import { evaluateHand } from "./PokerRules";
+import { Hands } from "../utils/constants";
 
 export class PokerGame {
   deck = Deck.create();

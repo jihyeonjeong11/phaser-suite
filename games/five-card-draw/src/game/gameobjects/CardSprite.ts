@@ -7,9 +7,20 @@ export class CardSprite extends GameObjects.Sprite {
     super(scene, x, y, "cardBg", "back");
   }
 
-  // 애니메이션 없이 즉시 앞면으로 세팅
   setFace(card: ICard) {
     this.setTexture("cardSprite", getCardFrameKey(card));
+  }
+
+  moveTo(x: number, y: number, delay: number, onArrive: () => void) {
+    return this.scene.tweens.add({
+      targets: this,
+      x,
+      y,
+      duration: 400,
+      delay,
+      ease: "Cubic.easeOut",
+      onComplete: onArrive,
+    });
   }
 
   flipTo(card: ICard) {
