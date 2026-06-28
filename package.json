@@ -22,6 +22,7 @@
     "dev:fcd": "pnpm --filter game-five-card-draw dev",
     "dev:sichuan": "pnpm --filter game-mahjong-solitaire dev",
     "dev:showcase": "pnpm --filter game-stickfigure-showcase dev",
+    "dev:farm": "pnpm --filter game-proto-map-farm dev",
     "lint": "eslint games",
     "lint:fix": "eslint games --fix",
     "lint:all": "pnpm lint && pnpm --filter arcade lint",

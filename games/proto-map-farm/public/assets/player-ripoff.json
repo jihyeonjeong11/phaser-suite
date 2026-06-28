@@ -1,0 +1,19 @@
+{
+  "frames": {
+    "down-0": { "frame": { "x": 25, "y": 8, "w": 18, "h": 26 }, "rotated": false, "trimmed": false, "spriteSourceSize": { "x": 0, "y": 0, "w": 18, "h": 26 }, "sourceSize": { "w": 18, "h": 26 } },
+    "down-1": { "frame": { "x": 42, "y": 8, "w": 18, "h": 26 }, "rotated": false, "trimmed": false, "spriteSourceSize": { "x": 0, "y": 0, "w": 18, "h": 26 }, "sourceSize": { "w": 18, "h": 26 } },
+    "down-2": { "frame": { "x": 59, "y": 8, "w": 18, "h": 26 }, "rotated": false, "trimmed": false, "spriteSourceSize": { "x": 0, "y": 0, "w": 18, "h": 26 }, "sourceSize": { "w": 18, "h": 26 } },
+    "left-0": { "frame": { "x": 25, "y": 33, "w": 18, "h": 26 }, "rotated": false, "trimmed": false, "spriteSourceSize": { "x": 0, "y": 0, "w": 18, "h": 26 }, "sourceSize": { "w": 18, "h": 26 } },
+    "left-1": { "frame": { "x": 42, "y": 33, "w": 18, "h": 26 }, "rotated": false, "trimmed": false, "spriteSourceSize": { "x": 0, "y": 0, "w": 18, "h": 26 }, "sourceSize": { "w": 18, "h": 26 } },
+    "left-2": { "frame": { "x": 59, "y": 33, "w": 18, "h": 26 }, "rotated": false, "trimmed": false, "spriteSourceSize": { "x": 0, "y": 0, "w": 18, "h": 26 }, "sourceSize": { "w": 18, "h": 26 } },
+    "up-0": { "frame": { "x": 25, "y": 58, "w": 18, "h": 26 }, "rotated": false, "trimmed": false, "spriteSourceSize": { "x": 0, "y": 0, "w": 18, "h": 26 }, "sourceSize": { "w": 18, "h": 26 } },
+    "up-1": { "frame": { "x": 42, "y": 58, "w": 18, "h": 26 }, "rotated": false, "trimmed": false, "spriteSourceSize": { "x": 0, "y": 0, "w": 18, "h": 26 }, "sourceSize": { "w": 18, "h": 26 } },
+    "up-2": { "frame": { "x": 59, "y": 58, "w": 18, "h": 26 }, "rotated": false, "trimmed": false, "spriteSourceSize": { "x": 0, "y": 0, "w": 18, "h": 26 }, "sourceSize": { "w": 18, "h": 26 } }
+  },
+  "meta": {
+    "image": "player-ripoff.png",
+    "format": "RGBA8888",
+    "size": { "w": 477, "h": 472 },
+    "scale": "1"
+  }
+}
