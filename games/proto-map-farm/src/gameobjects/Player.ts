@@ -1,5 +1,5 @@
 import { Scene } from "phaser";
-import { Character, IMovement } from "./character";
+import { Character, IMovement } from "./Character";
 
 export class Player extends Character {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
