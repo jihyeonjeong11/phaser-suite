@@ -8,10 +8,9 @@ export interface IMovement {
 }
 
 export abstract class Character extends Physics.Arcade.Sprite {
+  protected readonly baseScale: number = 2;
   // todo: compute actual speed for Player class
-  readonly baseSpeed: number = 150;
-  readonly baseScale: number = 2;
-  protected movement: IMovement = { vx: 0, vy: 0 };
+  protected readonly baseSpeed: number = 150;
   private direction: "right" | "down" | "left" | "up" = "down";
   protected abstract getMovement(delta: number): IMovement;
 
@@ -28,7 +27,7 @@ export abstract class Character extends Physics.Arcade.Sprite {
     return this.direction;
   }
 
-  private animKey(dir: "down" | "up" | "side") {
+  private getAnimKey(dir: "down" | "up" | "side") {
     return `${this.texture.key}-walk-${dir}`;
   }
 
@@ -39,7 +38,7 @@ export abstract class Character extends Physics.Arcade.Sprite {
     else if (vy > 0) this.direction = "down";
   }
 
-  public move({ vx, vy }: IMovement): void {
+  private move({ vx, vy }: IMovement): void {
     const body = this.body as Physics.Arcade.Body;
     body.setVelocity(vx, vy);
     body.velocity.normalize().scale(this.baseSpeed);
@@ -66,20 +65,20 @@ export abstract class Character extends Physics.Arcade.Sprite {
     switch (this.getDirection) {
       case "left": {
         this.setFlipX(false);
-        this.play(this.animKey("side"), true);
+        this.play(this.getAnimKey("side"), true);
         break;
       }
       case "right": {
         this.setFlipX(true);
-        this.play(this.animKey("side"), true);
+        this.play(this.getAnimKey("side"), true);
         break;
       }
       case "up": {
-        this.play(this.animKey("up"), true);
+        this.play(this.getAnimKey("up"), true);
         break;
       }
       case "down": {
-        this.play(this.animKey("down"), true);
+        this.play(this.getAnimKey("down"), true);
         break;
       }
     }
