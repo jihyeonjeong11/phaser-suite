@@ -122,6 +122,54 @@ importers:
         specifier: ^6.3.1
         version: 6.4.3(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)
 
+  games/mahjong-solitaire:
+    dependencies:
+      phaser:
+        specifier: 4.0.0
+        version: 4.0.0
+      terser:
+        specifier: ^5.39.0
+        version: 5.48.0
+    devDependencies:
+      typescript:
+        specifier: ~5.7.2
+        version: 5.7.3
+      vite:
+        specifier: ^6.3.1
+        version: 6.4.3(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)
+
+  games/map-farm:
+    dependencies:
+      phaser:
+        specifier: 4.0.0
+        version: 4.0.0
+      terser:
+        specifier: ^5.39.0
+        version: 5.48.0
+    devDependencies:
+      typescript:
+        specifier: ~5.7.2
+        version: 5.7.3
+      vite:
+        specifier: ^6.3.1
+        version: 6.4.3(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)
+
+  games/proto-map-farm:
+    dependencies:
+      phaser:
+        specifier: 4.0.0
+        version: 4.0.0
+      terser:
+        specifier: ^5.39.0
+        version: 5.48.0
+    devDependencies:
+      typescript:
+        specifier: ~5.7.2
+        version: 5.7.3
+      vite:
+        specifier: ^6.3.1
+        version: 6.4.3(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)
+
   games/sichuan:
     dependencies:
       phaser:
