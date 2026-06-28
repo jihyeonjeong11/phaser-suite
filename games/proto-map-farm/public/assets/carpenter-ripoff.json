@@ -1,0 +1,192 @@
+{
+ "frames": {
+  "down-0": {
+   "frame": {
+    "x": 5,
+    "y": 6,
+    "w": 17,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 17,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 17,
+    "h": 24
+   }
+  },
+  "down-1": {
+   "frame": {
+    "x": 22,
+    "y": 6,
+    "w": 17,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 17,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 17,
+    "h": 24
+   }
+  },
+  "down-2": {
+   "frame": {
+    "x": 38,
+    "y": 6,
+    "w": 17,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 17,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 17,
+    "h": 24
+   }
+  },
+  "up-0": {
+   "frame": {
+    "x": 5,
+    "y": 30,
+    "w": 17,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 17,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 17,
+    "h": 24
+   }
+  },
+  "up-1": {
+   "frame": {
+    "x": 22,
+    "y": 30,
+    "w": 17,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 17,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 17,
+    "h": 24
+   }
+  },
+  "up-2": {
+   "frame": {
+    "x": 38,
+    "y": 30,
+    "w": 17,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 17,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 17,
+    "h": 24
+   }
+  },
+  "left-0": {
+   "frame": {
+    "x": 5,
+    "y": 54,
+    "w": 17,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 17,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 17,
+    "h": 24
+   }
+  },
+  "left-1": {
+   "frame": {
+    "x": 22,
+    "y": 54,
+    "w": 17,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 17,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 17,
+    "h": 24
+   }
+  },
+  "left-2": {
+   "frame": {
+    "x": 38,
+    "y": 54,
+    "w": 17,
+    "h": 24
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 17,
+    "h": 24
+   },
+   "sourceSize": {
+    "w": 17,
+    "h": 24
+   }
+  }
+ },
+ "meta": {
+  "image": "carpenter-sheet.png",
+  "size": {
+   "w": 196,
+   "h": 180
+  },
+  "scale": "1"
+ }
+}

@@ -1,4 +1,9 @@
-import { Scene, Display } from "phaser";
+import { Scene } from "phaser";
+import { Player } from "../../gameobjects/Player";
+import { DebugHud } from "../../gameobjects/DebugHud";
+//  TODO: Brain/Npc는 아직 재작성 중 — 만들면 주석 해제.
+// import { Npc } from "../../gameobjects/Npc";
+// import { WanderBrain } from "../../gameobjects/Brain";
 
 //  Maps a tileset image source (e.g. "6.png", "../foo/3.png") to the image key
 //  loaded in Preloader ("tiles1".."tiles7"). Returns undefined for anything
@@ -59,15 +64,11 @@ function imageKeyFor(source: string): string | undefined {
   return match ? `tiles${match[1]}` : undefined;
 }
 
-const PLAYER_SPEED = 150;
-
 export class Game extends Scene {
   camera!: Phaser.Cameras.Scene2D.Camera;
   map!: Phaser.Tilemaps.Tilemap;
-  player!: Phaser.Physics.Arcade.Sprite;
-  cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-  coordsText!: Phaser.GameObjects.Text;
-  facing: "down" | "up" | "left" | "right" = "down";
+  player!: Player;
+  debugHud!: DebugHud;
 
   constructor() {
     super("Game");
@@ -77,8 +78,6 @@ export class Game extends Scene {
     const map = this.make.tilemap({ key: "farm-map" });
     this.map = map;
 
-    //  Read the raw tileset list straight from the map data so the name -> image
-    //  mapping adapts automatically whenever the map is re-exported from Tiled.
     const rawTilesets =
       (this.cache.tilemap.get("farm-map")?.data?.tilesets as
         | { name: string; image?: string }[]
@@ -97,94 +96,34 @@ export class Game extends Scene {
 
     worldLayer?.setCollisionByProperty({ collides: true });
 
-    //  Debug overlay: highlight which tiles actually collide. Hidden by default;
-    //  toggled with the C key (see below).
-    const debugGraphics = this.add.graphics().setAlpha(0.75).setVisible(false);
-    worldLayer?.renderDebug(debugGraphics, {
-      tileColor: null, // Color of non-colliding tiles
-      collidingTileColor: new Display.Color(243, 134, 48, 255), // Color of colliding tiles
-      faceColor: new Display.Color(40, 39, 37, 255), // Color of colliding face edges
-    });
+    //  All debug HUD (help panel, coords readout, collision overlay + C toggle)
+    //  lives in DebugHud now.
+    this.debugHud = new DebugHud(this, worldLayer);
 
-    //  Top-left help/HUD, pinned to the camera (does not scroll with the map).
-    this.add
-      .text(
-        8,
-        8,
-        ["Arrow keys: move player", "C: toggle collides overlay"].join("\n"),
-        {
-          fontSize: "14px",
-          color: "#ffffff",
-          backgroundColor: "#000000",
-          padding: { x: 8, y: 6 },
-        },
-      )
-      .setScrollFactor(0)
-      .setDepth(30);
-
-    //  Live player coordinate read-out, just below the help text.
-    this.coordsText = this.add
-      .text(8, 56, "", {
-        fontSize: "14px",
-        color: "#ffffff",
-        backgroundColor: "#000000",
-        padding: { x: 8, y: 6 },
-      })
-      .setScrollFactor(0)
-      .setDepth(30);
-
-    //  C toggles the collision debug overlay on/off.
-    this.input.keyboard!.on("keydown-C", () => {
-      debugGraphics.setVisible(!debugGraphics.visible);
-    });
-
-    //  Confine the player to the whole map. Without this the physics world
-    //  defaults to the canvas size (1024x768), trapping the player in that box.
     this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
     const spawnPoint = map.findObject(
       "Objects",
       (obj) => obj.name === "Spawn Point",
     ) as Phaser.Types.Tilemaps.TiledObject;
-    const player = this.physics.add.sprite(
-      spawnPoint.x!,
-      spawnPoint.y!,
-      "player",
-      "down-1",
-    );
-    //  Scale up so the player roughly fills a tile. Integer scale keeps the
-    //  pixel art crisp (config has pixelArt: true).
-    player.setScale(2);
-    //  Collision body sits at the feet, not the whole 18x26 sprite. setSize is
-    //  in source pixels; it scales with the sprite, so the foot box scales too.
-    // player.body.setSize(12, 8).setOffset(3, 16);
-    player.setCollideWorldBounds(true);
-    if (worldLayer) {
-      this.physics.add.collider(player, worldLayer);
-    }
+
+    const player = new Player(this, spawnPoint.x!, spawnPoint.y!, "player");
     this.player = player;
 
-    //  Walk cycles. "side" faces left in the sheet; right is the same frames
-    //  mirrored with flipX at runtime.
-    const walk = (key: string, prefix: string) =>
-      this.anims.create({
-        key,
-        frames: this.anims.generateFrameNames("player", {
-          prefix,
-          start: 0,
-          end: 2,
-        }),
-        frameRate: 8,
-        repeat: -1,
-      });
-    walk("walk-down", "down-");
-    walk("walk-up", "up-");
-    walk("walk-side", "left-");
+    //  of input. Spawns near the player and wanders on its own.
+    // const carpenter = new Npc(
+    //   this,
+    //   spawnPoint.x! + 80,
+    //   spawnPoint.y!,
+    //   "carpenter",
+    //   new WanderBrain(),
+    // );
 
-    //  Arrow keys drive the player.
-    this.cursors = this.input.keyboard!.createCursorKeys();
+    if (worldLayer) {
+      this.physics.add.collider(player, worldLayer);
+      // this.physics.add.collider(carpenter, worldLayer);
+    }
 
-    //  Camera: follow the player, clamped to the map bounds.
     this.camera = this.cameras.main;
     this.camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.camera.setBackgroundColor("#1d2b1f");
@@ -192,56 +131,6 @@ export class Game extends Scene {
   }
 
   update() {
-    const player = this.player;
-    const body = player.body as Phaser.Physics.Arcade.Body;
-    const cursors = this.cursors;
-
-    //  Reset velocity from the previous frame, then apply input.
-    body.setVelocity(0);
-
-    if (cursors.left.isDown) {
-      body.setVelocityX(-PLAYER_SPEED);
-    } else if (cursors.right.isDown) {
-      body.setVelocityX(PLAYER_SPEED);
-    }
-
-    if (cursors.up.isDown) {
-      body.setVelocityY(-PLAYER_SPEED);
-    } else if (cursors.down.isDown) {
-      body.setVelocityY(PLAYER_SPEED);
-    }
-
-    //  Normalize so diagonal movement isn't faster than straight movement.
-    body.velocity.normalize().scale(PLAYER_SPEED);
-
-    //  Update the HUD read-out: world position and the tile it sits on.
-    const tx = Math.floor(player.x / this.map.tileWidth);
-    const ty = Math.floor(player.y / this.map.tileHeight);
-    this.coordsText.setText(
-      `x: ${Math.round(player.x)}  y: ${Math.round(player.y)}\ntile: ${tx}, ${ty}`,
-    );
-
-    //  Pick the animation from the dominant input direction. Left/right reuse
-    //  the same "side" frames, mirrored for right.
-    if (cursors.left.isDown) {
-      this.facing = "left";
-      player.setFlipX(false);
-      player.anims.play("walk-side", true);
-    } else if (cursors.right.isDown) {
-      this.facing = "right";
-      player.setFlipX(true);
-      player.anims.play("walk-side", true);
-    } else if (cursors.up.isDown) {
-      this.facing = "up";
-      player.anims.play("walk-up", true);
-    } else if (cursors.down.isDown) {
-      this.facing = "down";
-      player.anims.play("walk-down", true);
-    } else {
-      //  Idle: stop walking and rest on the middle (standing) frame.
-      player.anims.stop();
-      const idle = this.facing === "right" ? "left" : this.facing;
-      player.setFrame(`${idle}-1`);
-    }
+    this.debugHud.update(this.player, this.map);
   }
 }
