@@ -1,13 +1,8 @@
 import { Scene } from "phaser";
 import { Player } from "../../gameobjects/Player";
 import { DebugHud } from "../../gameobjects/DebugHud";
-//  TODO: Brain/Npc는 아직 재작성 중 — 만들면 주석 해제.
-// import { Npc } from "../../gameobjects/Npc";
-// import { WanderBrain } from "../../gameobjects/Brain";
-
-//  Maps a tileset image source (e.g. "6.png", "../foo/3.png") to the image key
-//  loaded in Preloader ("tiles1".."tiles7"). Returns undefined for anything
-//  that doesn't follow the "<n>.png" naming so we can skip it safely.
+import { NPC } from "../../gameobjects/NPC";
+import { Tilemap } from "../../gameobjects/Tilemap";
 
 // 1. 맵 / 레벨 구성
 
@@ -58,12 +53,6 @@ import { DebugHud } from "../../gameobjects/DebugHud";
 // 20. imageKeyFor — 타일셋 파일명→로드 키 변환 헬퍼 // map.ts에 두기,
 // 21. PLAYER_SPEED 상수 - entity에 두기.
 
-function imageKeyFor(source: string): string | undefined {
-  const base = source.split(/[\\/]/).pop() ?? source;
-  const match = base.match(/(\d+)\.png$/i);
-  return match ? `tiles${match[1]}` : undefined;
-}
-
 export class Game extends Scene {
   camera!: Phaser.Cameras.Scene2D.Camera;
   map!: Phaser.Tilemaps.Tilemap;
@@ -75,34 +64,22 @@ export class Game extends Scene {
   }
 
   create() {
-    const map = this.make.tilemap({ key: "farm-map" });
-    this.map = map;
-
-    const rawTilesets =
-      (this.cache.tilemap.get("farm-map")?.data?.tilesets as
-        | { name: string; image?: string }[]
-        | undefined) ?? [];
-
-    const tilesets = rawTilesets
-      .map((raw) => {
-        const key = raw.image ? imageKeyFor(raw.image) : undefined;
-        return key ? map.addTilesetImage(raw.name, key) : null;
-      })
-      .filter((ts): ts is Phaser.Tilemaps.Tileset => ts !== null);
-
-    map.createLayer("Below Player", tilesets, 0, 0);
-    const worldLayer = map.createLayer("World", tilesets, 0, 0);
-    map.createLayer("Above Player", tilesets, 0, 0);
+    const tilemap = new Tilemap(this, "farm-map");
+    this.map = tilemap.map;
+    const worldLayer = tilemap.worldLayer;
 
     worldLayer?.setCollisionByProperty({ collides: true });
 
-    //  All debug HUD (help panel, coords readout, collision overlay + C toggle)
-    //  lives in DebugHud now.
     this.debugHud = new DebugHud(this, worldLayer);
 
-    this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    this.physics.world.setBounds(
+      0,
+      0,
+      this.map.widthInPixels,
+      this.map.heightInPixels,
+    );
 
-    const spawnPoint = map.findObject(
+    const spawnPoint = this.map.findObject(
       "Objects",
       (obj) => obj.name === "Spawn Point",
     ) as Phaser.Types.Tilemaps.TiledObject;
@@ -110,22 +87,22 @@ export class Game extends Scene {
     const player = new Player(this, spawnPoint.x!, spawnPoint.y!, "player");
     this.player = player;
 
-    //  of input. Spawns near the player and wanders on its own.
-    // const carpenter = new Npc(
-    //   this,
-    //   spawnPoint.x! + 80,
-    //   spawnPoint.y!,
-    //   "carpenter",
-    //   new WanderBrain(),
-    // );
+    const npc = new NPC(this, spawnPoint.x! + 20, spawnPoint.y!, "carpenter");
+
+    this.physics.add.collider(player, npc);
 
     if (worldLayer) {
       this.physics.add.collider(player, worldLayer);
-      // this.physics.add.collider(carpenter, worldLayer);
+      this.physics.add.collider(npc, worldLayer);
     }
 
     this.camera = this.cameras.main;
-    this.camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    this.camera.setBounds(
+      0,
+      0,
+      this.map.widthInPixels,
+      this.map.heightInPixels,
+    );
     this.camera.setBackgroundColor("#1d2b1f");
     this.camera.startFollow(player);
   }
