@@ -64,7 +64,7 @@ export class Game extends Scene {
   }
 
   create() {
-    const tilemap = new Tilemap(this, "farm-map");
+    const tilemap = new Tilemap(this, "home-map");
     this.map = tilemap.map;
     const worldLayer = tilemap.worldLayer;
 
