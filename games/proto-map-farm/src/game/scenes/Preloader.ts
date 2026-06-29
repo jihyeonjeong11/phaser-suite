@@ -11,11 +11,15 @@ export class Preloader extends Scene {
     this.load.setPath("assets");
     this.load.tilemapTiledJSON("farm-map", "farm-map.json");
     this.load.tilemapTiledJSON("home-map", "home-map.json");
+    this.load.tilemapTiledJSON("ruin_map", "ruin_map.json");
 
     for (let i = 1; i <= 7; i++) {
       this.load.image(`${i}`, `${i}.png`);
     }
     this.load.image(`home1`, `home1.png`);
+    this.load.image(`ruin_tile`, `ruin_tile.png`);
+    this.load.image(`ruin_structure`, `ruin_structure.png`);
+    this.load.image(`ruin_object`, `ruin_object.png`);
 
     this.load.atlas("player", "player-sheet.png", "player-ripoff.json");
     this.load.atlas(
