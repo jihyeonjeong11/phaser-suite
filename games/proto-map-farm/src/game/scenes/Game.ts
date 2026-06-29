@@ -1,8 +1,9 @@
-import { Scene } from "phaser";
+import { Cameras, GameObjects, Scene, Tilemaps } from "phaser";
 import { Player } from "../../gameobjects/Player";
 import { DebugHud } from "../../gameobjects/DebugHud";
 import { NPC } from "../../gameobjects/NPC";
 import { Tilemap } from "../../gameobjects/Tilemap";
+import { Portals } from "../../gameobjects/Portals";
 
 // 1. 맵 / 레벨 구성
 
@@ -54,17 +55,18 @@ import { Tilemap } from "../../gameobjects/Tilemap";
 // 21. PLAYER_SPEED 상수 - entity에 두기.
 
 export class Game extends Scene {
-  camera!: Phaser.Cameras.Scene2D.Camera;
-  map!: Phaser.Tilemaps.Tilemap;
+  camera!: Cameras.Scene2D.Camera;
+  map!: Tilemaps.Tilemap;
   player!: Player;
   debugHud!: DebugHud;
+  portals: Portals;
 
   constructor() {
     super("Game");
   }
 
   create() {
-    const tilemap = new Tilemap(this, "home-map");
+    const tilemap = new Tilemap(this, "farm-map");
     this.map = tilemap.map;
     const worldLayer = tilemap.worldLayer;
 
@@ -105,6 +107,31 @@ export class Game extends Scene {
     );
     this.camera.setBackgroundColor("#1d2b1f");
     this.camera.startFollow(player);
+
+    this.portals = new Portals(this, this.map);
+
+    let isTransitioning = false;
+
+    this.physics.add.overlap(
+      this.player,
+      this.portals.getPortals,
+      (_player, portal) => {
+        if (isTransitioning) return;
+        isTransitioning = true;
+
+        const dest = (portal as GameObjects.Zone).getData("dest");
+
+        this.physics.world.disable(this.player);
+        this.cameras.main.fadeOut(1000, 0, 0, 0);
+        this.cameras.main.once(Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () =>
+          this.scene.start(dest),
+        );
+      },
+      undefined,
+      this,
+    );
+
+    this.cameras.main.fadeIn(1000, 0, 0, 0);
   }
 
   update() {
