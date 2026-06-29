@@ -110,7 +110,7 @@
                 {
                  "name":"collides",
                  "type":"bool",
-                 "value":true
+                 "value":false
                 }],
          "type":"tilelayer",
          "visible":true,
@@ -188,8 +188,37 @@
                  "type":"",
                  "visible":true,
                  "width":0,
-                 "x":220,
-                 "y":334.666666666667
+                 "x":231.333333333333,
+                 "y":409.333333333334
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":8,
+         "name":"Portals",
+         "objects":[
+                {
+                 "height":0,
+                 "id":10,
+                 "name":"to_home",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"dest",
+                         "type":"string",
+                         "value":"Home"
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":228,
+                 "y":276
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -197,8 +226,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":8,
- "nextobjectid":8,
+ "nextlayerid":9,
+ "nextobjectid":11,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.2",
@@ -273,7 +302,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":true
+                         "value":false
                         }]
                 }, 
                 {

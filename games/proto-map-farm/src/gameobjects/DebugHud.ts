@@ -25,7 +25,11 @@ export class DebugHud {
       .text(
         8,
         8,
-        ["Arrow keys: move player", "C: toggle collides overlay"].join("\n"),
+        [
+          "Arrow keys: move player",
+          "C: toggle collides overlay",
+          "P: toggle portal zones",
+        ].join("\n"),
         {
           fontSize: "14px",
           color: "#ffffff",

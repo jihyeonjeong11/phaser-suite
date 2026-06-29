@@ -16,8 +16,8 @@ export class Tilemap {
     this.map.createLayer("Below Player", tilesets, 0, 0);
     this.worldLayer = this.map.createLayer("World", tilesets, 0, 0);
     this.map.createLayer("Above Player", tilesets, 0, 0);
-    // World 레이어 전체를 충돌로 (-1 = 빈 칸 제외). 예외는 추후 Tiled 속성으로.
     this.worldLayer?.setCollisionByExclusion([-1]);
+    this.worldLayer?.setCollisionByProperty({ collides: false }, false);
 
     scene.physics.world.setBounds(
       0,
