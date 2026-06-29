@@ -21,6 +21,15 @@ export class Preloader extends Scene {
     this.load.image(`ruin_structure`, `ruin_structure.png`);
     this.load.image(`ruin_object`, `ruin_object.png`);
 
+    this.load.spritesheet("zombie-walk", "zombie/Walk.png", {
+      frameWidth: 128,
+      frameHeight: 128,
+    });
+    this.load.spritesheet("zombie-idle", "zombie/Idle.png", {
+      frameWidth: 128,
+      frameHeight: 128,
+    });
+
     this.load.atlas("player", "player-sheet.png", "player-ripoff.json");
     this.load.atlas(
       "carpenter",
