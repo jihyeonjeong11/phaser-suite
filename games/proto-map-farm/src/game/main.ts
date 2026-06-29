@@ -5,6 +5,7 @@ import { MainMenu } from "./scenes/MainMenu";
 import { AUTO, Game } from "phaser";
 import { Preloader } from "./scenes/Preloader";
 import { Home } from "./scenes/locations/Home";
+import { Ruin } from "./scenes/locations/Ruin";
 
 //  Find out more information about the Game Config at:
 //  https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig
@@ -16,7 +17,7 @@ const config: Phaser.Types.Core.GameConfig = {
   backgroundColor: "#028af8",
   zoom: 1,
   pixelArt: true,
-  scene: [Boot, Preloader, MainMenu, MainGame, GameOver, Home],
+  scene: [Boot, Preloader, MainMenu, MainGame, GameOver, Home, Ruin],
   physics: {
     default: "arcade",
     arcade: {
