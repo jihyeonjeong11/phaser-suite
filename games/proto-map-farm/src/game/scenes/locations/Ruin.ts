@@ -1,8 +1,9 @@
-import { Cameras, GameObjects, Scene, Tilemaps, Types } from "phaser";
+import { Cameras, GameObjects, Math as PMath, Scene, Tilemaps, Types } from "phaser";
 import { Player } from "../../../gameobjects/Player";
 import { DebugHud } from "../../../gameobjects/DebugHud";
 import { Tilemap } from "../../../gameobjects/Tilemap";
 import { Portals } from "../../../gameobjects/Portals";
+import { Zombie } from "../../../gameobjects/Zombie";
 
 export class Ruin extends Scene {
   camera!: Cameras.Scene2D.Camera;
@@ -41,6 +42,17 @@ export class Ruin extends Scene {
 
     if (worldLayer) {
       this.physics.add.collider(player, worldLayer);
+    }
+
+    const margin = 64;
+    for (let i = 0; i < 3; i++) {
+      const zombie = new Zombie(
+        this,
+        PMath.Between(margin, this.map.widthInPixels - margin),
+        PMath.Between(margin, this.map.heightInPixels - margin),
+      );
+      this.physics.add.collider(player, zombie);
+      if (worldLayer) this.physics.add.collider(zombie, worldLayer);
     }
 
     this.camera = this.cameras.main;
