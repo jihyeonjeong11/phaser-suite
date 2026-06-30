@@ -37,16 +37,23 @@ export class Home extends Scene {
       (obj) => obj.name === "Spawn Point",
     ) as Types.Tilemaps.TiledObject;
 
-    const player = new Player(this, spawnPoint.x!, spawnPoint.y!, "player");
+    const player = new Player(this, spawnPoint.x!, spawnPoint.y!, "hero");
     this.player = player;
 
-    const npc = new NPC(this, spawnPoint.x! + 20, spawnPoint.y!, "carpenter");
+    const npc = new NPC(this, spawnPoint.x! + 20, spawnPoint.y!, "npc");
 
     this.physics.add.collider(player, npc);
 
     if (worldLayer) {
       this.physics.add.collider(player, worldLayer);
       this.physics.add.collider(npc, worldLayer);
+    }
+
+    const bullets = player.getBullets();
+    if (bullets && worldLayer) {
+      this.physics.add.collider(bullets, worldLayer, (bullet) =>
+        (bullet as GameObjects.GameObject).destroy(),
+      );
     }
 
     this.camera = this.cameras.main;
@@ -86,6 +93,7 @@ export class Home extends Scene {
   }
 
   update() {
+    console.log(this.registry.get("inventory"));
     this.debugHud.update(this.player, this.map);
   }
 }
