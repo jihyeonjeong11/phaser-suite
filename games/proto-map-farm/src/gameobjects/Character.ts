@@ -7,11 +7,14 @@ export interface IMovement {
   vy: number;
 }
 
+export type Direction = "right" | "down" | "left" | "up";
+
 export abstract class Character extends Physics.Arcade.Sprite {
-  protected readonly baseScale: number = 2;
+  protected readonly baseScale: number = 3;
   // todo: compute actual speed for Player class
   protected readonly baseSpeed: number = 150;
-  private direction: "right" | "down" | "left" | "up" = "down";
+  private direction: Direction = "down";
+
   protected abstract getMovement(delta: number): IMovement;
 
   constructor(scene: Scene, x: number, y: number, textureKey: string) {
@@ -21,19 +24,20 @@ export abstract class Character extends Physics.Arcade.Sprite {
 
     this.setScale(this.baseScale);
     this.setCollideWorldBounds(true);
-    Character.registerAnimations(scene, textureKey);
+    this.registerAnimations();
   }
+
   get getDirection() {
     return this.direction;
   }
 
-  private getAnimKey(dir: "down" | "up" | "side") {
-    return `${this.texture.key}-walk-${dir}`;
+  set setDirection(d: typeof this.direction) {
+    this.direction = d;
   }
 
   private updateDirection({ vx, vy }: IMovement) {
-    if (vx < 0) this.direction = "left";
-    else if (vx > 0) this.direction = "right";
+    if (vx > 0) this.direction = "left";
+    else if (vx < 0) this.direction = "right";
     else if (vy < 0) this.direction = "up";
     else if (vy > 0) this.direction = "down";
   }
@@ -44,11 +48,33 @@ export abstract class Character extends Physics.Arcade.Sprite {
     body.velocity.normalize().scale(this.baseSpeed);
   }
 
-  private standStill(): void {
-    this.stop();
-    const isRight = this.direction === "right";
-    this.setFlipX(isRight);
-    this.setFrame(`${isRight ? "left" : this.direction}-1`);
+  protected applyFacing(): void {
+    this.setFlipX(this.direction === "right");
+  }
+
+  protected registerAnimations(): void {
+    const a = this.scene.anims;
+    const key = this.texture.key;
+    if (a.exists(`${key}-idle`)) return;
+
+    a.create({
+      key: `${key}-idle`,
+      frames: a.generateFrameNumbers(key, { frames: [0, 1] }),
+      frameRate: 3,
+      repeat: -1,
+    });
+    a.create({
+      key: `${key}-walk`,
+      frames: a.generateFrameNumbers(key, { frames: [2, 3] }),
+      frameRate: 8,
+      repeat: -1,
+    });
+  }
+
+  protected updateAnimation(movement: IMovement): void {
+    const key = this.texture.key;
+    const idle = movement.vx === 0 && movement.vy === 0;
+    this.play(`${key}-${idle ? "idle" : "walk"}`, true);
   }
 
   public preUpdate(time: number, delta: number): void {
@@ -56,52 +82,7 @@ export abstract class Character extends Physics.Arcade.Sprite {
     const movement = this.getMovement(delta);
     this.move(movement);
     this.updateDirection(movement);
-
-    if (movement.vx === 0 && movement.vy === 0) {
-      this.standStill();
-      return;
-    }
-
-    switch (this.getDirection) {
-      case "left": {
-        this.setFlipX(false);
-        this.play(this.getAnimKey("side"), true);
-        break;
-      }
-      case "right": {
-        this.setFlipX(true);
-        this.play(this.getAnimKey("side"), true);
-        break;
-      }
-      case "up": {
-        this.play(this.getAnimKey("up"), true);
-        break;
-      }
-      case "down": {
-        this.play(this.getAnimKey("down"), true);
-        break;
-      }
-    }
-  }
-
-  static registerAnimations(scene: Scene, textureKey: string): void {
-    const key = (dir: string) => `${textureKey}-walk-${dir}`;
-    if (scene.anims.exists(key("down"))) return;
-
-    const walk = (dir: string, prefix: string) =>
-      scene.anims.create({
-        key: key(dir),
-        frames: scene.anims.generateFrameNames(textureKey, {
-          prefix,
-          start: 0,
-          end: 2,
-        }),
-        frameRate: 8,
-        repeat: -1,
-      });
-
-    walk("down", "down-");
-    walk("up", "up-");
-    walk("side", "left-");
+    this.applyFacing();
+    this.updateAnimation(movement);
   }
 }

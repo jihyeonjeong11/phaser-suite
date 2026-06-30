@@ -4,6 +4,7 @@ import { DebugHud } from "../../gameobjects/DebugHud";
 import { NPC } from "../../gameobjects/NPC";
 import { Tilemap } from "../../gameobjects/Tilemap";
 import { Portals } from "../../gameobjects/Portals";
+import { Inventory } from "../farmgame/Inventory";
 
 // 1. 맵 / 레벨 구성
 
@@ -66,6 +67,7 @@ export class Game extends Scene {
   }
 
   create() {
+    this.registry.set("inventory", ["testing"]);
     const tilemap = new Tilemap(this, "farm-map");
     this.map = tilemap.map;
     const worldLayer = tilemap.worldLayer;
@@ -86,16 +88,23 @@ export class Game extends Scene {
       (obj) => obj.name === "Spawn Point",
     ) as Phaser.Types.Tilemaps.TiledObject;
 
-    const player = new Player(this, spawnPoint.x!, spawnPoint.y!, "player");
+    const player = new Player(this, spawnPoint.x!, spawnPoint.y!, "hero");
     this.player = player;
 
-    const npc = new NPC(this, spawnPoint.x! + 20, spawnPoint.y!, "carpenter");
+    const npc = new NPC(this, spawnPoint.x! + 20, spawnPoint.y!, "npc");
 
     this.physics.add.collider(player, npc);
 
     if (worldLayer) {
       this.physics.add.collider(player, worldLayer);
       this.physics.add.collider(npc, worldLayer);
+    }
+
+    const bullets = player.getBullets();
+    if (bullets && worldLayer) {
+      this.physics.add.collider(bullets, worldLayer, (bullet) =>
+        (bullet as GameObjects.GameObject).destroy(),
+      );
     }
 
     this.camera = this.cameras.main;
@@ -135,6 +144,7 @@ export class Game extends Scene {
   }
 
   update() {
+    this.registry.get("inventory");
     this.debugHud.update(this.player, this.map);
   }
 }

@@ -20,6 +20,24 @@ export class Preloader extends Scene {
     this.load.image(`ruin_tile`, `ruin_tile.png`);
     this.load.image(`ruin_structure`, `ruin_structure.png`);
     this.load.image(`ruin_object`, `ruin_object.png`);
+    this.load.image(`weapon1`, `weapon1.png`);
+
+    // 파밍 도구 시트: frame 0=물뿌리개, 1=곡괭이, 2=도끼, 3=괭이
+    this.load.spritesheet("tools", "farming_tools.png", {
+      frameWidth: 64,
+      frameHeight: 16,
+    });
+
+    this.load.spritesheet("hero", "hero_sheet.png", {
+      frameWidth: 16,
+      frameHeight: 20,
+    });
+
+    // NPC: hero 리컬러본(같은 16x20 규약)
+    this.load.spritesheet("npc", "npc_sheet.png", {
+      frameWidth: 16,
+      frameHeight: 20,
+    });
 
     this.load.spritesheet("zombie-walk", "zombie/Walk.png", {
       frameWidth: 128,

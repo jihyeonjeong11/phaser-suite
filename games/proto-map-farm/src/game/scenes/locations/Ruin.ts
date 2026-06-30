@@ -37,11 +37,18 @@ export class Ruin extends Scene {
       (obj) => obj.name === "Spawn Point",
     ) as Types.Tilemaps.TiledObject;
 
-    const player = new Player(this, spawnPoint.x!, spawnPoint.y!, "player");
+    const player = new Player(this, spawnPoint.x!, spawnPoint.y!, "hero");
     this.player = player;
 
     if (worldLayer) {
       this.physics.add.collider(player, worldLayer);
+    }
+
+    const bullets = player.getBullets();
+    if (bullets && worldLayer) {
+      this.physics.add.collider(bullets, worldLayer, (bullet) =>
+        (bullet as GameObjects.GameObject).destroy(),
+      );
     }
 
     const margin = 64;
@@ -53,6 +60,12 @@ export class Ruin extends Scene {
       );
       this.physics.add.collider(player, zombie);
       if (worldLayer) this.physics.add.collider(zombie, worldLayer);
+      if (bullets) {
+        this.physics.add.overlap(bullets, zombie, (bullet, z) => {
+          (bullet as GameObjects.GameObject).destroy();
+          (z as GameObjects.GameObject).destroy();
+        });
+      }
     }
 
     this.camera = this.cameras.main;
