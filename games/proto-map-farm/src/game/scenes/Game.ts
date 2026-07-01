@@ -4,7 +4,8 @@ import { DebugHud } from "../../gameobjects/DebugHud";
 import { NPC } from "../../gameobjects/NPC";
 import { Tilemap } from "../../gameobjects/Tilemap";
 import { Portals } from "../../gameobjects/Portals";
-import { Inventory } from "../farmgame/Inventory";
+import { Store } from "../store/Store";
+import { QuickBar } from "../../gameobjects/hud/QuickBar";
 
 // 1. 맵 / 레벨 구성
 
@@ -61,13 +62,17 @@ export class Game extends Scene {
   player!: Player;
   debugHud!: DebugHud;
   portals: Portals;
+  store: Store;
+  quickBar: QuickBar;
 
   constructor() {
     super("Game");
   }
 
   create() {
-    this.registry.set("inventory", ["testing"]);
+    this.store = new Store(this);
+    this.quickBar = new QuickBar(this);
+
     const tilemap = new Tilemap(this, "farm-map");
     this.map = tilemap.map;
     const worldLayer = tilemap.worldLayer;
@@ -131,7 +136,6 @@ export class Game extends Scene {
         const dest = (portal as GameObjects.Zone).getData("dest");
 
         this.physics.world.disable(this.player);
-        this.cameras.main.fadeOut(1000, 0, 0, 0);
         this.cameras.main.once(Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () =>
           this.scene.start(dest),
         );
@@ -144,7 +148,6 @@ export class Game extends Scene {
   }
 
   update() {
-    this.registry.get("inventory");
     this.debugHud.update(this.player, this.map);
   }
 }

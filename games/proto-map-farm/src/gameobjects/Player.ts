@@ -2,6 +2,7 @@ import { GameObjects, Scene } from "phaser";
 import { Character, IMovement } from "./Character";
 import { Weapon } from "./Weapon";
 import { Tool } from "./Tool";
+import { InventoryItem, TEMP_INV_LIMIT } from "../game/store/Store";
 
 export class Player extends Character {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -10,9 +11,8 @@ export class Player extends Character {
   constructor(scene: Scene, x: number, y: number, textureKey: string) {
     super(scene, x, y, textureKey);
     this.cursors = scene.input.keyboard!.createCursorKeys();
-    this.equip(new Weapon(scene, x, y, "weapon1"));
     scene.input.on("pointerdown", () => this.shoot());
-    this.registerDebugKeys(scene);
+    this.registerQuickBarKeys(scene);
   }
 
   equip(item: Weapon | Tool): void {
@@ -21,28 +21,49 @@ export class Player extends Character {
     item.setDepth(this.depth + 1);
   }
 
-  private registerDebugKeys(scene: Scene): void {
+  private registerQuickBarKeys(scene: Scene): void {
     const kb = scene.input.keyboard!;
-    // testing-m1a1
-    kb.on("keydown-ONE", () =>
-      this.equip(new Weapon(scene, this.x, this.y, "weapon1")),
-    );
-    // testing-wateringcan
-    kb.on("keydown-TWO", () =>
-      this.equip(new Tool(scene, this.x, this.y, "tools", 0)),
-    );
-    // testing-pickaxe
-    kb.on("keydown-THREE", () =>
-      this.equip(new Tool(scene, this.x, this.y, "tools", 1)),
-    );
-    // testing-hoe
-    kb.on("keydown-FOUR", () =>
-      this.equip(new Tool(scene, this.x, this.y, "tools", 2)),
-    );
-    // testing-axe
-    kb.on("keydown-FIVE", () =>
-      this.equip(new Tool(scene, this.x, this.y, "tools", 3)),
-    );
+    const keyNames = [
+      "ONE",
+      "TWO",
+      "THREE",
+      "FOUR",
+      "FIVE",
+      "SIX",
+      "SEVEN",
+      "EIGHT",
+      "NINE",
+      "ZERO",
+    ];
+    keyNames
+      .slice(0, TEMP_INV_LIMIT)
+      .forEach((name, i) => kb.on(`keydown-${name}`, () => this.selectSlot(i)));
+  }
+
+  private selectSlot(index: number): void {
+    this.scene.registry.set("quickbarSelected", index);
+    const inv = this.scene.registry.get("inventory") as
+      | InventoryItem[]
+      | undefined;
+    const item = inv?.[index];
+    if (!item) {
+      this.unequip();
+      return;
+    }
+    this.equip(this.createHand(item));
+  }
+
+  // todo: item.type 추가되면 그걸로 분기. 지금은 frame 유무로 Weapon/Tool 임시 판별
+  private createHand(item: InventoryItem): Weapon | Tool {
+    if (item.frame === undefined) {
+      return new Weapon(this.scene, this.x, this.y, item.textureKey);
+    }
+    return new Tool(this.scene, this.x, this.y, item.textureKey, item.frame);
+  }
+
+  private unequip(): void {
+    if (this.hand) this.hand.destroy();
+    this.hand = null;
   }
 
   shoot(): void {

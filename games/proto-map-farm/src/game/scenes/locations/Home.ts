@@ -4,6 +4,8 @@ import { DebugHud } from "../../../gameobjects/DebugHud";
 import { Tilemap } from "../../../gameobjects/Tilemap";
 import { NPC } from "../../../gameobjects/NPC";
 import { Portals } from "../../../gameobjects/Portals";
+import { Store } from "../../store/Store";
+import { QuickBar } from "../../../gameobjects/hud/QuickBar";
 
 export class Home extends Scene {
   camera!: Cameras.Scene2D.Camera;
@@ -11,12 +13,16 @@ export class Home extends Scene {
   player!: Player;
   debugHud!: DebugHud;
   portals: Portals;
+  quickBar: QuickBar;
 
   constructor() {
     super("Home");
   }
 
   create() {
+    new Store(this);
+    this.quickBar = new QuickBar(this);
+
     const tilemap = new Tilemap(this, "home-map");
     this.map = tilemap.map;
     const worldLayer = tilemap.worldLayer;
@@ -40,13 +46,8 @@ export class Home extends Scene {
     const player = new Player(this, spawnPoint.x!, spawnPoint.y!, "hero");
     this.player = player;
 
-    const npc = new NPC(this, spawnPoint.x! + 20, spawnPoint.y!, "npc");
-
-    this.physics.add.collider(player, npc);
-
     if (worldLayer) {
       this.physics.add.collider(player, worldLayer);
-      this.physics.add.collider(npc, worldLayer);
     }
 
     const bullets = player.getBullets();
@@ -88,12 +89,10 @@ export class Home extends Scene {
       undefined,
       this,
     );
-
     this.camera.fadeIn(1000, 0, 0, 0);
   }
 
   update() {
-    console.log(this.registry.get("inventory"));
     this.debugHud.update(this.player, this.map);
   }
 }
