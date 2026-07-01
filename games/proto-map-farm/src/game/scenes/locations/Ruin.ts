@@ -1,9 +1,18 @@
-import { Cameras, GameObjects, Math as PMath, Scene, Tilemaps, Types } from "phaser";
+import {
+  Cameras,
+  GameObjects,
+  Math as PMath,
+  Scene,
+  Tilemaps,
+  Types,
+} from "phaser";
 import { Player } from "../../../gameobjects/Player";
 import { DebugHud } from "../../../gameobjects/DebugHud";
 import { Tilemap } from "../../../gameobjects/Tilemap";
 import { Portals } from "../../../gameobjects/Portals";
 import { Zombie } from "../../../gameobjects/Zombie";
+import { Store } from "../../store/Store";
+import { QuickBar } from "../../../gameobjects/hud/QuickBar";
 
 export class Ruin extends Scene {
   camera!: Cameras.Scene2D.Camera;
@@ -11,12 +20,16 @@ export class Ruin extends Scene {
   player!: Player;
   debugHud!: DebugHud;
   portals: Portals;
+  quickBar: QuickBar;
 
   constructor() {
     super("Ruin");
   }
 
   create() {
+    new Store(this);
+    this.quickBar = new QuickBar(this);
+
     const tilemap = new Tilemap(this, "ruin_map");
     this.map = tilemap.map;
     const worldLayer = tilemap.worldLayer;
@@ -100,7 +113,6 @@ export class Ruin extends Scene {
       undefined,
       this,
     );
-
     this.camera.fadeIn(1000, 0, 0, 0);
   }
 

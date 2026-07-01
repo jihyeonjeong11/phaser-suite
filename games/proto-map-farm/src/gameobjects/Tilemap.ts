@@ -4,7 +4,7 @@ function imageKeyFor(source: string): string {
   const base = source.split(/[\\/]/).pop() ?? source;
   return base.replace(/\.[^.]+$/, "");
 }
-
+// todo: https://github.com/Kosert/PhaserChess/blob/master/srcClient/objects/square-object.ts give tiles meaning
 export class Tilemap {
   readonly map: Tilemaps.Tilemap;
   readonly worldLayer: Tilemaps.TilemapLayer | Tilemaps.TilemapGPULayer;
