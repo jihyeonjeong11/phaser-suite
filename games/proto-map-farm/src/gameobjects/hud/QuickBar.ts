@@ -5,6 +5,7 @@ export class QuickBar extends GameObjects.Container {
   private static readonly SLOT_SIZE = 44;
   private static readonly GAP = 4;
   private static readonly MARGIN_BOTTOM = 12;
+  private static readonly ICON_PADDING = 8;
 
   private slots: GameObjects.Rectangle[] = [];
   private icons: (GameObjects.Image | null)[] = [];
@@ -77,8 +78,11 @@ export class QuickBar extends GameObjects.Container {
       const slot = this.slots[i];
       const icon = this.scene.add
         .image(slot.x, slot.y, item.textureKey, item.frame)
-        .setScrollFactor(0)
-        .setScale(3);
+        .setScrollFactor(0);
+
+      // Fit icon within the slot regardless of frame size (weapon 64x64 vs tool 64x16)
+      const maxSize = QuickBar.SLOT_SIZE - QuickBar.ICON_PADDING;
+      icon.setScale(maxSize / Math.max(icon.width, icon.height));
 
       this.add(icon);
       this.icons[i] = icon;

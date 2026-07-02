@@ -1,6 +1,6 @@
 // char base
 
-import { Scene, Physics } from "phaser";
+import { Scene, Physics, GameObjects } from "phaser";
 
 export interface IMovement {
   vx: number;
@@ -15,9 +15,19 @@ export abstract class Character extends Physics.Arcade.Sprite {
   protected readonly baseSpeed: number = 150;
   private direction: Direction = "down";
 
+  // 헤어 오버레이(hairs_char). hairRow 미지정 시 오버레이 없음(검은 기본 캡).
+  private hair?: GameObjects.Sprite;
+  private hairRow = 0;
+
   protected abstract getMovement(delta: number): IMovement;
 
-  constructor(scene: Scene, x: number, y: number, textureKey: string) {
+  constructor(
+    scene: Scene,
+    x: number,
+    y: number,
+    textureKey: string,
+    hairRow?: number,
+  ) {
     super(scene, x, y, textureKey);
     scene.add.existing(this);
     scene.physics.add.existing(this);
@@ -25,6 +35,28 @@ export abstract class Character extends Physics.Arcade.Sprite {
     this.setScale(this.baseScale);
     this.setCollideWorldBounds(true);
     this.registerAnimations();
+
+    if (hairRow !== undefined) {
+      this.hairRow = hairRow;
+      this.hair = scene.add.sprite(x, y, "hairs_char", hairRow * 4);
+      this.hair.setScale(this.baseScale);
+      this.hair.setDepth(this.depth + 1);
+    }
+  }
+
+  // 헤어 스프라이트를 베이스와 동기화(위치/좌우반전/깊이/프레임).
+  // hairs_char 프레임 = 베이스 프레임(0..3) + hairRow*4
+  private syncHair(): void {
+    if (!this.hair) return;
+    this.hair.setPosition(this.x, this.y);
+    this.hair.setFlipX(this.flipX);
+    this.hair.setDepth(this.depth + 1);
+    this.hair.setFrame(Number(this.frame.name) + this.hairRow * 4);
+  }
+
+  public destroy(fromScene?: boolean): void {
+    this.hair?.destroy(fromScene);
+    super.destroy(fromScene);
   }
 
   get getDirection() {
@@ -47,6 +79,14 @@ export abstract class Character extends Physics.Arcade.Sprite {
     body.setVelocity(vx, vy);
     body.velocity.normalize().scale(this.baseSpeed);
   }
+
+  // private moveCharacter(direction, isRunning = false) {
+  //   if (this._isMoving) {
+  //     return;
+  //   }
+  //   this._isRunning = isRunning;
+  //   this._moveSprite(direction);
+  // }
 
   protected applyFacing(): void {
     this.setFlipX(this.direction === "right");
@@ -84,5 +124,6 @@ export abstract class Character extends Physics.Arcade.Sprite {
     this.updateDirection(movement);
     this.applyFacing();
     this.updateAnimation(movement);
+    this.syncHair();
   }
 }

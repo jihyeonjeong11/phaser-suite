@@ -50,7 +50,7 @@ export class Ruin extends Scene {
       (obj) => obj.name === "Spawn Point",
     ) as Types.Tilemaps.TiledObject;
 
-    const player = new Player(this, spawnPoint.x!, spawnPoint.y!, "hero");
+    const player = new Player(this, spawnPoint.x!, spawnPoint.y!, "base_char");
     this.player = player;
 
     if (worldLayer) {

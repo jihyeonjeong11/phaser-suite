@@ -20,7 +20,6 @@ export class Home extends Scene {
   }
 
   create() {
-    new Store(this);
     this.quickBar = new QuickBar(this);
 
     const tilemap = new Tilemap(this, "home-map");
@@ -43,7 +42,7 @@ export class Home extends Scene {
       (obj) => obj.name === "Spawn Point",
     ) as Types.Tilemaps.TiledObject;
 
-    const player = new Player(this, spawnPoint.x!, spawnPoint.y!, "hero");
+    const player = new Player(this, spawnPoint.x!, spawnPoint.y!, "base_char");
     this.player = player;
 
     if (worldLayer) {

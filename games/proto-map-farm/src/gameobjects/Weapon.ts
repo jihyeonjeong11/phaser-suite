@@ -14,7 +14,7 @@ export class Weapon extends GameObjects.Sprite {
   constructor(scene: Scene, x: number, y: number, textureKey: string) {
     super(scene, x, y, textureKey);
     scene.add.existing(this);
-    this.setScale(0.6);
+    this.setScale(1);
     this.bullets = scene.add.group();
   }
 
@@ -41,5 +41,7 @@ export class Weapon extends GameObjects.Sprite {
 
     const bullet = new Bullet(this.scene, mx, my, angle, Weapon.BULLET_SPEED);
     this.bullets.add(bullet);
+
+    this.scene.sound.play("gunfire");
   }
 }

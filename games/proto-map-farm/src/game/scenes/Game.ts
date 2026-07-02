@@ -70,7 +70,6 @@ export class Game extends Scene {
   }
 
   create() {
-    this.store = new Store(this);
     this.quickBar = new QuickBar(this);
 
     const tilemap = new Tilemap(this, "farm-map");
@@ -93,10 +92,10 @@ export class Game extends Scene {
       (obj) => obj.name === "Spawn Point",
     ) as Phaser.Types.Tilemaps.TiledObject;
 
-    const player = new Player(this, spawnPoint.x!, spawnPoint.y!, "hero");
+    const player = new Player(this, spawnPoint.x!, spawnPoint.y!, "base_char");
     this.player = player;
 
-    const npc = new NPC(this, spawnPoint.x! + 20, spawnPoint.y!, "npc");
+    const npc = new NPC(this, spawnPoint.x! + 20, spawnPoint.y!, "base_char");
 
     this.physics.add.collider(player, npc);
 
@@ -134,8 +133,8 @@ export class Game extends Scene {
         isTransitioning = true;
 
         const dest = (portal as GameObjects.Zone).getData("dest");
-
         this.physics.world.disable(this.player);
+        this.cameras.main.fadeOut(1000, 0, 0, 0);
         this.cameras.main.once(Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () =>
           this.scene.start(dest),
         );
