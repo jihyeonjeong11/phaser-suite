@@ -16,7 +16,8 @@ import { Scene, Types } from "phaser";
 
 // refs https://www.ticklemonster.com.au/2023/07/18/basescene-hud-and-event-emitter-file-structure-in-phaser-3-60/
 
-export class BaseScene extends Scene {
+// todo: controls
+export abstract class BaseScene extends Scene {
   constructor(config: Types.Scenes.SettingsConfig) {
     super(config);
   }

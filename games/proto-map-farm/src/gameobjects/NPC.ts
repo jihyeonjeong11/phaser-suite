@@ -6,8 +6,14 @@ export class NPC extends Character {
   private timer = 0;
   private dir: IMovement = { vx: 0, vy: 0 };
 
-  constructor(scene: Scene, x: number, y: number, textureKey: string) {
-    super(scene, x, y, textureKey);
+  constructor(
+    scene: Scene,
+    x: number,
+    y: number,
+    textureKey: string,
+    hairRow = 0,
+  ) {
+    super(scene, x, y, textureKey, hairRow);
     this.setImmovable();
   }
 
