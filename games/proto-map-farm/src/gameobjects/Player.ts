@@ -2,11 +2,16 @@ import { GameObjects, Scene } from "phaser";
 import { Character, IMovement } from "./Character";
 import { Weapon } from "./Weapon";
 import { Tool } from "./Tool";
-import { InventoryItem, TEMP_INV_LIMIT } from "../game/store/Store";
+import {
+  dataManager,
+  InventoryItem,
+  TEMP_INV_LIMIT,
+} from "../game/dataManager/Store";
 
 export class Player extends Character {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
   private hand?: Weapon | Tool | null;
+  private wasMoving = false;
 
   constructor(scene: Scene, x: number, y: number, textureKey: string) {
     super(scene, x, y, textureKey);
@@ -78,6 +83,17 @@ export class Player extends Character {
     super.preUpdate(time, delta);
     this.updateAim();
     this.hand?.updateOffset(this, this.getDirection);
+    this.savePositionOnStop();
+  }
+
+  // 이동 중 -> 정지로 바뀌는 첫 프레임에만 현재 좌표를 store에 저장
+  private savePositionOnStop(): void {
+    const { vx, vy } = this.getMovement();
+    const isMoving = vx !== 0 || vy !== 0;
+    if (this.wasMoving && !isMoving) {
+      dataManager.setPlayerData({ x: this.x, y: this.y });
+    }
+    this.wasMoving = isMoving;
   }
 
   private updateAim(): void {

@@ -1,11 +1,12 @@
-import { Cameras, GameObjects, Scene, Tilemaps } from "phaser";
+import { Cameras, GameObjects, Tilemaps } from "phaser";
 import { Player } from "../../gameobjects/Player";
 import { DebugHud } from "../../gameobjects/DebugHud";
 import { NPC } from "../../gameobjects/NPC";
 import { Tilemap } from "../../gameobjects/Tilemap";
 import { Portals } from "../../gameobjects/Portals";
-import { Store } from "../store/Store";
-import { QuickBar } from "../../gameobjects/hud/QuickBar";
+import { BaseScene } from "./Base";
+import { theatre } from "../dataManager/EventEmitter";
+import { dataManager } from "../dataManager/Store";
 
 // 1. 맵 / 레벨 구성
 
@@ -56,23 +57,32 @@ import { QuickBar } from "../../gameobjects/hud/QuickBar";
 // 20. imageKeyFor — 타일셋 파일명→로드 키 변환 헬퍼 // map.ts에 두기,
 // 21. PLAYER_SPEED 상수 - entity에 두기.
 
-export class Game extends Scene {
+export class Game extends BaseScene {
   camera!: Cameras.Scene2D.Camera;
   map!: Tilemaps.Tilemap;
   player!: Player;
   debugHud!: DebugHud;
   portals: Portals;
-  store: Store;
-  quickBar: QuickBar;
+  sceneData: { area: string; fromSave: boolean } = {
+    area: "Farm",
+    fromSave: false,
+  };
 
   constructor() {
-    super("Game");
+    super({ key: "Game" });
+  }
+
+  init(data: { area?: string; fromSave?: boolean } = {}) {
+    super.init();
+    this.sceneData = {
+      area: data.area ?? "farm-map",
+      fromSave: data.fromSave ?? false,
+    };
   }
 
   create() {
-    this.quickBar = new QuickBar(this);
-
-    const tilemap = new Tilemap(this, "farm-map");
+    super.create();
+    const tilemap = new Tilemap(this, this.sceneData.area);
     this.map = tilemap.map;
     const worldLayer = tilemap.worldLayer;
 
@@ -92,7 +102,13 @@ export class Game extends Scene {
       (obj) => obj.name === "Spawn Point",
     ) as Phaser.Types.Tilemaps.TiledObject;
 
-    const player = new Player(this, spawnPoint.x!, spawnPoint.y!, "base_char");
+    const saved = dataManager.getPlayerData();
+    const useSaved =
+      this.sceneData.fromSave && (saved.x !== 0 || saved.y !== 0);
+    const spawnX = useSaved ? saved.x : spawnPoint.x!;
+    const spawnY = useSaved ? saved.y : spawnPoint.y!;
+
+    const player = new Player(this, spawnX, spawnY, "base_char");
     this.player = player;
 
     const npc = new NPC(this, spawnPoint.x! + 20, spawnPoint.y!, "base_char");
@@ -123,27 +139,37 @@ export class Game extends Scene {
 
     this.portals = new Portals(this, this.map);
 
-    let isTransitioning = false;
-
     this.physics.add.overlap(
       this.player,
       this.portals.getPortals,
       (_player, portal) => {
-        if (isTransitioning) return;
-        isTransitioning = true;
-
-        const dest = (portal as GameObjects.Zone).getData("dest");
-        this.physics.world.disable(this.player);
-        this.cameras.main.fadeOut(1000, 0, 0, 0);
-        this.cameras.main.once(Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () =>
-          this.scene.start(dest),
-        );
+        this.handlePortalEnteredCallback(portal as GameObjects.Zone);
       },
       undefined,
       this,
     );
 
-    this.cameras.main.fadeIn(1000, 0, 0, 0);
+    this.scene.run("hud");
+    theatre.emit("hudFocus");
+  }
+
+  handlePortalEnteredCallback(portal: GameObjects.Zone) {
+    this._controls.lockInput = true;
+    this.cameras.main.fadeOut(
+      1000,
+      0,
+      0,
+      0,
+      (_camera: Cameras.Scene2D.Camera, progress: number) => {
+        this.physics.world.disable(this.player);
+        if (progress === 1) {
+          const dataToPass = {
+            area: portal.getData("dest"),
+          };
+          this.scene.start("Game", dataToPass);
+        }
+      },
+    );
   }
 
   update() {

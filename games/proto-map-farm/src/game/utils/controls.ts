@@ -1,11 +1,10 @@
 import { Input, Scene, Types } from "phaser";
 import { DIRECTION } from "./constants";
 
-export class controls {
-  /** @type {Phaser.Scene} */
+export class Controls {
   #scene: Scene;
   #cursorKeys: Types.Input.Keyboard.CursorKeys | undefined;
-  #lockPlayerInput: boolean;
+  private lockPlayerInput: boolean;
   #enterKey: Input.Keyboard.Key | undefined;
   #fKey: Input.Keyboard.Key | undefined;
 
@@ -13,23 +12,25 @@ export class controls {
     this.#scene = scene;
     this.#cursorKeys = this.#scene.input.keyboard?.createCursorKeys();
     this.#enterKey = this.#scene.input.keyboard?.addKey(
-      Phaser.Input.Keyboard.KeyCodes.ENTER,
+      Input.Keyboard.KeyCodes.ENTER,
     );
-    this.#fKey = this.#scene.input.keyboard?.addKey(
-      Phaser.Input.Keyboard.KeyCodes.F,
-    );
-    this.#lockPlayerInput = false;
+    this.#fKey = this.#scene.input.keyboard?.addKey(Input.Keyboard.KeyCodes.F);
+    this.lockPlayerInput = false;
   }
   // when moving between scenes
   get isInputLocked() {
-    return this.#lockPlayerInput;
+    return this.lockPlayerInput;
+  }
+
+  set lockInput(val: boolean) {
+    this.lockPlayerInput = val;
   }
   // todo: implement pause or inventory scene
   wasEnterKeyPressed() {
     if (this.#enterKey === undefined) {
       return false;
     }
-    return Phaser.Input.Keyboard.JustDown(this.#enterKey);
+    return Input.Keyboard.JustDown(this.#enterKey);
   }
 
   getDirectionKeyPressedDown() {

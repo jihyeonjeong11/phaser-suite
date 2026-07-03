@@ -1,5 +1,5 @@
 import { Scene } from "phaser";
-import { TEMP_INV } from "../store/Store";
+import { TEMP_INV } from "../dataManager/Store";
 
 export class Preloader extends Scene {
   constructor() {
@@ -66,13 +66,13 @@ export class Preloader extends Scene {
     // Start Inventory
     this.registry.set("inventory", TEMP_INV);
 
-    // DEBUG: 파일을 하나씩 순차 로드해 진행 단계를 잘게 관찰
-
     // Testing tile map sheet from itch.io // todo: draw tilemap!
     this.load.setPath("assets");
-    this.load.tilemapTiledJSON("farm-map", "farm-map.json");
+    this.load.tilemapTiledJSON("Farm", "farm-map.json");
+    this.load.tilemapTiledJSON("Home", "home-map.json");
+
     this.load.tilemapTiledJSON("home-map", "home-map.json");
-    this.load.tilemapTiledJSON("ruin_map", "ruin_map.json");
+    this.load.tilemapTiledJSON("Ruin", "ruin_map.json");
 
     for (let i = 1; i <= 7; i++) {
       this.load.image(`${i}`, `${i}.png`);
@@ -82,9 +82,9 @@ export class Preloader extends Scene {
     this.load.image(`ruin_structure`, `ruin_structure.png`);
     this.load.image(`ruin_object`, `ruin_object.png`);
 
+    // Drawn by me
     const resources = [
       {
-        // Weapon spritesheet (self-drawn). 64x64 per frame — currently 1 frame.
         type: "spritesheet",
         key: "weapons",
         url: "weapons.png",

@@ -1,5 +1,9 @@
 import { Cameras, GameObjects, Scene } from "phaser";
-import { InventoryItem, TEMP_INV_LIMIT } from "../../game/store/Store";
+import {
+  dataManager,
+  InventoryItem,
+  TEMP_INV_LIMIT,
+} from "../../game/dataManager/Store";
 
 export class QuickBar extends GameObjects.Container {
   private static readonly SLOT_SIZE = 44;
@@ -17,6 +21,7 @@ export class QuickBar extends GameObjects.Container {
     this.setDepth(1000);
 
     this.build();
+    this.buildSaveButton();
     this.render();
 
     const reg = scene.registry;
@@ -56,6 +61,43 @@ export class QuickBar extends GameObjects.Container {
       this.slots.push(slot);
       this.icons.push(null);
     }
+  }
+
+  // 퀵바 오른쪽에 테스트용 세이브 버튼 (클릭 시 localStorage 저장)
+  private buildSaveButton(): void {
+    const { SLOT_SIZE, GAP, MARGIN_BOTTOM } = QuickBar;
+    const n = TEMP_INV_LIMIT;
+    const barWidth = n * SLOT_SIZE + (n - 1) * GAP;
+    const barRight = (this.scene.scale.width + barWidth) / 2;
+    const btnWidth = SLOT_SIZE * 1.4;
+    const x = barRight + GAP + btnWidth / 2;
+    const y = this.scene.scale.height - SLOT_SIZE / 2 - MARGIN_BOTTOM;
+
+    const btn = this.scene.add
+      .rectangle(x, y, btnWidth, SLOT_SIZE, 0x225522, 0.8)
+      .setStrokeStyle(2, 0x66cc66)
+      .setScrollFactor(0)
+      .setInteractive({ useHandCursor: true });
+
+    const label = this.scene.add
+      .text(x, y, "SAVE", {
+        fontSize: "14px",
+        color: "#ffffff",
+        fontStyle: "bold",
+      })
+      .setOrigin(0.5)
+      .setScrollFactor(0);
+
+    btn.on("pointerover", () => btn.setFillStyle(0x338833, 0.9));
+    btn.on("pointerout", () => btn.setFillStyle(0x225522, 0.8));
+    btn.on("pointerdown", () => {
+      dataManager.save();
+      // 저장 피드백: 라벨 잠깐 SAVED 표시
+      label.setText("SAVED");
+      this.scene.time.delayedCall(800, () => label.setText("SAVE"));
+    });
+
+    this.add([btn, label]);
   }
 
   private render(): void {

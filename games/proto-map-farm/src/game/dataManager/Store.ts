@@ -1,4 +1,4 @@
-import { Data, Scene } from "phaser";
+import { Data, Events } from "phaser";
 
 // inventory current scope
 // characterdata if battle implemented money, hp, stamina...
@@ -9,6 +9,13 @@ import { Data, Scene } from "phaser";
 // global states(season, time, flags...)
 
 // todo: save/load https://www.dynetisgames.com/2018/10/28/how-save-load-player-progress-localstorage/
+// todo: need initialState
+
+export const BASE_VOLUME = 0.5;
+
+export interface GameOptions {
+  volume: number;
+}
 
 export const TEMP_INV_LIMIT = 10;
 
@@ -65,21 +72,77 @@ export const TEMP_INV: InventoryItem[] = [
   },
 ];
 
+const initialState = {
+  player: {
+    x: 0,
+    y: 0,
+    currentMapKey: "farm-map",
+  },
+  inventory: TEMP_INV,
+  //options
+  options: {
+    volume: BASE_VOLUME,
+  },
+} as const;
+
 // registry manager
-export class Store {
-  private registry: Data.DataManager;
-  constructor(scene: Scene) {
-    //playerdata
-    // need item objects json
-    this.registry = scene.registry;
-    if (!this.registry.get("inventory")) {
-      this.registry.set("inventory", TEMP_INV);
+class DataManager extends Events.EventEmitter {
+  private static readonly SAVE_KEY = "proto-map-farm-save";
+  private store: Data.DataManager;
+
+  constructor() {
+    super();
+    this.store = new Data.DataManager(this);
+    // initialize state with initial values
+    this.store.set(initialState);
+    //this.#updateDataManger(initialState);
+  }
+
+  save() {
+    localStorage.setItem(
+      DataManager.SAVE_KEY,
+      JSON.stringify(this.store.getAll()),
+    );
+  }
+
+  hasSave(): boolean {
+    return localStorage.getItem(DataManager.SAVE_KEY) !== null;
+  }
+
+  load(): boolean {
+    const raw = localStorage.getItem(DataManager.SAVE_KEY);
+    if (!raw) return false;
+    try {
+      this.store.set(JSON.parse(raw));
+      return true;
+    } catch {
+      return false;
     }
   }
-  get inventory() {
-    return this.registry.get("inventory");
+
+  getPlayerData(): { x: number; y: number } {
+    return this.store.get("player");
   }
-  set inventory(v) {
-    this.registry.set("inventory", v);
+
+  setPlayerData(pos: { x: number; y: number }) {
+    this.store.set("player", pos);
+  }
+
+  getInventory() {
+    return this.store.get("inventory");
+  }
+
+  setInventory(inventory: InventoryItem[]) {
+    this.store.set("inventory", inventory);
+  }
+
+  getOption() {
+    return this.store.get("options");
+  }
+
+  setOption(option: GameOptions) {
+    this.store.set("options", option);
   }
 }
+
+export const dataManager = new DataManager();

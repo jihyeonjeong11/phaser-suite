@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "phaser": "4.0.0",
+    "phaser4-rex-plugins": "^4.2.0",
     "terser": "^5.39.0"
   }
 }
