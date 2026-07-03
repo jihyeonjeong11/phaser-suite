@@ -1,8 +1,7 @@
-import { GameObjects, Physics, Scene, Tilemaps } from "phaser";
+import { Physics, Scene, Tilemaps } from "phaser";
 
 export class Portals {
   portals: Physics.Arcade.StaticGroup;
-  private debugGraphics: GameObjects.Graphics;
 
   constructor(scene: Scene, map: Tilemaps.Tilemap) {
     this.portals = scene.physics.add.staticGroup();
@@ -31,23 +30,6 @@ export class Portals {
         this.portals.add(portal);
       });
     }
-
-    this.debugGraphics = scene.add.graphics().setDepth(20).setVisible(false);
-    this.drawDebug();
-    scene.input.keyboard?.on("keydown-P", () => {
-      this.debugGraphics.setVisible(!this.debugGraphics.visible);
-    });
-  }
-
-  private drawDebug(): void {
-    this.debugGraphics.clear();
-    this.debugGraphics.fillStyle(0x00ffff, 0.35);
-    this.debugGraphics.lineStyle(2, 0x00ffff, 0.9);
-    (this.portals.getChildren() as GameObjects.Zone[]).forEach((zone) => {
-      const bounds = zone.getBounds();
-      this.debugGraphics.fillRectShape(bounds);
-      this.debugGraphics.strokeRectShape(bounds);
-    });
   }
 
   get getPortals(): Physics.Arcade.StaticGroup {

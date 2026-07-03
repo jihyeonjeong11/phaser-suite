@@ -3,6 +3,7 @@ import { Scene, Display } from "phaser";
 export class DebugHud {
   private coordsText: Phaser.GameObjects.Text;
   private collisionGraphics: Phaser.GameObjects.Graphics;
+  private portalGraphics: Phaser.GameObjects.Graphics;
 
   constructor(
     scene: Scene,
@@ -10,6 +11,7 @@ export class DebugHud {
       | Phaser.Tilemaps.TilemapLayer
       | Phaser.Tilemaps.TilemapGPULayer
       | null,
+    portalLayer?: Phaser.Tilemaps.ObjectLayer | null,
   ) {
     this.collisionGraphics = scene.add
       .graphics()
@@ -20,6 +22,9 @@ export class DebugHud {
       collidingTileColor: new Display.Color(243, 134, 48, 255),
       faceColor: new Display.Color(40, 39, 37, 255),
     });
+
+    this.portalGraphics = scene.add.graphics().setDepth(20).setVisible(false);
+    this.drawPortals(portalLayer, worldLayer);
 
     scene.add
       .text(
@@ -52,6 +57,33 @@ export class DebugHud {
 
     scene.input.keyboard!.on("keydown-C", () => {
       this.collisionGraphics.setVisible(!this.collisionGraphics.visible);
+    });
+
+    scene.input.keyboard!.on("keydown-P", () => {
+      this.portalGraphics.setVisible(!this.portalGraphics.visible);
+    });
+  }
+
+  private drawPortals(
+    portalLayer?: Phaser.Tilemaps.ObjectLayer | null,
+    worldLayer?:
+      | Phaser.Tilemaps.TilemapLayer
+      | Phaser.Tilemaps.TilemapGPULayer
+      | null,
+  ): void {
+    const tw = worldLayer?.tilemap.tileWidth ?? 0;
+    const th = worldLayer?.tilemap.tileHeight ?? 0;
+    if (!portalLayer || !tw || !th) return;
+
+    this.portalGraphics.clear();
+    this.portalGraphics.fillStyle(0x00ffff, 0.35);
+    this.portalGraphics.lineStyle(2, 0x00ffff, 0.9);
+    portalLayer.objects.forEach((obj) => {
+      if (obj.x == null || obj.y == null) return;
+      const col = Math.floor(obj.x / tw);
+      const row = Math.floor(obj.y / th);
+      this.portalGraphics.fillRect(col * tw, row * th, tw, th);
+      this.portalGraphics.strokeRect(col * tw, row * th, tw, th);
     });
   }
 

@@ -2,11 +2,11 @@ import { Cameras, GameObjects, Tilemaps } from "phaser";
 import { Player } from "../../gameobjects/Player";
 import { DebugHud } from "../../gameobjects/DebugHud";
 import { NPC } from "../../gameobjects/NPC";
-import { Tilemap } from "../../gameobjects/Tilemap";
 import { Portals } from "../../gameobjects/Portals";
 import { BaseScene } from "./Base";
 import { theatre } from "../dataManager/EventEmitter";
 import { dataManager } from "../dataManager/Store";
+import { Worldmap } from "../../gameobjects/Worldmap";
 
 // 1. 맵 / 레벨 구성
 
@@ -58,12 +58,12 @@ import { dataManager } from "../dataManager/Store";
 // 21. PLAYER_SPEED 상수 - entity에 두기.
 
 export class Game extends BaseScene {
-  camera!: Cameras.Scene2D.Camera;
-  map!: Tilemaps.Tilemap;
-  player!: Player;
-  debugHud!: DebugHud;
-  portals: Portals;
-  sceneData: { area: string; fromSave: boolean } = {
+  private camera: Cameras.Scene2D.Camera;
+  private worldMap: Worldmap;
+  private player: Player;
+  private debugHud: DebugHud;
+  private portals: Portals;
+  private sceneData: { area: string; fromSave: boolean } = {
     area: "Farm",
     fromSave: false,
   };
@@ -82,97 +82,69 @@ export class Game extends BaseScene {
 
   create() {
     super.create();
-    const tilemap = new Tilemap(this, this.sceneData.area);
-    this.map = tilemap.map;
-    const worldLayer = tilemap.worldLayer;
-
-    worldLayer?.setCollisionByProperty({ collides: true });
-
-    this.debugHud = new DebugHud(this, worldLayer);
-
-    this.physics.world.setBounds(
-      0,
-      0,
-      this.map.widthInPixels,
-      this.map.heightInPixels,
-    );
-
-    const spawnPoint = this.map.findObject(
-      "Objects",
-      (obj) => obj.name === "Spawn Point",
-    ) as Phaser.Types.Tilemaps.TiledObject;
-
-    const saved = dataManager.getPlayerData();
-    const useSaved =
-      this.sceneData.fromSave && (saved.x !== 0 || saved.y !== 0);
-    const spawnX = useSaved ? saved.x : spawnPoint.x!;
-    const spawnY = useSaved ? saved.y : spawnPoint.y!;
-
-    const player = new Player(this, spawnX, spawnY, "base_char");
-    this.player = player;
-
-    const npc = new NPC(this, spawnPoint.x! + 20, spawnPoint.y!, "base_char");
-
-    this.physics.add.collider(player, npc);
-
-    if (worldLayer) {
-      this.physics.add.collider(player, worldLayer);
-      this.physics.add.collider(npc, worldLayer);
-    }
-
-    const bullets = player.getBullets();
-    if (bullets && worldLayer) {
-      this.physics.add.collider(bullets, worldLayer, (bullet) =>
-        (bullet as GameObjects.GameObject).destroy(),
-      );
-    }
-
-    this.camera = this.cameras.main;
-    this.camera.setBounds(
-      0,
-      0,
-      this.map.widthInPixels,
-      this.map.heightInPixels,
-    );
-    this.camera.setBackgroundColor("#1d2b1f");
-    this.camera.startFollow(player);
-
-    this.portals = new Portals(this, this.map);
-
-    this.physics.add.overlap(
-      this.player,
-      this.portals.getPortals,
-      (_player, portal) => {
-        this.handlePortalEnteredCallback(portal as GameObjects.Zone);
-      },
-      undefined,
+    this.worldMap = new Worldmap(this, this.sceneData.area);
+    this.debugHud = new DebugHud(
       this,
+      this.worldMap.worldLayer,
+      this.worldMap.portalLayer,
     );
+    const { x, y } = this.worldMap.getSpawnPoint();
+    if (x && y) this.player = new Player(this, x, y, "base_char");
 
-    this.scene.run("hud");
-    theatre.emit("hudFocus");
-  }
-
-  handlePortalEnteredCallback(portal: GameObjects.Zone) {
-    this._controls.lockInput = true;
-    this.cameras.main.fadeOut(
-      1000,
-      0,
-      0,
-      0,
-      (_camera: Cameras.Scene2D.Camera, progress: number) => {
-        this.physics.world.disable(this.player);
-        if (progress === 1) {
-          const dataToPass = {
-            area: portal.getData("dest"),
-          };
-          this.scene.start("Game", dataToPass);
-        }
-      },
-    );
+    this.physics.add.collider(this.player, this.worldMap.worldLayer);
+    const map = this.worldMap.getMap();
+    this.camera = this.cameras.main;
+    this.camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    this.camera.startFollow(this.player);
   }
 
   update() {
-    this.debugHud.update(this.player, this.map);
+    this.debugHud.update(this.player, this.worldMap.getMap());
   }
+
+  //   const bullets = player.getBullets();
+  //   if (bullets && worldLayer) {
+  //     this.physics.add.collider(bullets, worldLayer, (bullet) =>
+  //       (bullet as GameObjects.GameObject).destroy(),
+  //     );
+  //   }
+
+  //   this.portals = new Portals(this, this.map);
+
+  //   this.physics.add.overlap(
+  //     this.player,
+  //     this.portals.getPortals,
+  //     (_player, portal) => {
+  //       this.handlePortalEnteredCallback(portal as GameObjects.Zone);
+  //     },
+  //     undefined,
+  //     this,
+  //   );
+
+  //   this.scene.run("hud");
+  //   theatre.emit("hudFocus");
+  // }
+
+  // handlePortalEnteredCallback(portal: GameObjects.Zone) {
+  //   this._controls.lockInput = true;
+  //   this.cameras.main.fadeOut(
+  //     1000,
+  //     0,
+  //     0,
+  //     0,
+  //     (_camera: Cameras.Scene2D.Camera, progress: number) => {
+  //       this.physics.world.disable(this.player);
+  //       if (progress === 1) {
+  //         const dataToPass = {
+  //           area: portal.getData("dest"),
+  //         };
+  //         this.scene.start("Game", dataToPass);
+  //       }
+  //     },
+  //   );
+  // }
+
+  // update() {
+  //   this.debugHud.update(this.player, this.map);
+  // }
 }
