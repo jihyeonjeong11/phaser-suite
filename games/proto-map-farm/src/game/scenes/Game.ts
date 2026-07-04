@@ -2,11 +2,13 @@ import { Cameras, GameObjects, Tilemaps } from "phaser";
 import { Player } from "../../gameobjects/Player";
 import { DebugHud } from "../../gameobjects/DebugHud";
 import { NPC } from "../../gameobjects/NPC";
-import { Portals } from "../../gameobjects/Portals";
 import { BaseScene } from "./Base";
 import { theatre } from "../dataManager/EventEmitter";
 import { dataManager } from "../dataManager/Store";
 import { Worldmap } from "../../gameobjects/Worldmap";
+import { QuickBar } from "../../gameobjects/hud/QuickBar";
+import { DEFAULT_MAP_KEY } from "../utils/constants/mapKeys";
+import { TempPlayer } from "../../gameobjects/TempPlayer";
 
 // 1. 맵 / 레벨 구성
 
@@ -54,19 +56,18 @@ import { Worldmap } from "../../gameobjects/Worldmap";
 
 // 6. 모듈 레벨
 
-// 20. imageKeyFor — 타일셋 파일명→로드 키 변환 헬퍼 // map.ts에 두기,
-// 21. PLAYER_SPEED 상수 - entity에 두기.
-
 export class Game extends BaseScene {
   private camera: Cameras.Scene2D.Camera;
   private worldMap: Worldmap;
   private player: Player;
   private debugHud: DebugHud;
-  private portals: Portals;
   private sceneData: { area: string; fromSave: boolean } = {
-    area: "Farm",
+    area: DEFAULT_MAP_KEY,
     fromSave: false,
   };
+  private tempPlayer: TempPlayer;
+
+  private temp_char: GameObjects.Sprite;
 
   constructor() {
     super({ key: "Game" });
@@ -75,7 +76,7 @@ export class Game extends BaseScene {
   init(data: { area?: string; fromSave?: boolean } = {}) {
     super.init();
     this.sceneData = {
-      area: data.area ?? "farm-map",
+      area: data.area ?? DEFAULT_MAP_KEY,
       fromSave: data.fromSave ?? false,
     };
   }
@@ -83,23 +84,29 @@ export class Game extends BaseScene {
   create() {
     super.create();
     this.worldMap = new Worldmap(this, this.sceneData.area);
-    this.debugHud = new DebugHud(
-      this,
-      this.worldMap.worldLayer,
-      this.worldMap.portalLayer,
-    );
-    const { x, y } = this.worldMap.getSpawnPoint();
-    if (x && y) this.player = new Player(this, x, y, "base_char");
+    // this.debugHud = new DebugHud(
+    //   this,
+    //   this.worldMap.getWorldLayer(),
+    //   this.worldMap.getPortalLayer(),
+    // );
+    new QuickBar(this);
 
-    this.physics.add.collider(this.player, this.worldMap.worldLayer);
+    // 리팩터 끝난 뒤 살릴 것
     const map = this.worldMap.getMap();
     this.camera = this.cameras.main;
     this.camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-    this.camera.startFollow(this.player);
+    this.tempPlayer = new TempPlayer(
+      this,
+      this.worldMap,
+      this._controls,
+      this.worldMap.getWorldLayer(),
+    );
+    this.camera.startFollow(this.tempPlayer.charSprite);
   }
 
   update() {
-    this.debugHud.update(this.player, this.worldMap.getMap());
+    this.tempPlayer.update();
+    //  this.debugHud.update(this.player, this.worldMap.getMap());
   }
 
   //   const bullets = player.getBullets();

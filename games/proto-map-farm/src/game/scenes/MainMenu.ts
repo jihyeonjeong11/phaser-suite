@@ -2,6 +2,7 @@ import { Scene, GameObjects } from "phaser";
 import { TEMP_INV, dataManager, BASE_VOLUME } from "../dataManager/Store";
 import { options } from "../utils/constants/options";
 import { ModalBehavoir } from "phaser4-rex-plugins/plugins/modal.js";
+import { MapKeys } from "../utils/constants/mapKeys";
 
 const BTN_WIDTH = 180;
 const BTN_HEIGHT = 56;
@@ -16,6 +17,7 @@ export class MainMenu extends Scene {
   }
 
   create() {
+    // todo: update volume event when load() happens.
     this.sound.play("bgm", { loop: true, volume: options.BGM_VOLUME });
 
     const canvasWidth = this.game.canvas.width;
@@ -157,7 +159,7 @@ export class MainMenu extends Scene {
   }
 
   private startNewGame(): void {
-    this.registry.set("inventory", TEMP_INV);
-    this.scene.start("Game", { fromSave: false, area: "Farm" });
+    dataManager.reset();
+    this.scene.start("Game", { fromSave: false, area: MapKeys.Farm });
   }
 }

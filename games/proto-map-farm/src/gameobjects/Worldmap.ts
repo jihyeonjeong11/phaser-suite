@@ -73,6 +73,10 @@ export class Worldmap {
     return this.worldLayer;
   }
 
+  getPortalLayer() {
+    return this.portalLayer;
+  }
+
   private addMapCollision(scene: Scene) {
     this.worldLayer?.setCollisionByExclusion([-1]);
 
@@ -99,12 +103,5 @@ export class Worldmap {
         return imgKey ? this.map.addTilesetImage(t.name, imgKey) : null;
       })
       .filter((ts): ts is Phaser.Tilemaps.Tileset => ts !== null);
-  }
-
-  findSpawn(name = "Spawn Point"): Phaser.Types.Tilemaps.TiledObject {
-    return this.map.findObject(
-      "Objects",
-      (o) => o.name === name,
-    ) as Phaser.Types.Tilemaps.TiledObject;
   }
 }

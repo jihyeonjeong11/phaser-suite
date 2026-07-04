@@ -24,10 +24,6 @@ export class QuickBar extends GameObjects.Container {
     this.buildSaveButton();
     this.render();
 
-    const reg = scene.registry;
-    reg.events.on("changedata-inventory", this.render, this);
-    reg.events.on("changedata-quickbarSelected", this.render, this);
-
     scene.cameras.main.once(Cameras.Scene2D.Events.FADE_IN_START, () =>
       this.cleanup(),
     );

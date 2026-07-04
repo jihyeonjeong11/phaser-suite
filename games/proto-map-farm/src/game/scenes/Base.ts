@@ -24,11 +24,6 @@ export abstract class BaseScene extends Scene {
   _controls!: Controls;
   constructor(config: Types.Scenes.SettingsConfig) {
     super(config);
-    if (this.constructor === BaseScene) {
-      throw new Error(
-        "BaseScene is an abstract class and cannot be instantiated.",
-      );
-    }
   }
 
   init() {

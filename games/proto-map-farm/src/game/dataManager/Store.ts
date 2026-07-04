@@ -1,4 +1,5 @@
 import { Data, Events } from "phaser";
+import { DEFAULT_MAP_KEY } from "../utils/constants/mapKeys";
 
 // inventory current scope
 // characterdata if battle implemented money, hp, stamina...
@@ -28,6 +29,8 @@ export interface InventoryItem {
   frame?: number;
   soundMap?: Record<string, string>;
 }
+
+export type Direction = "right" | "down" | "left" | "up";
 
 export const TEMP_INV: InventoryItem[] = [
   {
@@ -76,9 +79,11 @@ const initialState = {
   player: {
     x: 0,
     y: 0,
-    currentMapKey: "farm-map",
+    currentMapKey: DEFAULT_MAP_KEY,
+    direction: "down",
   },
   inventory: TEMP_INV,
+  currentSelectedIdx: -1,
   //options
   options: {
     volume: BASE_VOLUME,
@@ -94,8 +99,12 @@ class DataManager extends Events.EventEmitter {
     super();
     this.store = new Data.DataManager(this);
     // initialize state with initial values
-    this.store.set(initialState);
+    this.reset();
     //this.#updateDataManger(initialState);
+  }
+
+  reset() {
+    this.store.set(initialState);
   }
 
   save() {

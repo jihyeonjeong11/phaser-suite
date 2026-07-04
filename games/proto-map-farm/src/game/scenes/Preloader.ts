@@ -1,5 +1,6 @@
 import { Scene } from "phaser";
 import { TEMP_INV } from "../dataManager/Store";
+import { MapKeys } from "../utils/constants/mapKeys";
 
 export class Preloader extends Scene {
   constructor() {
@@ -68,7 +69,7 @@ export class Preloader extends Scene {
 
     // Testing tile map sheet from itch.io // todo: draw tilemap!
     this.load.setPath("assets");
-    this.load.tilemapTiledJSON("Farm", "farm-map.json");
+    this.load.tilemapTiledJSON(MapKeys.Farm, "farm-map.json");
     this.load.tilemapTiledJSON("Home", "home-map.json");
 
     this.load.tilemapTiledJSON("home-map", "home-map.json");
