@@ -1,5 +1,5 @@
 import { Scene, GameObjects } from "phaser";
-import { TEMP_INV, dataManager, BASE_VOLUME } from "../dataManager/Store";
+import { dataManager, BASE_VOLUME } from "../dataManager/Store";
 import { options } from "../utils/constants/options";
 import { ModalBehavoir } from "phaser4-rex-plugins/plugins/modal.js";
 import { MapKeys } from "../utils/constants/mapKeys";
@@ -52,7 +52,10 @@ export class MainMenu extends Scene {
 
     this.createButton(continueX, y, "Continue", dataManager.hasSave(), () => {
       dataManager.load();
-      this.scene.start("Game", { fromSave: true });
+      this.scene.start("Game", {
+        fromSave: true,
+        area: dataManager.getPlayerData().currentMapKey,
+      });
     });
 
     this.createButton(optionsX, y, "Options", true, () =>

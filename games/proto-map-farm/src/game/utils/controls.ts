@@ -1,12 +1,29 @@
 import { Input, Scene, Types } from "phaser";
 import { DIRECTION } from "./constants";
 
+// 퀵바 키 순서 = 슬롯 인덱스. 배열 인덱스가 곧 0-based 슬롯 번호.
+// "1"(ONE) → 0, "2"(TWO) → 1, ... "9"(NINE) → 8, "0"(ZERO) → 9
+const QUICKBAR_KEY_NAMES = [
+  "ONE",
+  "TWO",
+  "THREE",
+  "FOUR",
+  "FIVE",
+  "SIX",
+  "SEVEN",
+  "EIGHT",
+  "NINE",
+  "ZERO",
+] as const;
+
 export class Controls {
   #scene: Scene;
   #cursorKeys: Types.Input.Keyboard.CursorKeys | undefined;
   private lockPlayerInput: boolean;
   #enterKey: Input.Keyboard.Key | undefined;
+
   #fKey: Input.Keyboard.Key | undefined;
+  #numberKeys: Record<string, Input.Keyboard.Key> | undefined;
 
   constructor(scene: Scene) {
     this.#scene = scene;
@@ -15,6 +32,9 @@ export class Controls {
       Input.Keyboard.KeyCodes.ENTER,
     );
     this.#fKey = this.#scene.input.keyboard?.addKey(Input.Keyboard.KeyCodes.F);
+    this.#numberKeys = this.#scene.input.keyboard?.addKeys(
+      "ONE,TWO,THREE,FOUR,FIVE,SIX,SEVEN,EIGHT,NINE,ZERO",
+    ) as Record<string, Input.Keyboard.Key>;
     this.lockPlayerInput = false;
   }
   // when moving between scenes
@@ -25,12 +45,26 @@ export class Controls {
   set lockInput(val: boolean) {
     this.lockPlayerInput = val;
   }
-  // todo: implement pause or inventory scene
   wasEnterKeyPressed() {
     if (this.#enterKey === undefined) {
       return false;
     }
     return Input.Keyboard.JustDown(this.#enterKey);
+  }
+
+  // 이번 프레임에 눌린 퀵바 슬롯 인덱스(0~9)를 반환, 없으면 -1.
+  // JustDown은 눌린 그 1프레임만 true이므로 반드시 update()에서 매 프레임 호출할 것.
+  getQuickbarSlotJustPressed() {
+    if (this.#numberKeys === undefined) {
+      return -1;
+    }
+    for (let i = 0; i < QUICKBAR_KEY_NAMES.length; i++) {
+      const key = this.#numberKeys[QUICKBAR_KEY_NAMES[i]];
+      if (key && Input.Keyboard.JustDown(key)) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   getDirectionKeyPressedDown() {

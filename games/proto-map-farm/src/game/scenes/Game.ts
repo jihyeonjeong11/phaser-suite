@@ -1,6 +1,5 @@
 import { Cameras, GameObjects, Tilemaps } from "phaser";
-import { Player } from "../../gameobjects/Player";
-import { DebugHud } from "../../gameobjects/DebugHud";
+import { DebugHud } from "../../gameobjects/hud/DebugHud";
 import { NPC } from "../../gameobjects/NPC";
 import { BaseScene } from "./Base";
 import { theatre } from "../dataManager/EventEmitter";
@@ -59,7 +58,6 @@ import { TempPlayer } from "../../gameobjects/TempPlayer";
 export class Game extends BaseScene {
   private camera: Cameras.Scene2D.Camera;
   private worldMap: Worldmap;
-  private player: Player;
   private debugHud: DebugHud;
   private sceneData: { area: string; fromSave: boolean } = {
     area: DEFAULT_MAP_KEY,
@@ -67,8 +65,7 @@ export class Game extends BaseScene {
   };
   private tempPlayer: TempPlayer;
   private transitioning = false;
-
-  private temp_char: GameObjects.Sprite;
+  private quickBar: QuickBar;
 
   constructor() {
     super({ key: "Game" });
@@ -86,20 +83,28 @@ export class Game extends BaseScene {
     super.create();
     this.transitioning = false; // 씬은 재사용되므로 매 start마다 리셋
     this.worldMap = new Worldmap(this, this.sceneData.area);
-    // this.debugHud = new DebugHud(
-    //   this,
-    //   this.worldMap.getWorldLayer(),
-    //   this.worldMap.getPortalLayer(),
-    // );
-    new QuickBar(this);
+    this.debugHud = new DebugHud(
+      this,
+      this.worldMap.getWorldLayer(),
+      this.worldMap.getPortalLayer(),
+    );
+    this.quickBar = new QuickBar(this);
 
-    // 리팩터 끝난 뒤 살릴 것
     const map = this.worldMap.getMap();
     this.camera = this.cameras.main;
     this.camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
+    // 현재 지역을 저장 상태에 반영(새 게임/포탈/로드 모두 이 지점을 통과).
+    dataManager.setPlayerData({ currentMapKey: this.sceneData.area });
+
+    // 로드면 저장된 좌표, 그 외엔 맵 스폰포인트에서 시작.
+    const start = this.sceneData.fromSave
+      ? this.getSavedPosition()
+      : this.getSpawnPosition();
+
     this.tempPlayer = new TempPlayer(
       this,
-      this.worldMap,
+      start,
       this._controls,
       this.worldMap.getWorldLayer(),
       this.worldMap.getPortalLayer(),
@@ -108,7 +113,21 @@ export class Game extends BaseScene {
     this.camera.startFollow(this.tempPlayer.charSprite);
   }
 
-  // 포탈 전환: 감지는 TempPlayer, 전환(fade+scene 교체)은 씬 책임
+  // 저장된 좌표(로드 시)
+  private getSavedPosition(): { x: number; y: number } {
+    const { x, y } = dataManager.getPlayerData();
+    return { x, y };
+  }
+
+  // 맵 스폰포인트(새 게임/포탈 이동 시)
+  private getSpawnPosition(): { x: number; y: number } {
+    const spawn = this.worldMap.getSpawnPoint();
+    if (spawn.x == null || spawn.y == null) {
+      throw new Error("No spawn point in worldmap");
+    }
+    return { x: spawn.x, y: spawn.y };
+  }
+
   private enterPortal(dest: string): void {
     if (this.transitioning) return;
     this.transitioning = true;
@@ -121,7 +140,12 @@ export class Game extends BaseScene {
 
   update() {
     this.tempPlayer.update();
-    //  this.debugHud.update(this.player, this.worldMap.getMap());
+    this.quickBar.update();
+    const numberKey = this._controls.getQuickbarSlotJustPressed();
+    if (numberKey > -1) {
+      dataManager.setCurrentSelectedIdx(numberKey);
+    }
+    this.debugHud.update(this.tempPlayer.charSprite, this.worldMap.getMap());
   }
 
   //   const bullets = player.getBullets();

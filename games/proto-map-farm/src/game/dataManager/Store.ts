@@ -32,6 +32,13 @@ export interface InventoryItem {
 
 export type Direction = "right" | "down" | "left" | "up";
 
+export interface PlayerData {
+  x: number;
+  y: number;
+  currentMapKey: string;
+  direction: Direction;
+}
+
 export const TEMP_INV: InventoryItem[] = [
   {
     name: "testing_rifle",
@@ -129,12 +136,21 @@ class DataManager extends Events.EventEmitter {
     }
   }
 
-  getPlayerData(): { x: number; y: number } {
+  getCurrentSelectedIdx() {
+    return this.store.get("currentSelectedIdx");
+  }
+
+  setCurrentSelectedIdx(n: number) {
+    this.store.set("currentSelectedIdx", n);
+  }
+
+  getPlayerData(): PlayerData {
     return this.store.get("player");
   }
 
-  setPlayerData(pos: { x: number; y: number }) {
-    this.store.set("player", pos);
+  // 부분 갱신(merge). x,y만 넘겨도 currentMapKey/direction이 보존된다.
+  setPlayerData(patch: Partial<PlayerData>) {
+    this.store.set("player", { ...this.store.get("player"), ...patch });
   }
 
   getInventory() {

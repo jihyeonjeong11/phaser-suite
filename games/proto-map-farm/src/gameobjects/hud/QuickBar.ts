@@ -1,9 +1,5 @@
 import { Cameras, GameObjects, Scene } from "phaser";
-import {
-  dataManager,
-  InventoryItem,
-  TEMP_INV_LIMIT,
-} from "../../game/dataManager/Store";
+import { dataManager, TEMP_INV_LIMIT } from "../../game/dataManager/Store";
 
 export class QuickBar extends GameObjects.Container {
   private static readonly SLOT_SIZE = 44;
@@ -21,6 +17,13 @@ export class QuickBar extends GameObjects.Container {
     this.setDepth(1000);
 
     this.build();
+    // 데이터는 커스텀 dataManager(자체 EventEmitter)에 쓰이므로 여기에 리스너를 건다.
+    // 키가 "currentSelectedIdx" → 이벤트명은 changedata-currentSelectedIdx.
+
+    // todo: EventEmitter로 가기
+    dataManager.on("changedata-inventory", this.render, this);
+    dataManager.on("changedata-currentSelectedIdx", this.render, this);
+
     this.buildSaveButton();
     this.render();
 
@@ -88,7 +91,6 @@ export class QuickBar extends GameObjects.Container {
     btn.on("pointerout", () => btn.setFillStyle(0x225522, 0.8));
     btn.on("pointerdown", () => {
       dataManager.save();
-      // 저장 피드백: 라벨 잠깐 SAVED 표시
       label.setText("SAVED");
       this.scene.time.delayedCall(800, () => label.setText("SAVE"));
     });
@@ -97,8 +99,8 @@ export class QuickBar extends GameObjects.Container {
   }
 
   private render(): void {
-    const inv = (this.scene.registry.get("inventory") ?? []) as InventoryItem[];
-    const selected = this.scene.registry.get("quickbarSelected") ?? -1;
+    const inv = dataManager.getInventory();
+    const selected = dataManager.getCurrentSelectedIdx();
 
     for (let i = 0; i < this.slots.length; i++) {
       const isSelected = i === selected;
@@ -128,8 +130,19 @@ export class QuickBar extends GameObjects.Container {
   }
 
   private cleanup(): void {
-    const reg = this.scene.registry;
-    reg.events.off("changedata-inventory", this.render, this);
-    reg.events.off("changedata-quickbarSelected", this.render, this);
+    dataManager.off("changedata-inventory", this.render, this);
+    dataManager.off("changedata-currentSelectedIdx", this.render, this);
   }
+
+  // public update(): void {
+  //   const selected = dataManager.getCurrentSelectedIdx();
+
+  //   for (let i = 0; i < this.slots.length; i++) {
+  //     const isSelected = i === selected;
+  //     this.slots[i].setStrokeStyle(
+  //       isSelected ? 3 : 2,
+  //       isSelected ? 0xffd700 : 0x888888,
+  //     );
+  //   }
+  // }
 }

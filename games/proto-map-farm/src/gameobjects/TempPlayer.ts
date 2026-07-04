@@ -1,5 +1,4 @@
 import { GameObjects, Scene, Tilemaps, Types } from "phaser";
-import { Worldmap } from "./Worldmap";
 import { Controls } from "../game/utils/controls";
 import { dataManager } from "../game/dataManager/Store";
 
@@ -14,7 +13,7 @@ export class TempPlayer {
   protected readonly baseSpeed: number = 1.5;
   constructor(
     scene: Scene,
-    worldMap: Worldmap,
+    startPos: { x: number; y: number },
     _controls: Controls,
     collisionLayer: Tilemaps.TilemapLayer,
     portalLayer: Tilemaps.ObjectLayer | null,
@@ -24,16 +23,11 @@ export class TempPlayer {
     this._worldLayer = collisionLayer;
     this._portalLayer = portalLayer;
     this.onEnterPortal = onEnterPortal;
-    //    Player.ts
-    // - 컴포넌트들
-    const { x, y } = worldMap.getSpawnPoint();
-    // if (x && y) this.player = new Player(this, x, y, "base_char");
-    // 렌더스프라이트
-    if (!x || !y) throw new Error("No spawn point in worldmap");
-    dataManager.setPlayerData({ x, y });
+    // 시작 위치는 Game이 결정(로드=저장 좌표 / 그 외=맵 스폰포인트)해서 주입.
+    dataManager.setPlayerData({ x: startPos.x, y: startPos.y });
     this.charSprite = scene.add.sprite(
-      dataManager.getPlayerData().x,
-      dataManager.getPlayerData().y,
+      startPos.x,
+      startPos.y,
       "base_char",
       0,
     );
@@ -113,7 +107,6 @@ export class TempPlayer {
   }
 
   update() {
-    // 전환(fade) 중이면 입력 잠금 → 이동/검출 정지 (Controls.lockInput 존중)
     if (this._controls.isInputLocked) return;
 
     // 방향, 전환 // 전환은 마우스로 하는거 아님? 총 들었을때는 마우스로 해야하고(뒤로가면서 사격하게) 아닐떄는 아닌데, 지금은 복잡하니까 마우스는 빼고 여기서 돌릭 ㅔ하자.
