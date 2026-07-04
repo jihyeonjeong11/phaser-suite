@@ -66,6 +66,7 @@ export class Game extends BaseScene {
     fromSave: false,
   };
   private tempPlayer: TempPlayer;
+  private transitioning = false;
 
   private temp_char: GameObjects.Sprite;
 
@@ -83,6 +84,7 @@ export class Game extends BaseScene {
 
   create() {
     super.create();
+    this.transitioning = false; // 씬은 재사용되므로 매 start마다 리셋
     this.worldMap = new Worldmap(this, this.sceneData.area);
     // this.debugHud = new DebugHud(
     //   this,
@@ -100,8 +102,21 @@ export class Game extends BaseScene {
       this.worldMap,
       this._controls,
       this.worldMap.getWorldLayer(),
+      this.worldMap.getPortalLayer(),
+      (dest) => this.enterPortal(dest),
     );
     this.camera.startFollow(this.tempPlayer.charSprite);
+  }
+
+  // 포탈 전환: 감지는 TempPlayer, 전환(fade+scene 교체)은 씬 책임
+  private enterPortal(dest: string): void {
+    if (this.transitioning) return;
+    this.transitioning = true;
+    this._controls.lockInput = true;
+    this.camera.fadeOut(500, 0, 0, 0);
+    this.camera.once(Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.start("Game", { area: dest });
+    });
   }
 
   update() {

@@ -1,4 +1,4 @@
-import { GameObjects, Scene, Tilemaps } from "phaser";
+import { GameObjects, Scene, Tilemaps, Types } from "phaser";
 import { Worldmap } from "./Worldmap";
 import { Controls } from "../game/utils/controls";
 import { dataManager } from "../game/dataManager/Store";
@@ -7,6 +7,8 @@ export class TempPlayer {
   charSprite: GameObjects.Sprite;
   _controls: Controls;
   _worldLayer: Tilemaps.TilemapLayer;
+  _portalLayer: Tilemaps.ObjectLayer | null;
+  private onEnterPortal: (dest: string) => void;
   protected readonly baseScale: number = 3;
   // todo: compute actual speed for Player class
   protected readonly baseSpeed: number = 1.5;
@@ -15,9 +17,13 @@ export class TempPlayer {
     worldMap: Worldmap,
     _controls: Controls,
     collisionLayer: Tilemaps.TilemapLayer,
+    portalLayer: Tilemaps.ObjectLayer | null,
+    onEnterPortal: (dest: string) => void,
   ) {
     this._controls = _controls;
     this._worldLayer = collisionLayer;
+    this._portalLayer = portalLayer;
+    this.onEnterPortal = onEnterPortal;
     //    Player.ts
     // - 컴포넌트들
     const { x, y } = worldMap.getSpawnPoint();
@@ -34,8 +40,6 @@ export class TempPlayer {
 
     // setscale
     this.charSprite.setScale(this.baseScale);
-
-    // this.registerAnimations();
     const key = this.charSprite.texture.key;
     this.charSprite.anims.create({
       key: `${key}-idle`,
@@ -58,13 +62,14 @@ export class TempPlayer {
     this.charSprite.play(`${key}-idle`);
 
     // 이동
+    // 포탈 이동
     // hand
     // 무기
     // 총알
     // 툴
   }
 
-  #doesPositionCollideWithWorldLayer(position: {
+  private doesPositionCollideWithWorldLayer(position: {
     x: number;
     y: number;
   }): boolean {
@@ -80,7 +85,37 @@ export class TempPlayer {
     return tile.index !== -1;
   }
 
+  // 맵 밖(void) 이탈 방지. 바디가 없어 setCollideWorldBounds 대신 수동 검사.
+  private isWithinBounds(position: { x: number; y: number }): boolean {
+    const map = this._worldLayer.tilemap;
+    const { x, y } = position;
+    return (
+      x >= 0 && y >= 0 && x <= map.widthInPixels && y <= map.heightInPixels
+    );
+  }
+
+  private getPortalAt(position: {
+    x: number;
+    y: number;
+  }): Types.Tilemaps.TiledObject | null {
+    if (!this._portalLayer) return null;
+    const map = this._worldLayer.tilemap;
+    const tw = map.tileWidth;
+    const th = map.tileHeight;
+    const col = Math.floor(position.x / tw);
+    const row = Math.floor(position.y / th);
+    return (
+      this._portalLayer.objects.find((obj) => {
+        if (obj.x == null || obj.y == null) return false;
+        return Math.floor(obj.x / tw) === col && Math.floor(obj.y / th) === row;
+      }) ?? null
+    );
+  }
+
   update() {
+    // 전환(fade) 중이면 입력 잠금 → 이동/검출 정지 (Controls.lockInput 존중)
+    if (this._controls.isInputLocked) return;
+
     // 방향, 전환 // 전환은 마우스로 하는거 아님? 총 들었을때는 마우스로 해야하고(뒤로가면서 사격하게) 아닐떄는 아닌데, 지금은 복잡하니까 마우스는 빼고 여기서 돌릭 ㅔ하자.
     // 이동
     const key = this.charSprite.texture.key;
@@ -89,7 +124,6 @@ export class TempPlayer {
     const dx = dir === "LEFT" ? -1 : dir === "RIGHT" ? 1 : 0;
     const dy = dir === "UP" ? -1 : dir === "DOWN" ? 1 : 0;
 
-    // facing (방향 → flip, 이동과 별개 관심사)
     if (dir === "LEFT") this.charSprite.setFlipX(true);
     else if (dir === "RIGHT") this.charSprite.setFlipX(false);
 
@@ -100,9 +134,21 @@ export class TempPlayer {
         y: this.charSprite.y + dy * this.baseSpeed,
       };
 
-      if (!this.#doesPositionCollideWithWorldLayer(targetPos)) {
+      if (
+        !this.doesPositionCollideWithWorldLayer(targetPos) &&
+        this.isWithinBounds(targetPos)
+      ) {
         this.charSprite.setPosition(targetPos.x, targetPos.y);
         dataManager.setPlayerData({ x: targetPos.x, y: targetPos.y });
+
+        const portal = this.getPortalAt(targetPos);
+        if (portal) {
+          const dest = portal.properties?.find(
+            (p: { name: string; value: unknown }) => p.name === "dest",
+          )?.value;
+          // 검출은 여기(위치를 앎), 전환은 씬에 위임 (SRP/DIP)
+          if (typeof dest === "string") this.onEnterPortal(dest);
+        }
       }
     }
 
