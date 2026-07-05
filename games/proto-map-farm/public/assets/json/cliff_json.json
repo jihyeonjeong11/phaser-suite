@@ -39,12 +39,6 @@
          "id":1,
          "name":"Below Player",
          "opacity":1,
-         "properties":[
-                {
-                 "name":"diggable",
-                 "type":"bool",
-                 "value":true
-                }],
          "type":"tilelayer",
          "visible":true,
          "width":44,
@@ -262,6 +256,16 @@
          "spacing":0,
          "tilecount":108,
          "tileheight":32,
+         "tiles":[
+                {
+                 "id":18,
+                 "properties":[
+                        {
+                         "name":"Diggable",
+                         "type":"bool",
+                         "value":true
+                        }]
+                }],
          "tilewidth":32,
          "transparentcolor":"#ff00ff"
         }, 
@@ -303,6 +307,20 @@
          "name":"heart_sprite",
          "spacing":0,
          "tilecount":24,
+         "tileheight":32,
+         "tilewidth":32,
+         "transparentcolor":"#ff00ff"
+        }, 
+        {
+         "columns":3,
+         "firstgid":1389,
+         "image":"..\/tilesets\/farm\/plowed_soil.png",
+         "imageheight":192,
+         "imagewidth":96,
+         "margin":0,
+         "name":"plowed_soil",
+         "spacing":0,
+         "tilecount":18,
          "tileheight":32,
          "tilewidth":32,
          "transparentcolor":"#ff00ff"

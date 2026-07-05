@@ -1,14 +1,17 @@
 import { GameObjects, Scene, Tilemaps, Types } from "phaser";
 import { Controls } from "../game/utils/controls";
 import { dataManager } from "../game/dataManager/Store";
+import { MapObject } from "./mapObjects/MapObjects";
 
 export class TempPlayer {
   charSprite: GameObjects.Sprite;
+  scene: Scene;
   _controls: Controls;
   _worldLayer: Tilemaps.TilemapLayer;
   _backgroundLayer: Tilemaps.TilemapLayer | null;
   _portalLayer: Tilemaps.ObjectLayer | null;
   private onEnterPortal: (dest: string) => void;
+  private mapObject: MapObject;
   private targetHighlight?: GameObjects.Rectangle;
   protected readonly baseScale: number = 3;
   // todo: compute actual speed for Player class
@@ -21,12 +24,15 @@ export class TempPlayer {
     backgroundLayer: Tilemaps.TilemapLayer | null,
     portalLayer: Tilemaps.ObjectLayer | null,
     onEnterPortal: (dest: string) => void,
+    mapObject: MapObject,
   ) {
+    this.scene = scene;
     this._controls = _controls;
     this._worldLayer = collisionLayer;
     this._backgroundLayer = backgroundLayer;
     this._portalLayer = portalLayer;
     this.onEnterPortal = onEnterPortal;
+    this.mapObject = mapObject;
     dataManager.setPlayerData({ x: startPos.x, y: startPos.y });
     this.charSprite = scene.add.sprite(startPos.x, startPos.y, "base_char", 0);
 
@@ -133,13 +139,38 @@ export class TempPlayer {
     const px = col * tw + tw / 2;
     const py = row * th + th / 2;
 
+    const info = this.mapObject.getTileInfo(col, row);
+    const color = info.diggable ? 0x00ff00 : 0xff0000;
+
     if (!this.targetHighlight) {
       this.targetHighlight = this.charSprite.scene.add
-        .rectangle(px, py, tw, th, 0x00ff00, 0.25)
-        .setStrokeStyle(2, 0x00ff00, 0.9)
+        .rectangle(px, py, tw, th, color, 0.25)
+        .setStrokeStyle(2, color, 0.9)
         .setDepth(5);
     } else {
-      this.targetHighlight.setPosition(px, py);
+      this.targetHighlight
+        .setPosition(px, py)
+        .setFillStyle(color, 0.25)
+        .setStrokeStyle(2, color, 0.9);
+    }
+  }
+
+  private useTool(): void {
+    const map = this._worldLayer.tilemap;
+    const tw = map.tileWidth;
+    const th = map.tileHeight;
+
+    const { x, y, direction } = dataManager.getPlayerData();
+    const dx = direction === "LEFT" ? -1 : direction === "RIGHT" ? 1 : 0;
+    const dy = direction === "UP" ? -1 : direction === "DOWN" ? 1 : 0;
+    const col = Math.floor(x / tw) + dx;
+    const row = Math.floor(y / th) + dy;
+
+    const info = this.mapObject.getTileInfo(col, row);
+    console.log(`useTool → tile (${col}, ${row})`, info);
+    if (info.diggable) {
+      this.scene.sound.play("pickaxe_hit");
+      this.mapObject.till(col, row);
     }
   }
 
@@ -187,6 +218,7 @@ export class TempPlayer {
     }
 
     this.updateTargetTile();
+    if (this._controls.wasCKeyPressed()) this.useTool();
     this.charSprite.play(`${key}-${moving ? "walk" : "idle"}`, true);
   }
 }

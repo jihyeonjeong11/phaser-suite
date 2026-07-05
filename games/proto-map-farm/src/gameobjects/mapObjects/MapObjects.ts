@@ -62,4 +62,42 @@
 //   Step 2  동적 상태(메모리): till() 등으로 내부 Map<"col,row", delta>에 기록, getTileInfo 가 능력+상태 합쳐 반환.
 //   Step 3  영속화: delta 를 dataManager.maps[mapKey] 로 read/write. 진입 시 로드, save()에 포함.
 
-export class MapObject {}
+import { Tilemaps } from "phaser";
+
+// getTileInfo 반환 shape. Step1: 능력 중 Diggable 하나만.
+export interface TileInfo {
+  diggable: boolean;
+}
+
+export class MapObject {
+  // 지면(Below Player) 레이어 — Diggable/Type 등 능력 프로퍼티가 여기 심겨 있음.
+  private groundLayer: Tilemaps.TilemapLayer;
+
+  constructor(groundLayer: Tilemaps.TilemapLayer) {
+    this.groundLayer = groundLayer;
+  }
+
+  // 갈린 흙 타일: plowed_soil 로컬 id 10 (가로2·세로4 = 중앙 균일 흙).
+  private static readonly TILLED_LOCAL_ID = 10;
+
+  // 타일 좌표(col,row)의 지면 능력을 반환. Step1: Tiled의 Diggable 프로퍼티만 읽음.
+  getTileInfo(col: number, row: number): TileInfo {
+    const tile = this.groundLayer.getTileAt(col, row);
+    const diggable = tile?.properties?.Diggable === true;
+    return { diggable };
+  }
+
+  // 해당 칸을 갈아 지면 타일을 plowed_soil 로 교체.
+  // firstgid는 맵마다 다를 수 있어 타일셋 이름으로 런타임 조회.
+  till(col: number, row: number): void {
+    const ts = this.groundLayer.tilemap.tilesets.find(
+      (t) => t.name === "plowed_soil",
+    );
+    if (!ts) return;
+    this.groundLayer.putTileAt(
+      ts.firstgid + MapObject.TILLED_LOCAL_ID,
+      col,
+      row,
+    );
+  }
+}

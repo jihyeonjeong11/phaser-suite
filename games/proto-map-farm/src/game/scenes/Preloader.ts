@@ -137,6 +137,7 @@ export class Preloader extends Scene {
       },
       { type: "audio", key: "bgm", url: "musics/background.mp3" },
       { type: "audio", key: "gunfire", url: "sounds/gunfire.mp3" },
+      { type: "audio", key: "pickaxe_hit", url: "sounds/pickaxe_hit.mp3" },
     ];
 
     resources.forEach((resource) => {

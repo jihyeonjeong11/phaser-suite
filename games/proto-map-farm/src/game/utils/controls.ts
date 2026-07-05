@@ -23,6 +23,7 @@ export class Controls {
   #enterKey: Input.Keyboard.Key | undefined;
 
   #fKey: Input.Keyboard.Key | undefined;
+  #cKey: Input.Keyboard.Key | undefined;
   #numberKeys: Record<string, Input.Keyboard.Key> | undefined;
 
   constructor(scene: Scene) {
@@ -32,6 +33,7 @@ export class Controls {
       Input.Keyboard.KeyCodes.ENTER,
     );
     this.#fKey = this.#scene.input.keyboard?.addKey(Input.Keyboard.KeyCodes.F);
+    this.#cKey = this.#scene.input.keyboard?.addKey(Input.Keyboard.KeyCodes.C);
     this.#numberKeys = this.#scene.input.keyboard?.addKeys(
       "ONE,TWO,THREE,FOUR,FIVE,SIX,SEVEN,EIGHT,NINE,ZERO",
     ) as Record<string, Input.Keyboard.Key>;
@@ -50,6 +52,13 @@ export class Controls {
       return false;
     }
     return Input.Keyboard.JustDown(this.#enterKey);
+  }
+
+  wasCKeyPressed() {
+    if (this.#cKey === undefined) {
+      return false;
+    }
+    return Input.Keyboard.JustDown(this.#cKey);
   }
 
   getQuickbarSlotJustPressed() {

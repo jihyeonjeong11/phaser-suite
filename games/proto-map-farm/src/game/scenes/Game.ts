@@ -6,6 +6,7 @@ import { Worldmap } from "../../gameobjects/Worldmap";
 import { QuickBar } from "../../gameobjects/hud/QuickBar";
 import { DEFAULT_MAP_KEY, MapKeys } from "../utils/constants/mapKeys";
 import { TempPlayer } from "../../gameobjects/TempPlayer";
+import { MapObject } from "../../gameobjects/mapObjects/MapObjects";
 
 // 1. 맵 / 레벨 구성
 
@@ -102,6 +103,8 @@ export class Game extends BaseScene {
       ? this.getSavedPosition()
       : this.getSpawnPosition();
 
+    const mapObject = new MapObject(this.worldMap.belowLayer);
+
     this.tempPlayer = new TempPlayer(
       this,
       start,
@@ -110,6 +113,7 @@ export class Game extends BaseScene {
       this.worldMap.getBackgroundLayer(),
       this.worldMap.getPortalLayer(),
       (dest) => this.enterPortal(dest),
+      mapObject,
     );
     this.camera.startFollow(this.tempPlayer.charSprite);
   }
