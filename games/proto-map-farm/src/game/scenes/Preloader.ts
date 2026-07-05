@@ -91,6 +91,14 @@ export class Preloader extends Scene {
     // Image keys must equal each tileset image's basename (Worldmap.imageKeyFor).
     this.load.tilemapTiledJSON(MapKeys.Cliff, "json/cliff_json.json");
     this.load.image("LPC_cliffs_grass", "tilesets/terrain/LPC_cliffs_grass.png");
+    this.load.image("heart_tree", "sprites/heart_tree.png");
+    // 하트나무 애니메이션: heart_sprite.png의 3프레임을 정렬+2배 업스케일한 전용 파일.
+    // 384x256 = 128x256 프레임 3장(0,1,2). (원본 heart_sprite.png는 Tiled 타일셋용으로 보존)
+    // 타일셋 이미지 키("heart_sprite")와 다른 키를 써서 정적 타일 중복 렌더를 피함.
+    this.load.spritesheet("heart_anim", "sprites/heart_anim.png", {
+      frameWidth: 128,
+      frameHeight: 256,
+    });
 
     for (let i = 1; i <= 7; i++) {
       this.load.image(`${i}`, `${i}.png`);

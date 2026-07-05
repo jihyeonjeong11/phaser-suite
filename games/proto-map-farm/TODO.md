@@ -8,6 +8,7 @@
 - [x] 포탈 전환: `Portals`(오브젝트 레이어 zone) 플레이어 -> 이동 -> worldmap에 어떤 타일인지 화깅ㄴ -> portal이면 이동
 - [x] `new Player(worldLayer 넘겨줌)` = 플레이어가 충돌 소유 → collider 배선을 Player 쪽으로
 - [] 8방향 컨트롤
+- [] 오브젝트 레이어(plowables, tree and else)
 
 ## 이미 된 것 (현재 코드 상태)
 

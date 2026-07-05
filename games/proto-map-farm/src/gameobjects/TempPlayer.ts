@@ -9,6 +9,7 @@ export class TempPlayer {
   _backgroundLayer: Tilemaps.TilemapLayer | null;
   _portalLayer: Tilemaps.ObjectLayer | null;
   private onEnterPortal: (dest: string) => void;
+  private targetHighlight?: GameObjects.Rectangle;
   protected readonly baseScale: number = 3;
   // todo: compute actual speed for Player class
   protected readonly baseSpeed: number = 1.5;
@@ -118,6 +119,30 @@ export class TempPlayer {
     );
   }
 
+  private updateTargetTile(): void {
+    const map = this._worldLayer.tilemap;
+    const tw = map.tileWidth;
+    const th = map.tileHeight;
+
+    const { x, y, direction } = dataManager.getPlayerData();
+    const dx = direction === "LEFT" ? -1 : direction === "RIGHT" ? 1 : 0;
+    const dy = direction === "UP" ? -1 : direction === "DOWN" ? 1 : 0;
+
+    const col = Math.floor(x / tw) + dx;
+    const row = Math.floor(y / th) + dy;
+    const px = col * tw + tw / 2;
+    const py = row * th + th / 2;
+
+    if (!this.targetHighlight) {
+      this.targetHighlight = this.charSprite.scene.add
+        .rectangle(px, py, tw, th, 0x00ff00, 0.25)
+        .setStrokeStyle(2, 0x00ff00, 0.9)
+        .setDepth(5);
+    } else {
+      this.targetHighlight.setPosition(px, py);
+    }
+  }
+
   update() {
     if (this._controls.isInputLocked) return;
 
@@ -131,6 +156,10 @@ export class TempPlayer {
 
     if (dir === "LEFT") this.charSprite.setFlipX(true);
     else if (dir === "RIGHT") this.charSprite.setFlipX(false);
+
+    if (dir !== "NONE") {
+      dataManager.setPlayerData({ direction: dir });
+    }
 
     const moving = dx !== 0 || dy !== 0;
     if (moving) {
@@ -157,6 +186,7 @@ export class TempPlayer {
       }
     }
 
+    this.updateTargetTile();
     this.charSprite.play(`${key}-${moving ? "walk" : "idle"}`, true);
   }
 }

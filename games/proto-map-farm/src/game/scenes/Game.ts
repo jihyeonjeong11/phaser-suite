@@ -1,12 +1,10 @@
-import { Cameras, GameObjects, Tilemaps } from "phaser";
+import { Cameras } from "phaser";
 import { DebugHud } from "../../gameobjects/hud/DebugHud";
-import { NPC } from "../../gameobjects/NPC";
 import { BaseScene } from "./Base";
-import { theatre } from "../dataManager/EventEmitter";
 import { dataManager } from "../dataManager/Store";
 import { Worldmap } from "../../gameobjects/Worldmap";
 import { QuickBar } from "../../gameobjects/hud/QuickBar";
-import { DEFAULT_MAP_KEY } from "../utils/constants/mapKeys";
+import { DEFAULT_MAP_KEY, MapKeys } from "../utils/constants/mapKeys";
 import { TempPlayer } from "../../gameobjects/TempPlayer";
 
 // 1. 맵 / 레벨 구성
@@ -80,9 +78,8 @@ export class Game extends BaseScene {
   }
 
   create() {
-    console.log(this.sceneData);
     super.create();
-    this.transitioning = false; // 씬은 재사용되므로 매 start마다 리셋
+    this.transitioning = false;
     this.worldMap = new Worldmap(this, this.sceneData.area);
     this.debugHud = new DebugHud(
       this,
@@ -91,14 +88,16 @@ export class Game extends BaseScene {
     );
     this.quickBar = new QuickBar(this);
 
+    if (this.sceneData.area === MapKeys.Cliff) {
+      this.spawnCliffTrees();
+    }
+
+    dataManager.setPlayerData({ currentMapKey: this.sceneData.area });
+
     const map = this.worldMap.getMap();
     this.camera = this.cameras.main;
     this.camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
-    // 현재 지역을 저장 상태에 반영(새 게임/포탈/로드 모두 이 지점을 통과).
-    dataManager.setPlayerData({ currentMapKey: this.sceneData.area });
-
-    // 로드면 저장된 좌표, 그 외엔 맵 스폰포인트에서 시작.
     const start = this.sceneData.fromSave
       ? this.getSavedPosition()
       : this.getSpawnPosition();
@@ -115,19 +114,49 @@ export class Game extends BaseScene {
     this.camera.startFollow(this.tempPlayer.charSprite);
   }
 
-  // 저장된 좌표(로드 시)
   private getSavedPosition(): { x: number; y: number } {
     const { x, y } = dataManager.getPlayerData();
     return { x, y };
   }
 
-  // 맵 스폰포인트(새 게임/포탈 이동 시)
   private getSpawnPosition(): { x: number; y: number } {
     const spawn = this.worldMap.getSpawnPoint();
     if (spawn.x == null || spawn.y == null) {
       throw new Error("No spawn point in worldmap");
     }
     return { x: spawn.x, y: spawn.y };
+  }
+
+  private spawnCliffTrees(): void {
+    const HEART_TREE_ANCHOR_GID = 1377;
+
+    if (!this.anims.exists("heart_pulse")) {
+      this.anims.create({
+        key: "heart_pulse",
+        frames: this.anims.generateFrameNumbers("heart_anim", {
+          start: 0,
+          end: 2,
+        }),
+        frameRate: 4, // 초당 4프레임(프레임당 0.25초)
+        repeat: -1, // 무한 반복
+        repeatDelay: 1500, // 한 사이클 후 1.5초 쉬었다 반복
+      });
+    }
+
+    const layer = this.worldMap.getWorldLayer();
+    layer.forEachTile((tile) => {
+      if (tile.index !== HEART_TREE_ANCHOR_GID) return;
+
+      const tree = this.add
+        .sprite(
+          tile.pixelX + tile.width,
+          tile.pixelY + tile.height * 2,
+          "heart_anim",
+        )
+        .setOrigin(0.5, 1);
+      tree.setDepth(tree.y);
+      tree.play("heart_pulse");
+    });
   }
 
   private enterPortal(dest: string): void {

@@ -1,4 +1,4 @@
-# v1 (2026.06~)
+# v1 (2026.06.15~)
 
 ### Sprites
 
@@ -6,6 +6,15 @@
 - sprite with tree heart.png
 - Farmhouse
 - Rain
+
+### Sounds
+
+- pickaxe
+- axe
+- watering
+- gunfire
+- hoe
+- apocalyptic music
 
 ### Core mechanics
 

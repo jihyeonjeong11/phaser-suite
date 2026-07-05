@@ -1,5 +1,6 @@
 import { Data, Events } from "phaser";
 import { DEFAULT_MAP_KEY } from "../utils/constants/mapKeys";
+import { DIRECTION, Direction } from "../utils/constants";
 
 // inventory current scope
 // characterdata if battle implemented money, hp, stamina...
@@ -29,8 +30,6 @@ export interface InventoryItem {
   frame?: number;
   soundMap?: Record<string, string>;
 }
-
-export type Direction = "right" | "down" | "left" | "up";
 
 export interface PlayerData {
   x: number;
@@ -87,7 +86,7 @@ const initialState = {
     x: 0,
     y: 0,
     currentMapKey: DEFAULT_MAP_KEY,
-    direction: "down",
+    direction: DIRECTION.DOWN,
   },
   inventory: TEMP_INV,
   currentSelectedIdx: -1,
