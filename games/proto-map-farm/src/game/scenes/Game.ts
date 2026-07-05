@@ -80,6 +80,7 @@ export class Game extends BaseScene {
   }
 
   create() {
+    console.log(this.sceneData);
     super.create();
     this.transitioning = false; // 씬은 재사용되므로 매 start마다 리셋
     this.worldMap = new Worldmap(this, this.sceneData.area);
@@ -107,6 +108,7 @@ export class Game extends BaseScene {
       start,
       this._controls,
       this.worldMap.getWorldLayer(),
+      this.worldMap.getBackgroundLayer(),
       this.worldMap.getPortalLayer(),
       (dest) => this.enterPortal(dest),
     );

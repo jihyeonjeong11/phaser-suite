@@ -69,19 +69,33 @@ export class Preloader extends Scene {
 
     // Testing tile map sheet from itch.io // todo: draw tilemap!
     this.load.setPath("assets");
-    this.load.tilemapTiledJSON(MapKeys.Farm, "farm-map.json");
+
+    // Farm: rebuilt at 32px on the LPC farm tilesets.
+    // Image keys must equal each tileset image's basename (Worldmap.imageKeyFor).
+    this.load.tilemapTiledJSON(MapKeys.Farm, "json/farm_json.json");
+    this.load.image("plowed_soil", "tilesets/farm/plowed_soil.png");
+    this.load.image("tallgrass", "tilesets/farm/tallgrass.png");
+    this.load.image("fence_alt", "tilesets/farm/fence_alt.png");
+
     this.load.tilemapTiledJSON("Home", "home-map.json");
 
     this.load.tilemapTiledJSON("home-map", "home-map.json");
-    this.load.tilemapTiledJSON("Ruin", "ruin_map.json");
+
+    // Ruin: rebuilt at 32px on the apocalypse + 7DRL tilesets.
+    // Image keys must equal each tileset image's basename (Worldmap.imageKeyFor).
+    this.load.tilemapTiledJSON(MapKeys.Ruin, "json/ruin_json.json");
+    this.load.image("apocalypse", "tilesets/ruin/apocalypse.png");
+    this.load.image("7DRL-Tiles2", "tilesets/ruin/7DRL-Tiles2.png");
+
+    // Cliff: LPC cliffs tileset.
+    // Image keys must equal each tileset image's basename (Worldmap.imageKeyFor).
+    this.load.tilemapTiledJSON(MapKeys.Cliff, "json/cliff_json.json");
+    this.load.image("LPC_cliffs_grass", "tilesets/terrain/LPC_cliffs_grass.png");
 
     for (let i = 1; i <= 7; i++) {
       this.load.image(`${i}`, `${i}.png`);
     }
     this.load.image(`home1`, `home1.png`);
-    this.load.image(`ruin_tile`, `ruin_tile.png`);
-    this.load.image(`ruin_structure`, `ruin_structure.png`);
-    this.load.image(`ruin_object`, `ruin_object.png`);
 
     // Drawn by me
     const resources = [

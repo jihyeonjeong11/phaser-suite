@@ -7,6 +7,9 @@ function imageKeyFor(source: string): string {
 export class Worldmap {
   readonly map: Tilemaps.Tilemap;
   // todo: need intractable tile for farming
+  // Optional: only some maps have it. Drawn behind everything, used as a
+  // collision source for void areas outside the walkable ground.
+  readonly backgroundLayer: Tilemaps.TilemapLayer | null;
   readonly belowLayer: Tilemaps.TilemapLayer;
   readonly worldLayer: Tilemaps.TilemapLayer;
   readonly aboveLayer: Tilemaps.TilemapLayer;
@@ -18,6 +21,20 @@ export class Worldmap {
     this.map = scene.make.tilemap({ key });
 
     const tilesets = this.resolveTilesets(scene, key);
+
+    // Created first + depth -10 so it renders behind Below/World/Above.
+    // (Phaser depth follows creation order; Tiled's layer order is not read.)
+    this.backgroundLayer = this.map.getLayer("Background")
+      ? (this.map.createLayer(
+          "Background",
+          tilesets,
+          0,
+          0,
+          false,
+        ) as Tilemaps.TilemapLayer)
+      : null;
+    this.backgroundLayer?.setDepth(-10);
+
     this.belowLayer = this.map.createLayer(
       "Below Player",
       tilesets,
@@ -63,14 +80,12 @@ export class Worldmap {
     return this.map;
   }
 
-  getPortal(pos: { x: number; y: number }): boolean {
-    // player should call this function when moving resolved.
-    //if(pos)
-    return false;
-  }
-
   getWorldLayer() {
     return this.worldLayer;
+  }
+
+  getBackgroundLayer() {
+    return this.backgroundLayer;
   }
 
   getPortalLayer() {
@@ -79,6 +94,7 @@ export class Worldmap {
 
   private addMapCollision(scene: Scene) {
     this.worldLayer?.setCollisionByExclusion([-1]);
+    this.backgroundLayer?.setCollisionByExclusion([-1]);
 
     scene.physics.world.setBounds(
       0,

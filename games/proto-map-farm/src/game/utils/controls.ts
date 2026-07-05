@@ -52,8 +52,6 @@ export class Controls {
     return Input.Keyboard.JustDown(this.#enterKey);
   }
 
-  // 이번 프레임에 눌린 퀵바 슬롯 인덱스(0~9)를 반환, 없으면 -1.
-  // JustDown은 눌린 그 1프레임만 true이므로 반드시 update()에서 매 프레임 호출할 것.
   getQuickbarSlotJustPressed() {
     if (this.#numberKeys === undefined) {
       return -1;

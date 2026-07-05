@@ -2,7 +2,7 @@ import { Scene, GameObjects } from "phaser";
 import { dataManager, BASE_VOLUME } from "../dataManager/Store";
 import { options } from "../utils/constants/options";
 import { ModalBehavoir } from "phaser4-rex-plugins/plugins/modal.js";
-import { MapKeys } from "../utils/constants/mapKeys";
+import { DEFAULT_MAP_KEY } from "../utils/constants/mapKeys";
 
 const BTN_WIDTH = 180;
 const BTN_HEIGHT = 56;
@@ -163,6 +163,6 @@ export class MainMenu extends Scene {
 
   private startNewGame(): void {
     dataManager.reset();
-    this.scene.start("Game", { fromSave: false, area: MapKeys.Farm });
+    this.scene.start("Game", { fromSave: false, area: DEFAULT_MAP_KEY });
   }
 }

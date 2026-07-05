@@ -6,6 +6,7 @@ export class TempPlayer {
   charSprite: GameObjects.Sprite;
   _controls: Controls;
   _worldLayer: Tilemaps.TilemapLayer;
+  _backgroundLayer: Tilemaps.TilemapLayer | null;
   _portalLayer: Tilemaps.ObjectLayer | null;
   private onEnterPortal: (dest: string) => void;
   protected readonly baseScale: number = 3;
@@ -16,21 +17,17 @@ export class TempPlayer {
     startPos: { x: number; y: number },
     _controls: Controls,
     collisionLayer: Tilemaps.TilemapLayer,
+    backgroundLayer: Tilemaps.TilemapLayer | null,
     portalLayer: Tilemaps.ObjectLayer | null,
     onEnterPortal: (dest: string) => void,
   ) {
     this._controls = _controls;
     this._worldLayer = collisionLayer;
+    this._backgroundLayer = backgroundLayer;
     this._portalLayer = portalLayer;
     this.onEnterPortal = onEnterPortal;
-    // 시작 위치는 Game이 결정(로드=저장 좌표 / 그 외=맵 스폰포인트)해서 주입.
     dataManager.setPlayerData({ x: startPos.x, y: startPos.y });
-    this.charSprite = scene.add.sprite(
-      startPos.x,
-      startPos.y,
-      "base_char",
-      0,
-    );
+    this.charSprite = scene.add.sprite(startPos.x, startPos.y, "base_char", 0);
 
     // setscale
     this.charSprite.setScale(this.baseScale);
@@ -79,7 +76,22 @@ export class TempPlayer {
     return tile.index !== -1;
   }
 
-  // 맵 밖(void) 이탈 방지. 바디가 없어 setCollideWorldBounds 대신 수동 검사.
+  private doesPositionCollideWithBackgroundLayer(position: {
+    x: number;
+    y: number;
+  }): boolean {
+    if (!this._backgroundLayer) {
+      return false;
+    }
+
+    const { x, y } = position;
+    const tile = this._backgroundLayer.getTileAtWorldXY(x, y, true);
+    if (!tile) {
+      return false;
+    }
+    return tile.index !== -1;
+  }
+
   private isWithinBounds(position: { x: number; y: number }): boolean {
     const map = this._worldLayer.tilemap;
     const { x, y } = position;
@@ -129,6 +141,7 @@ export class TempPlayer {
 
       if (
         !this.doesPositionCollideWithWorldLayer(targetPos) &&
+        !this.doesPositionCollideWithBackgroundLayer(targetPos) &&
         this.isWithinBounds(targetPos)
       ) {
         this.charSprite.setPosition(targetPos.x, targetPos.y);
@@ -139,13 +152,11 @@ export class TempPlayer {
           const dest = portal.properties?.find(
             (p: { name: string; value: unknown }) => p.name === "dest",
           )?.value;
-          // 검출은 여기(위치를 앎), 전환은 씬에 위임 (SRP/DIP)
           if (typeof dest === "string") this.onEnterPortal(dest);
         }
       }
     }
 
-    // 애니 (움직임 여부로 idle/walk)
     this.charSprite.play(`${key}-${moving ? "walk" : "idle"}`, true);
   }
 }

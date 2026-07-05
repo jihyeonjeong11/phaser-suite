@@ -46,10 +46,8 @@ export class Player extends Character {
   }
 
   private selectSlot(index: number): void {
-    this.scene.registry.set("quickbarSelected", index);
-    const inv = this.scene.registry.get("inventory") as
-      | InventoryItem[]
-      | undefined;
+    dataManager.setCurrentSelectedIdx(index);
+    const inv = dataManager.getInventory();
     const item = inv?.[index];
     if (!item) {
       this.unequip();
@@ -58,7 +56,6 @@ export class Player extends Character {
     this.equip(this.createHand(item));
   }
 
-  // todo: item.type 추가되면 그걸로 분기. 지금은 frame 유무로 Weapon/Tool 임시 판별
   private createHand(item: InventoryItem): Weapon | Tool {
     if (item.frame === undefined) {
       return new Weapon(this.scene, this.x, this.y, item.textureKey);
