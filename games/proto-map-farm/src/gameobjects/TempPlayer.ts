@@ -157,6 +157,10 @@ export class TempPlayer {
   }
 
   private useTool(): void {
+    const currentIdx = dataManager.getCurrentSelectedIdx();
+    if (currentIdx === -1) return;
+    // todo: need 핸드 클래스?
+    const currentHand = dataManager.getInventory()[currentIdx];
     const map = this._worldLayer.tilemap;
     const tw = map.tileWidth;
     const th = map.tileHeight;
@@ -170,14 +174,21 @@ export class TempPlayer {
     const info = this.mapObject.getTileInfo(col, row);
     // console.log(`useTool → tile (${col}, ${row})`, info);
 
-    // todo: need swing sound
+    // 선택한 툴에 따라 스윙 사운드 재생
+    if (currentHand.name === "testing_pickaxe") {
+      playSound(this.scene, AUDIO_KEYS.PICKAXE);
+    } else if (currentHand.name === "testing_axe") {
+      playSound(this.scene, AUDIO_KEYS.AXE);
+    } else if (currentHand.name === "testing_hoe") {
+      playSound(this.scene, AUDIO_KEYS.HOE);
+    } else if (currentHand.name === "testing_watering_can") {
+      playSound(this.scene, AUDIO_KEYS.WATERING);
+    }
+
     if (info.feature?.kind === "grass") {
       // 풀이 있는 칸 → 논리 보드에서 제거(리렌더가 스프라이트 파괴)
-      playSound(this.scene, AUDIO_KEYS.PICKAXE_HIT);
       this.mapObject.removeFeature(col, row);
     } else if (info.diggable && !info.isOccupied) {
-      playSound(this.scene, AUDIO_KEYS.PICKAXE_HIT);
-
       this.mapObject.till(col, row);
     }
   }
@@ -207,10 +218,17 @@ export class TempPlayer {
         y: this.charSprite.y + dy * this.baseSpeed,
       };
 
+      const map = this._worldLayer.tilemap;
+      const targetCol = Math.floor(targetPos.x / map.tileWidth);
+      const targetRow = Math.floor(targetPos.y / map.tileHeight);
+
+      console.log(this.mapObject.getTileInfo(targetCol, targetRow));
+
       if (
         !this.doesPositionCollideWithWorldLayer(targetPos) &&
         !this.doesPositionCollideWithBackgroundLayer(targetPos) &&
-        this.isWithinBounds(targetPos)
+        this.isWithinBounds(targetPos) &&
+        !this.mapObject.getTileInfo(targetCol, targetRow).watersource
       ) {
         this.charSprite.setPosition(targetPos.x, targetPos.y);
         dataManager.setPlayerData({ x: targetPos.x, y: targetPos.y });

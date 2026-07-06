@@ -116,7 +116,6 @@ export class MapObject {
 
   update() {
     const board = dataManager.getMap(this.mapKey);
-    // 1. board에 있는데 아직 안 그린 칸 → 그림
     Object.entries(board).forEach(([posString, k]) => {
       const [col, row] = this.stringToPos(posString);
       switch (k.kind) {
@@ -224,10 +223,16 @@ export class MapObject {
     const diggable =
       this.doesTileHaveProperty(col, row, STATIC_TILE_PROPERTIES.DIGGABLE) ===
       true;
+    const watersource =
+      this.doesTileHaveProperty(
+        col,
+        row,
+        STATIC_TILE_PROPERTIES.WATERSOURCE,
+      ) === true;
     const isOccupied = this.isTileOccupied(col, row);
     const feature =
       dataManager.getMap(this.mapKey)[this.posToString(col, row)] ?? null;
-    return { diggable, isOccupied, feature };
+    return { diggable, isOccupied, feature, watersource };
   }
 
   private persist(): void {

@@ -13,6 +13,12 @@ export function playSound(
     return false;
   }
 
-  scene.sound.play(key, config);
+  const sound = scene.sound.add(key, config);
+  sound.play();
+  // 1초만 재생하고 정지 후 인스턴스 정리
+  scene.time.delayedCall(1000, () => {
+    sound.stop();
+    sound.destroy();
+  });
   return true;
 }

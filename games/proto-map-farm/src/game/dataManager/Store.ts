@@ -67,19 +67,19 @@ export const TEMP_INV: InventoryItem[] = [
     },
   },
   {
+    name: "testing_hoe",
+    textureKey: "tools",
+    frame: 2,
+    soundMap: {
+      //till
+    },
+  },
+  {
     name: "testing_axe",
     textureKey: "tools",
     frame: 2,
     soundMap: {
       //chop
-    },
-  },
-  {
-    name: "testing_hoe",
-    textureKey: "tools",
-    frame: 3,
-    soundMap: {
-      //till
     },
   },
 ];

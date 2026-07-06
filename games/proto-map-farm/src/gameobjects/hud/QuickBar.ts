@@ -120,10 +120,6 @@ export class QuickBar extends GameObjects.Container {
         .image(slot.x, slot.y, item.textureKey, item.frame)
         .setScrollFactor(0);
 
-      // Fit icon within the slot regardless of frame size (weapon 64x64 vs tool 64x16)
-      const maxSize = QuickBar.SLOT_SIZE - QuickBar.ICON_PADDING;
-      icon.setScale(maxSize / Math.max(icon.width, icon.height));
-
       this.add(icon);
       this.icons[i] = icon;
     }
@@ -133,16 +129,4 @@ export class QuickBar extends GameObjects.Container {
     dataManager.off("changedata-inventory", this.render, this);
     dataManager.off("changedata-currentSelectedIdx", this.render, this);
   }
-
-  // public update(): void {
-  //   const selected = dataManager.getCurrentSelectedIdx();
-
-  //   for (let i = 0; i < this.slots.length; i++) {
-  //     const isSelected = i === selected;
-  //     this.slots[i].setStrokeStyle(
-  //       isSelected ? 3 : 2,
-  //       isSelected ? 0xffd700 : 0x888888,
-  //     );
-  //   }
-  // }
 }

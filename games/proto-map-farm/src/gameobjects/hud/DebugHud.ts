@@ -106,34 +106,6 @@ export class DebugHud {
     });
   }
 
-  // 동적 상태를 매 프레임 다시 색칠: 점유(빨강) + 갈린 흙(초록).
-  private drawDynamic(map: Phaser.Tilemaps.Tilemap): void {
-    const tw = map.tileWidth;
-    const th = map.tileHeight;
-    const g = this.dynamicGraphics;
-    g.clear();
-
-    const tilled = new Set(this.mapObject.getTilledKeys());
-
-    // 점유 타일(갈린 흙 제외) → 빨강. 인터랙션(경작) 불가한 칸.
-    g.fillStyle(0xff0000, 0.3);
-    for (let row = 0; row < map.height; row++) {
-      for (let col = 0; col < map.width; col++) {
-        if (tilled.has(`${col},${row}`)) continue;
-        if (this.mapObject.isTileOccupied(col, row)) {
-          g.fillRect(col * tw, row * th, tw, th);
-        }
-      }
-    }
-
-    // 갈린 흙(동적 보드에 추가된 타일) → 초록.
-    g.fillStyle(0x00ff00, 0.4);
-    tilled.forEach((key) => {
-      const [col, row] = key.split(",").map(Number);
-      g.fillRect(col * tw, row * th, tw, th);
-    });
-  }
-
   update(
     target: Phaser.GameObjects.Sprite,
     map: Phaser.Tilemaps.Tilemap,
@@ -143,7 +115,5 @@ export class DebugHud {
     this.coordsText.setText(
       `x: ${Math.round(target.x)}  y: ${Math.round(target.y)}\ntile: ${tx}, ${ty}`,
     );
-
-    if (this.debugVisible) this.drawDynamic(map);
   }
 }

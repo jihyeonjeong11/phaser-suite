@@ -151,7 +151,7 @@ export class Game extends BaseScene {
 
   update() {
     this.tempPlayer.update();
-    // reconciler
+    // reconciler // todo:
     this.mapObject.update();
     this.quickBar.update();
     const numberKey = this._controls.wasQuickbarSlotJustPressed();

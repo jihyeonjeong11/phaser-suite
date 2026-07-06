@@ -26,6 +26,7 @@ export const BASE_TILLED_TILE_FRAME = 10;
 // todo: add more properties!
 export const STATIC_TILE_PROPERTIES = {
   DIGGABLE: "Diggable",
+  WATERSOURCE: "watersource",
 } as const;
 
 export const DYNAMIC_TILE_PROPERTIES = {

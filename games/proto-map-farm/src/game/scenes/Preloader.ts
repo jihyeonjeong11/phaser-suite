@@ -104,6 +104,8 @@ export class Preloader extends Scene {
       "LPC_cliffs_grass",
       "tilesets/terrain/LPC_cliffs_grass.png",
     );
+    // 물 타일 등 terrain 타일셋 (cliff_json에서 firstgid 1504로 참조)
+    this.load.image("terrain", "tilesets/terrain/terrain.png");
     this.load.image("tent-tan", "img/tent-tan.png");
 
     this.load.spritesheet("heart_anim", "sprites/heart_anim.png", {
@@ -143,7 +145,10 @@ export class Preloader extends Scene {
       },
       { type: "audio", key: "bgm", url: "musics/background.mp3" },
       { type: "audio", key: "gunfire", url: "sounds/gunfire.mp3" },
-      { type: "audio", key: "pickaxe_hit", url: "sounds/pickaxe_hit.mp3" },
+      { type: "audio", key: "pickaxe", url: "sounds/pickaxe.mp3" },
+      { type: "audio", key: "axe", url: "sounds/axe.mp3" },
+      { type: "audio", key: "hoe", url: "sounds/hoe.mp3" },
+      { type: "audio", key: "watering", url: "sounds/watering.mp3" },
     ];
 
     resources.forEach((resource) => {
