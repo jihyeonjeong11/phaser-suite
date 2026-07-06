@@ -1,9 +1,9 @@
-export const MapKeys = {
-  Farm: "Farm",
-  Ruin: "Ruin",
-  Cliff: "Cliff",
+export const MAP_KEYS = {
+  FARM: "Farm",
+  RUIN: "Ruin",
+  CLIFF: "Cliff",
 } as const;
 
-export type MapKey = (typeof MapKeys)[keyof typeof MapKeys];
+export type MapKey = (typeof MAP_KEYS)[keyof typeof MAP_KEYS];
 
-export const DEFAULT_MAP_KEY: MapKey = MapKeys.Cliff;
+export const DEFAULT_MAP_KEY: MapKey = MAP_KEYS.CLIFF;

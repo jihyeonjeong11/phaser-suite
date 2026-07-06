@@ -1,5 +1,7 @@
 import { GameObjects, Scene } from "phaser";
 import { Bullet } from "./Bullet";
+import { playSound } from "../game/utils/audios";
+import { AUDIO_KEYS } from "../game/utils/constants/audioKeys";
 
 // use mouse targeting
 export class Weapon extends GameObjects.Sprite {
@@ -42,6 +44,6 @@ export class Weapon extends GameObjects.Sprite {
     const bullet = new Bullet(this.scene, mx, my, angle, Weapon.BULLET_SPEED);
     this.bullets.add(bullet);
 
-    this.scene.sound.play("gunfire");
+    playSound(this.scene, AUDIO_KEYS.GUNFIRE);
   }
 }

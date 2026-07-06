@@ -63,33 +63,106 @@
 //   Step 3  영속화: delta 를 dataManager.maps[mapKey] 로 read/write. 진입 시 로드, save()에 포함.
 
 import { Tilemaps } from "phaser";
+import { MapKey } from "../../game/utils/constants/mapKeys";
+import { STATIC_TILE_PROPERTIES } from "../../game/utils/constants/tileProperties";
+import { Features } from "./Components/features";
+import { dataManager, HoeDirt } from "../../game/dataManager/Store";
 
 // getTileInfo 반환 shape. Step1: 능력 중 Diggable 하나만.
 export interface TileInfo {
   diggable: boolean;
+  isOccupied: boolean;
 }
 
-export class MapObject {
-  // 지면(Below Player) 레이어 — Diggable/Type 등 능력 프로퍼티가 여기 심겨 있음.
-  private groundLayer: Tilemaps.TilemapLayer;
+// 1. 빈 map 형성
+// 2. static tile: cliff의 경우 artifact tree 스프라이트 등록. 속성 isOccupied 등록, 여기서는 경작 불가
+// 3. 정적 프로퍼티 확인, Diggable일때, map에 다른게 존재하지 않을때 useTool이 불릴 때 해당 맵에 등록
+// 4. 타일 덮어씌움, map 객체 저장
+// 5. 예외사항. 각 map 별로 static하게 배치한 오브젝트(이 경우는 game.ts의 artifact tree같은 경우는 따로 정적으로 tile 속성을 줘서 상호작용 불가해야함)
 
-  constructor(groundLayer: Tilemaps.TilemapLayer) {
+export class MapObject {
+  private groundLayer: Tilemaps.TilemapLayer;
+  private worldLayer: Tilemaps.TilemapLayer;
+
+  private terrainFeatures = new Map<string, HoeDirt>();
+
+  // ── 정적 점유 보드 (코드로 배치, 세이브 대상 아님) ──
+  // Features가 배치한 artifact tree 밑동 등. (SDV: GameLocation.resourceClumps)
+  private resourceClumps = new Set<string>();
+
+  // 어느 맵인지 — store의 delta slice 키. (SDV: GameLocation.Name)
+  private mapKey: MapKey;
+
+  constructor(
+    groundLayer: Tilemaps.TilemapLayer,
+    worldLayer: Tilemaps.TilemapLayer,
+    mapKey: MapKey,
+  ) {
     this.groundLayer = groundLayer;
+    this.worldLayer = worldLayer;
+    this.mapKey = mapKey;
+    new Features(mapKey, worldLayer, this.resourceClumps);
+    this.loadDeltas();
   }
 
   // 갈린 흙 타일: plowed_soil 로컬 id 10 (가로2·세로4 = 중앙 균일 흙).
   private static readonly TILLED_LOCAL_ID = 10;
 
-  // 타일 좌표(col,row)의 지면 능력을 반환. Step1: Tiled의 Diggable 프로퍼티만 읽음.
-  getTileInfo(col: number, row: number): TileInfo {
-    const tile = this.groundLayer.getTileAt(col, row);
-    const diggable = tile?.properties?.Diggable === true;
-    return { diggable };
+  private key(col: number, row: number): string {
+    return `${col},${row}`;
   }
 
-  // 해당 칸을 갈아 지면 타일을 plowed_soil 로 교체.
-  // firstgid는 맵마다 다를 수 있어 타일셋 이름으로 런타임 조회.
-  till(col: number, row: number): void {
+  // SDV GameLocation.doesTileHaveProperty(x, y, prop, "Back")에 대응. 여기선 Back=groundLayer 고정.
+  private doesTileHaveProperty(
+    col: number,
+    row: number,
+    prop: string,
+  ): unknown {
+    return this.groundLayer.getTileAt(col, row)?.properties?.[prop];
+  }
+
+  // SDV GameLocation.isTileOccupied. 여러 소스를 OR로 그때그때 조회해 파생 계산(점유 플래그 저장 X).
+  isTileOccupied(col: number, row: number): boolean {
+    const key = this.key(col, row);
+    if (this.resourceClumps.has(key)) return true;
+    if (this.worldLayer.getTileAt(col, row) != null) return true;
+    if (this.terrainFeatures.has(key)) return true;
+    return false;
+  }
+
+  // Debug 전용: 동적 보드(갈린 흙) 좌표 키 목록. ("col,row") DebugHud가 색칠에 사용.
+  getTilledKeys(): string[] {
+    return [...this.terrainFeatures.keys()];
+  }
+
+  // 능력(정적) + 점유(정적+동적)를 합쳐 반환. Player·하이라이트가 사용.
+  getTileInfo(col: number, row: number): TileInfo {
+    const diggable =
+      this.doesTileHaveProperty(col, row, STATIC_TILE_PROPERTIES.DIGGABLE) ===
+      true;
+    const isOccupied = this.isTileOccupied(col, row);
+    return { diggable, isOccupied };
+  }
+
+  // SDV GameLocation.makeHoeDirt. 능력 && !점유 검사를 스스로 하고 terrainFeatures에 HoeDirt 등록.
+  makeHoeDirt(col: number, row: number): void {
+    if (
+      this.doesTileHaveProperty(col, row, STATIC_TILE_PROPERTIES.DIGGABLE) !==
+      true
+    )
+      return; // 팔 수 없는 땅
+    if (this.isTileOccupied(col, row)) return; // 점유됨(정적/동적, 이미 갈린 흙 포함)
+
+    this.terrainFeatures.set(this.key(col, row), {
+      state: 0, // dry
+      fertilizer: 0, // none
+      crop: null,
+    });
+    this.renderTilled(col, row);
+    this.persist();
+  }
+
+  private renderTilled(col: number, row: number): void {
     const ts = this.groundLayer.tilemap.tilesets.find(
       (t) => t.name === "plowed_soil",
     );
@@ -98,6 +171,22 @@ export class MapObject {
       ts.firstgid + MapObject.TILLED_LOCAL_ID,
       col,
       row,
+    );
+  }
+
+  private loadDeltas(): void {
+    const saved = dataManager.getMapDelta(this.mapKey);
+    for (const [key, dirt] of Object.entries(saved)) {
+      this.terrainFeatures.set(key, dirt);
+      const [col, row] = key.split(",").map(Number);
+      this.renderTilled(col, row);
+    }
+  }
+
+  private persist(): void {
+    dataManager.setMapDelta(
+      this.mapKey,
+      Object.fromEntries(this.terrainFeatures),
     );
   }
 }

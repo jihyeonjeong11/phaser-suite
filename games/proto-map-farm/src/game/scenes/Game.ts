@@ -4,7 +4,7 @@ import { BaseScene } from "./Base";
 import { dataManager } from "../dataManager/Store";
 import { Worldmap } from "../../gameobjects/Worldmap";
 import { QuickBar } from "../../gameobjects/hud/QuickBar";
-import { DEFAULT_MAP_KEY, MapKeys } from "../utils/constants/mapKeys";
+import { DEFAULT_MAP_KEY, MAP_KEYS, MapKey } from "../utils/constants/mapKeys";
 import { TempPlayer } from "../../gameobjects/TempPlayer";
 import { MapObject } from "../../gameobjects/mapObjects/MapObjects";
 
@@ -82,15 +82,23 @@ export class Game extends BaseScene {
     super.create();
     this.transitioning = false;
     this.worldMap = new Worldmap(this, this.sceneData.area);
+
+    const mapObject = new MapObject(
+      this.worldMap.belowLayer,
+      this.worldMap.getWorldLayer(),
+      this.sceneData.area as MapKey,
+    );
+
     this.debugHud = new DebugHud(
       this,
+      mapObject,
       this.worldMap.getWorldLayer(),
       this.worldMap.getPortalLayer(),
     );
     this.quickBar = new QuickBar(this);
 
-    if (this.sceneData.area === MapKeys.Cliff) {
-      this.spawnCliffTrees();
+    if (this.sceneData.area === MAP_KEYS.CLIFF) {
+      //this.spawnCliffTrees();
     }
 
     dataManager.setPlayerData({ currentMapKey: this.sceneData.area });
@@ -102,8 +110,6 @@ export class Game extends BaseScene {
     const start = this.sceneData.fromSave
       ? this.getSavedPosition()
       : this.getSpawnPosition();
-
-    const mapObject = new MapObject(this.worldMap.belowLayer);
 
     this.tempPlayer = new TempPlayer(
       this,
@@ -131,38 +137,6 @@ export class Game extends BaseScene {
     return { x: spawn.x, y: spawn.y };
   }
 
-  private spawnCliffTrees(): void {
-    const HEART_TREE_ANCHOR_GID = 1377;
-
-    if (!this.anims.exists("heart_pulse")) {
-      this.anims.create({
-        key: "heart_pulse",
-        frames: this.anims.generateFrameNumbers("heart_anim", {
-          start: 0,
-          end: 2,
-        }),
-        frameRate: 4, // 초당 4프레임(프레임당 0.25초)
-        repeat: -1, // 무한 반복
-        repeatDelay: 1500, // 한 사이클 후 1.5초 쉬었다 반복
-      });
-    }
-
-    const layer = this.worldMap.getWorldLayer();
-    layer.forEachTile((tile) => {
-      if (tile.index !== HEART_TREE_ANCHOR_GID) return;
-
-      const tree = this.add
-        .sprite(
-          tile.pixelX + tile.width,
-          tile.pixelY + tile.height * 2,
-          "heart_anim",
-        )
-        .setOrigin(0.5, 1);
-      tree.setDepth(tree.y);
-      tree.play("heart_pulse");
-    });
-  }
-
   private enterPortal(dest: string): void {
     if (this.transitioning) return;
     this.transitioning = true;
@@ -176,7 +150,7 @@ export class Game extends BaseScene {
   update() {
     this.tempPlayer.update();
     this.quickBar.update();
-    const numberKey = this._controls.getQuickbarSlotJustPressed();
+    const numberKey = this._controls.wasQuickbarSlotJustPressed();
     if (numberKey > -1) {
       dataManager.setCurrentSelectedIdx(numberKey);
     }

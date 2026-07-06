@@ -13,12 +13,6 @@ import { DIRECTION, Direction } from "../utils/constants";
 // todo: save/load https://www.dynetisgames.com/2018/10/28/how-save-load-player-progress-localstorage/
 // todo: need initialState
 
-export const BASE_VOLUME = 0.5;
-
-export interface GameOptions {
-  volume: number;
-}
-
 export const TEMP_INV_LIMIT = 10;
 
 // todo: schema
@@ -37,6 +31,16 @@ export interface PlayerData {
   currentMapKey: string;
   direction: Direction;
 }
+
+// 갈린 흙 한 칸의 동적 상태(직렬화 대상). SDV TerrainFeatures/HoeDirt.cs 필드명.
+export interface HoeDirt {
+  state: number; // 0 = dry, 1 = watered
+  fertilizer: number; // 0 = none
+  crop: number | null; // 심긴 씨앗 index. null = 빈 흙
+}
+
+// 한 맵의 delta 보드: "col,row" → HoeDirt. (SDV GameLocation.terrainFeatures 딕셔너리의 직렬화 형태)
+export type MapDelta = Record<string, HoeDirt>;
 
 export const TEMP_INV: InventoryItem[] = [
   {
@@ -90,10 +94,9 @@ const initialState = {
   },
   inventory: TEMP_INV,
   currentSelectedIdx: -1,
-  //options
-  options: {
-    volume: BASE_VOLUME,
-  },
+  // 맵별 delta 보드(변형된 칸만 희소 저장). mapKey → ("col,row" → HoeDirt)
+  maps: {} as Record<string, MapDelta>,
+  // volume 등 옵션은 세이브 상위 계층(GlobalConfig, localStorage)에서 관리한다.
 } as const;
 
 // registry manager
@@ -128,9 +131,11 @@ class DataManager extends Events.EventEmitter {
     const raw = localStorage.getItem(DataManager.SAVE_KEY);
     if (!raw) return false;
     try {
-      this.store.set(JSON.parse(raw));
+      const parsed = JSON.parse(raw);
+      this.store.set(parsed);
       return true;
-    } catch {
+    } catch (e) {
+      console.log("[DIAG] load() FAILED", e);
       return false;
     }
   }
@@ -160,12 +165,20 @@ class DataManager extends Events.EventEmitter {
     this.store.set("inventory", inventory);
   }
 
-  getOption() {
-    return this.store.get("options");
+  // 해당 맵의 delta 보드를 반환(없으면 빈 객체). MapObject가 진입 시 로드에 사용.
+  getMapDelta(mapKey: string): MapDelta {
+    const maps = this.store.get("maps") as Record<string, MapDelta> | undefined;
+    console.log("[DIAG] 3. getMapDelta(", mapKey, ") store.get(maps) =", maps);
+    return maps?.[mapKey] ?? {};
   }
 
-  setOption(option: GameOptions) {
-    this.store.set("options", option);
+  // 해당 맵의 delta 보드를 갱신. save() 시 localStorage에 함께 직렬화됨.
+  setMapDelta(mapKey: string, delta: MapDelta) {
+    const maps = {
+      ...(this.store.get("maps") as Record<string, MapDelta>),
+      [mapKey]: delta,
+    };
+    this.store.set("maps", maps);
   }
 }
 

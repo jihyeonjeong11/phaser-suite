@@ -2,6 +2,8 @@ import { GameObjects, Scene, Tilemaps, Types } from "phaser";
 import { Controls } from "../game/utils/controls";
 import { dataManager } from "../game/dataManager/Store";
 import { MapObject } from "./mapObjects/MapObjects";
+import { playSound } from "../game/utils/audios";
+import { AUDIO_KEYS } from "../game/utils/constants/audioKeys";
 
 export class TempPlayer {
   charSprite: GameObjects.Sprite;
@@ -168,9 +170,10 @@ export class TempPlayer {
 
     const info = this.mapObject.getTileInfo(col, row);
     console.log(`useTool → tile (${col}, ${row})`, info);
-    if (info.diggable) {
-      this.scene.sound.play("pickaxe_hit");
-      this.mapObject.till(col, row);
+    playSound(this.scene, AUDIO_KEYS.PICKAXE_HIT);
+
+    if (info.diggable && !info.isOccupied) {
+      this.mapObject.makeHoeDirt(col, row);
     }
   }
 

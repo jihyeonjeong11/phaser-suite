@@ -1,6 +1,6 @@
 import { Scene } from "phaser";
 import { TEMP_INV } from "../dataManager/Store";
-import { MapKeys } from "../utils/constants/mapKeys";
+import { MAP_KEYS } from "../utils/constants/mapKeys";
 
 export class Preloader extends Scene {
   constructor() {
@@ -64,15 +64,12 @@ export class Preloader extends Scene {
   }
 
   preload() {
-    // Start Inventory
-    this.registry.set("inventory", TEMP_INV);
-
     // Testing tile map sheet from itch.io // todo: draw tilemap!
     this.load.setPath("assets");
 
     // Farm: rebuilt at 32px on the LPC farm tilesets.
     // Image keys must equal each tileset image's basename (Worldmap.imageKeyFor).
-    this.load.tilemapTiledJSON(MapKeys.Farm, "json/farm_json.json");
+    this.load.tilemapTiledJSON(MAP_KEYS.FARM, "json/farm_json.json");
     this.load.image("plowed_soil", "tilesets/farm/plowed_soil.png");
     this.load.image("tallgrass", "tilesets/farm/tallgrass.png");
     this.load.image("fence_alt", "tilesets/farm/fence_alt.png");
@@ -83,14 +80,17 @@ export class Preloader extends Scene {
 
     // Ruin: rebuilt at 32px on the apocalypse + 7DRL tilesets.
     // Image keys must equal each tileset image's basename (Worldmap.imageKeyFor).
-    this.load.tilemapTiledJSON(MapKeys.Ruin, "json/ruin_json.json");
+    this.load.tilemapTiledJSON(MAP_KEYS.RUIN, "json/ruin_json.json");
     this.load.image("apocalypse", "tilesets/ruin/apocalypse.png");
     this.load.image("7DRL-Tiles2", "tilesets/ruin/7DRL-Tiles2.png");
 
     // Cliff: LPC cliffs tileset.
     // Image keys must equal each tileset image's basename (Worldmap.imageKeyFor).
-    this.load.tilemapTiledJSON(MapKeys.Cliff, "json/cliff_json.json");
-    this.load.image("LPC_cliffs_grass", "tilesets/terrain/LPC_cliffs_grass.png");
+    this.load.tilemapTiledJSON(MAP_KEYS.CLIFF, "json/cliff_json.json");
+    this.load.image(
+      "LPC_cliffs_grass",
+      "tilesets/terrain/LPC_cliffs_grass.png",
+    );
     this.load.image("heart_tree", "sprites/heart_tree.png");
     // 하트나무 애니메이션: heart_sprite.png의 3프레임을 정렬+2배 업스케일한 전용 파일.
     // 384x256 = 128x256 프레임 3장(0,1,2). (원본 heart_sprite.png는 Tiled 타일셋용으로 보존)
@@ -99,11 +99,6 @@ export class Preloader extends Scene {
       frameWidth: 128,
       frameHeight: 256,
     });
-
-    for (let i = 1; i <= 7; i++) {
-      this.load.image(`${i}`, `${i}.png`);
-    }
-    this.load.image(`home1`, `home1.png`);
 
     // Drawn by me
     const resources = [

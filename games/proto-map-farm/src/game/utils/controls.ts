@@ -61,7 +61,7 @@ export class Controls {
     return Input.Keyboard.JustDown(this.#cKey);
   }
 
-  getQuickbarSlotJustPressed() {
+  wasQuickbarSlotJustPressed() {
     if (this.#numberKeys === undefined) {
       return -1;
     }

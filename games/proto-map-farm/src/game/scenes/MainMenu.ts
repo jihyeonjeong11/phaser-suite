@@ -1,8 +1,11 @@
 import { Scene, GameObjects } from "phaser";
-import { dataManager, BASE_VOLUME } from "../dataManager/Store";
-import { options } from "../utils/constants/options";
+import { dataManager } from "../dataManager/Store";
 import { ModalBehavoir } from "phaser4-rex-plugins/plugins/modal.js";
 import { DEFAULT_MAP_KEY } from "../utils/constants/mapKeys";
+import {
+  DEFAULT_CONFIGS,
+  globalConfig,
+} from "../utils/constants/GlobalConfig";
 
 const BTN_WIDTH = 180;
 const BTN_HEIGHT = 56;
@@ -17,8 +20,8 @@ export class MainMenu extends Scene {
   }
 
   create() {
-    // todo: update volume event when load() happens.
-    this.sound.play("bgm", { loop: true, volume: options.BGM_VOLUME });
+    // 볼륨은 세이브 상위 계층(globalConfig, localStorage)에서 읽는다.
+    this.sound.play("bgm", { loop: true, volume: globalConfig.getVolume() });
 
     const canvasWidth = this.game.canvas.width;
     const canvasHeight = this.game.canvas.height;
@@ -85,7 +88,7 @@ export class MainMenu extends Scene {
         color: "#ffffff",
       })
       .setOrigin(0, 0.5);
-    const isOn = () => dataManager.getOption().volume > 0;
+    const isOn = () => globalConfig.getVolume() > 0;
     const onColor = 0x2d5a34;
     const offColor = 0x5a2d2d;
 
@@ -102,8 +105,8 @@ export class MainMenu extends Scene {
       .setOrigin(0.5);
 
     toggleBg.on("pointerdown", () => {
-      const nextVolume = isOn() ? 0 : BASE_VOLUME;
-      dataManager.setOption({ volume: nextVolume });
+      const nextVolume = isOn() ? 0 : DEFAULT_CONFIGS.BGM_VOLUME;
+      globalConfig.setVolume(nextVolume);
       this.sound.setVolume(nextVolume);
       toggleText.setText(isOn() ? "ON" : "OFF");
       toggleBg.setFillStyle(isOn() ? onColor : offColor);

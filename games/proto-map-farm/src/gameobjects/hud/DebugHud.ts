@@ -1,18 +1,32 @@
 import { Scene, Display } from "phaser";
+import { MapObject } from "../mapObjects/MapObjects";
 
+// P키 하나로 모든 디버그 오버레이를 토글한다.
+//  - 충돌(World 레이어) : renderDebug (정적, 1회)
+//  - 포탈 존           : (정적, 1회)
+//  - 점유 타일(빨강)    : isTileOccupied == true, 인터랙션 불가 (동적, 매 프레임)
+//  - 갈린 흙(초록)      : 동적 보드(terrainFeatures)에 추가된 타일 (동적, 매 프레임)
+// C키는 도구 사용(useTool)과 겹치므로 디버그에서 제거 — controls.ts #cKey 참고.
 export class DebugHud {
   private coordsText: Phaser.GameObjects.Text;
   private collisionGraphics: Phaser.GameObjects.Graphics;
   private portalGraphics: Phaser.GameObjects.Graphics;
+  private dynamicGraphics: Phaser.GameObjects.Graphics;
+  private mapObject: MapObject;
+  private debugVisible = false;
 
   constructor(
     scene: Scene,
+    mapObject: MapObject,
     worldLayer?:
       | Phaser.Tilemaps.TilemapLayer
       | Phaser.Tilemaps.TilemapGPULayer
       | null,
     portalLayer?: Phaser.Tilemaps.ObjectLayer | null,
   ) {
+    this.mapObject = mapObject;
+
+    // 충돌 오버레이 (정적) — 맵당 1회만 그림.
     this.collisionGraphics = scene.add
       .graphics()
       .setAlpha(0.75)
@@ -23,8 +37,12 @@ export class DebugHud {
       faceColor: new Display.Color(40, 39, 37, 255),
     });
 
+    // 포탈 존 (정적).
     this.portalGraphics = scene.add.graphics().setDepth(20).setVisible(false);
     this.drawPortals(portalLayer, worldLayer);
+
+    // 점유/갈린 흙 (동적) — 경작 시 계속 바뀌므로 update에서 매 프레임 다시 그림.
+    this.dynamicGraphics = scene.add.graphics().setDepth(19).setVisible(false);
 
     scene.add
       .text(
@@ -32,8 +50,8 @@ export class DebugHud {
         8,
         [
           "Arrow keys: move player",
-          "C: toggle collides overlay",
-          "P: toggle portal zones",
+          "C: use tool (till)",
+          "P: toggle debug overlays",
         ].join("\n"),
         {
           fontSize: "14px",
@@ -46,7 +64,7 @@ export class DebugHud {
       .setDepth(30);
 
     this.coordsText = scene.add
-      .text(8, 56, "", {
+      .text(8, 62, "", {
         fontSize: "14px",
         color: "#ffffff",
         backgroundColor: "#000000",
@@ -55,13 +73,14 @@ export class DebugHud {
       .setScrollFactor(0)
       .setDepth(30);
 
-    scene.input.keyboard!.on("keydown-C", () => {
-      this.collisionGraphics.setVisible(!this.collisionGraphics.visible);
-    });
+    scene.input.keyboard!.on("keydown-P", () => this.toggleDebug());
+  }
 
-    scene.input.keyboard!.on("keydown-P", () => {
-      this.portalGraphics.setVisible(!this.portalGraphics.visible);
-    });
+  private toggleDebug(): void {
+    this.debugVisible = !this.debugVisible;
+    this.collisionGraphics.setVisible(this.debugVisible);
+    this.portalGraphics.setVisible(this.debugVisible);
+    this.dynamicGraphics.setVisible(this.debugVisible);
   }
 
   private drawPortals(
@@ -87,6 +106,34 @@ export class DebugHud {
     });
   }
 
+  // 동적 상태를 매 프레임 다시 색칠: 점유(빨강) + 갈린 흙(초록).
+  private drawDynamic(map: Phaser.Tilemaps.Tilemap): void {
+    const tw = map.tileWidth;
+    const th = map.tileHeight;
+    const g = this.dynamicGraphics;
+    g.clear();
+
+    const tilled = new Set(this.mapObject.getTilledKeys());
+
+    // 점유 타일(갈린 흙 제외) → 빨강. 인터랙션(경작) 불가한 칸.
+    g.fillStyle(0xff0000, 0.3);
+    for (let row = 0; row < map.height; row++) {
+      for (let col = 0; col < map.width; col++) {
+        if (tilled.has(`${col},${row}`)) continue;
+        if (this.mapObject.isTileOccupied(col, row)) {
+          g.fillRect(col * tw, row * th, tw, th);
+        }
+      }
+    }
+
+    // 갈린 흙(동적 보드에 추가된 타일) → 초록.
+    g.fillStyle(0x00ff00, 0.4);
+    tilled.forEach((key) => {
+      const [col, row] = key.split(",").map(Number);
+      g.fillRect(col * tw, row * th, tw, th);
+    });
+  }
+
   update(
     target: Phaser.GameObjects.Sprite,
     map: Phaser.Tilemaps.Tilemap,
@@ -96,5 +143,7 @@ export class DebugHud {
     this.coordsText.setText(
       `x: ${Math.round(target.x)}  y: ${Math.round(target.y)}\ntile: ${tx}, ${ty}`,
     );
+
+    if (this.debugVisible) this.drawDynamic(map);
   }
 }
