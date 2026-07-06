@@ -169,7 +169,6 @@ class DataManager extends Events.EventEmitter {
     const maps = this.store.get("interactableMaps") as
       | Record<string, MapDelta>
       | undefined;
-    console.log("[DIAG] 3. getMapDelta(", mapKey, ") store.get(maps) =", maps);
     return maps?.[mapKey] ?? {};
   }
 

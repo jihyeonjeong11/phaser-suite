@@ -97,7 +97,7 @@ export class MapObject {
     // 현재는 Cliff에 아티팩트 트리만 렌더.
     new StaticFeatures(mapKey, worldLayer, this.resourceClumps);
     // For initial render, loop each tiles and compute objects at random.
-    if (!dataManager.getMap(mapKey).size) {
+    if (Object.keys(dataManager.getMap(mapKey)).length === 0) {
       let initialMap: Record<string, TileObject> = {};
       this.belowLayer.forEachTile((t) => {
         // 갈 수 있는 타일 && worldLayer 오브젝트·resourceClump에 안 막힌 칸에만 배치
@@ -123,6 +123,9 @@ export class MapObject {
         case "grass":
           this.drawGrass(col, row);
           break;
+        case "tilled":
+          this.drawTilled(col, row);
+          break;
       }
     });
     // 2. 그렸는데 board에서 사라진 칸 → 스프라이트 파괴
@@ -143,6 +146,15 @@ export class MapObject {
     dataManager.setMap(this.mapKey, board);
   }
 
+  // removeFeature의 대칭. 논리 보드에 그 칸을 기록 → store 갱신 → 리렌더가 스프라이트 생성.
+  addFeature(col: number, row: number, feature: TileObject): void {
+    const board = dataManager.getMap(this.mapKey);
+    const key = this.posToString(col, row);
+    if (board[key] !== undefined) return; // 이미 뭔가 있으면 덮지 않음
+    board[key] = feature;
+    dataManager.setMap(this.mapKey, board);
+  }
+
   private drawGrass(col: number, row: number): void {
     const key = this.posToString(col, row);
     if (this.drawnSprites.has(key)) return; // 이미 그려둠
@@ -157,6 +169,19 @@ export class MapObject {
     this.drawnSprites.set(key, img);
   }
 
+  private drawTilled(col: number, row: number): void {
+    const key = this.posToString(col, row);
+    if (this.drawnSprites.has(key)) return; // 이미 그려둠
+
+    const scene = this.belowLayer.scene;
+    const wx = (this.belowLayer.tileToWorldX(col) ?? 0) + 16;
+    const wy = (this.belowLayer.tileToWorldY(row) ?? 0) + 32;
+    const img = scene.add
+      .image(wx, wy, MapObject.TILLED_TILE_KEY, MapObject.TILLED_FRAME)
+      .setOrigin(0.5, 1);
+    this.drawnSprites.set(key, img);
+  }
+
   private posToString(col: number, row: number): string {
     return `${col},${row}`;
   }
@@ -166,7 +191,16 @@ export class MapObject {
     return [col, row];
   }
 
-  till(col: number, row: number): void {}
+  // 흙 갈기: 논리 보드에 tilled 상태 기록 → 리렌더가 갈린 흙 스프라이트 생성.
+  till(col: number, row: number): void {
+    this.addFeature(col, row, {
+      kind: "tilled",
+      state: 0,
+      fertilizer: 0,
+      crop: null,
+    });
+    this.update();
+  }
 
   // SDV GameLocation.doesTileHaveProperty(x, y, prop, "Back")에 대응. 여기선 Back=belowLayer 고정.
   private doesTileHaveProperty(

@@ -141,10 +141,7 @@ export class TempPlayer {
     const px = col * tw + tw / 2;
     const py = row * th + th / 2;
 
-    const info = this.mapObject.getTileInfo(col, row);
-    // 실제 갈 수 있을 때만 초록. diggable(정적)이어도 점유(텐트 등)면 빨강 — makeHoeDirt 조건과 일치.
-    const interactable = info.diggable && !info.isOccupied;
-    const color = interactable ? 0x00ff00 : 0xff0000;
+    const color = 0x00ff00;
 
     if (!this.targetHighlight) {
       this.targetHighlight = this.charSprite.scene.add
@@ -181,7 +178,7 @@ export class TempPlayer {
     } else if (info.diggable && !info.isOccupied) {
       playSound(this.scene, AUDIO_KEYS.PICKAXE_HIT);
 
-      // this.mapObject.makeHoeDirt(col, row);
+      this.mapObject.till(col, row);
     }
   }
 

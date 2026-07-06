@@ -70,7 +70,11 @@ export class Preloader extends Scene {
     // Farm: rebuilt at 32px on the LPC farm tilesets.
     // Image keys must equal each tileset image's basename (Worldmap.imageKeyFor).
     this.load.tilemapTiledJSON(MAP_KEYS.FARM, "json/farm_json.json");
-    this.load.image("plowed_soil", "tilesets/farm/plowed_soil.png");
+    // 96×192, 32px 셀 → 3열×6행. 타일셋이자 개별 프레임(갈린 흙)으로 접근하므로 스프라이트시트로 로드.
+    this.load.spritesheet("plowed_soil", "tilesets/farm/plowed_soil.png", {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
     // 96×192, 32px 셀 → 3열×6행. 풀 tuft는 프레임 인덱스로 접근.
     this.load.spritesheet("tallgrass", "tilesets/farm/tallgrass.png", {
       frameWidth: 32,
