@@ -62,11 +62,11 @@
 //   Step 2  동적 상태(메모리): till() 등으로 내부 Map<"col,row", delta>에 기록, getTileInfo 가 능력+상태 합쳐 반환.
 //   Step 3  영속화: delta 를 dataManager.maps[mapKey] 로 read/write. 진입 시 로드, save()에 포함.
 
-import { Tilemaps } from "phaser";
+import { GameObjects, Math, Tilemaps } from "phaser";
 import { MapKey } from "../../game/utils/constants/mapKeys";
-import { STATIC_TILE_PROPERTIES } from "../../game/utils/constants/tileProperties";
-import { dataManager, HoeDirt } from "../../game/dataManager/Store";
+import { dataManager, TileObject } from "../../game/dataManager/Store";
 import { StaticFeatures } from "./Components/StaticFeatures";
+import { STATIC_TILE_PROPERTIES } from "../../game/utils/constants/tiles";
 
 export interface TileInfo {
   diggable: boolean;
@@ -74,106 +74,132 @@ export interface TileInfo {
 }
 
 export class MapObject {
-  private groundLayer: Tilemaps.TilemapLayer;
+  private belowLayer: Tilemaps.TilemapLayer;
   private worldLayer: Tilemaps.TilemapLayer;
-  private terrainFeatures = new Map<string, HoeDirt>();
   private resourceClumps = new Set<string>();
   private mapKey: MapKey;
+  // 이미 그린 오브젝트 스프라이트("col,row" → Image). 같은 칸 중복 그림 방지.
+  private drawnSprites = new Map<string, GameObjects.Image>();
+  // 실제 프레임 위치
+  private static readonly GRASS_TILE_KEY = "tallgrass";
+  private static readonly GRASS_FRAME = 16;
+  private static readonly TILLED_TILE_KEY = "plowed_soil";
+  private static readonly TILLED_FRAME = 10;
 
   constructor(
-    groundLayer: Tilemaps.TilemapLayer,
+    belowLayer: Tilemaps.TilemapLayer,
     worldLayer: Tilemaps.TilemapLayer,
     mapKey: MapKey,
   ) {
-    this.groundLayer = groundLayer;
+    this.belowLayer = belowLayer;
     this.worldLayer = worldLayer;
     this.mapKey = mapKey;
     // 현재는 Cliff에 아티팩트 트리만 렌더.
     new StaticFeatures(mapKey, worldLayer, this.resourceClumps);
-    this.loadDeltas();
+    // For initial render, loop each tiles and compute objects at random.
+    if (!dataManager.getMap(mapKey).size) {
+      let initialMap: Record<string, TileObject> = {};
+      this.belowLayer.forEachTile((t) => {
+        // 갈 수 있는 타일 && worldLayer 오브젝트·resourceClump에 안 막힌 칸에만 배치
+        if (t.properties.Diggable && !this.isTileOccupied(t.x, t.y)) {
+          const grassProbability = Math.Between(0, 1);
+          if (grassProbability > 0.7) {
+            initialMap[this.posToString(t.x, t.y)] = { kind: "grass" };
+          }
+        }
+      });
+      dataManager.setMap(mapKey, initialMap);
+    }
+    // 그 다음 렌더
+    this.update();
   }
 
-  private static readonly TILLED_LOCAL_ID = 10;
+  update() {
+    const board = dataManager.getMap(this.mapKey);
+    // 1. board에 있는데 아직 안 그린 칸 → 그림
+    Object.entries(board).forEach(([posString, k]) => {
+      const [col, row] = this.stringToPos(posString);
+      switch (k.kind) {
+        case "grass":
+          this.drawGrass(col, row);
+          break;
+      }
+    });
+    // 2. 그렸는데 board에서 사라진 칸 → 스프라이트 파괴
+    for (const [key, img] of this.drawnSprites) {
+      if (board[key] === undefined) {
+        img.destroy();
+        this.drawnSprites.delete(key);
+      }
+    }
+  }
 
-  private key(col: number, row: number): string {
+  // 논리 보드에서 그 칸을 제거 → store 갱신 → 리렌더로 스프라이트 정리.
+  removeFeature(col: number, row: number): void {
+    const board = dataManager.getMap(this.mapKey);
+    const key = this.posToString(col, row);
+    if (board[key] === undefined) return;
+    delete board[key];
+    dataManager.setMap(this.mapKey, board);
+  }
+
+  private drawGrass(col: number, row: number): void {
+    const key = this.posToString(col, row);
+    if (this.drawnSprites.has(key)) return; // 이미 그려둠
+
+    const scene = this.belowLayer.scene;
+    const wx = (this.belowLayer.tileToWorldX(col) ?? 0) + 16;
+    const wy = (this.belowLayer.tileToWorldY(row) ?? 0) + 32;
+    const img = scene.add
+      .image(wx, wy, MapObject.GRASS_TILE_KEY, MapObject.GRASS_FRAME)
+      .setOrigin(0.5, 1);
+    // img.setDepth(img.y);
+    this.drawnSprites.set(key, img);
+  }
+
+  private posToString(col: number, row: number): string {
     return `${col},${row}`;
   }
 
-  // SDV GameLocation.doesTileHaveProperty(x, y, prop, "Back")에 대응. 여기선 Back=groundLayer 고정.
+  private stringToPos(s: string): [number, number] {
+    const [col, row] = s.split(",").map(Number);
+    return [col, row];
+  }
+
+  till(col: number, row: number): void {}
+
+  // SDV GameLocation.doesTileHaveProperty(x, y, prop, "Back")에 대응. 여기선 Back=belowLayer 고정.
   private doesTileHaveProperty(
     col: number,
     row: number,
     prop: string,
   ): unknown {
-    return this.groundLayer.getTileAt(col, row)?.properties?.[prop];
+    return this.belowLayer.getTileAt(col, row)?.properties?.[prop];
   }
 
   // SDV GameLocation.isTileOccupied. 여러 소스를 OR로 그때그때 조회해 파생 계산(점유 플래그 저장 X).
   isTileOccupied(col: number, row: number): boolean {
-    const key = this.key(col, row);
+    const key = `${col},${row}`;
     if (this.resourceClumps.has(key)) return true;
     if (this.worldLayer.getTileAt(col, row) != null) return true;
-    if (this.terrainFeatures.has(key)) return true;
     return false;
   }
 
-  // Debug 전용: 동적 보드(갈린 흙) 좌표 키 목록. ("col,row") DebugHud가 색칠에 사용.
-  getTilledKeys(): string[] {
-    return [...this.terrainFeatures.keys()];
-  }
-
   // 능력(정적) + 점유(정적+동적)를 합쳐 반환. Player·하이라이트가 사용.
-  getTileInfo(col: number, row: number): TileInfo {
+  getTileInfo(col: number, row: number) {
     const diggable =
       this.doesTileHaveProperty(col, row, STATIC_TILE_PROPERTIES.DIGGABLE) ===
       true;
     const isOccupied = this.isTileOccupied(col, row);
-    return { diggable, isOccupied };
-  }
-
-  // SDV GameLocation.makeHoeDirt. 능력 && !점유 검사를 스스로 하고 terrainFeatures에 HoeDirt 등록.
-  makeHoeDirt(col: number, row: number): void {
-    if (
-      this.doesTileHaveProperty(col, row, STATIC_TILE_PROPERTIES.DIGGABLE) !==
-      true
-    )
-      return; // 팔 수 없는 땅
-    if (this.isTileOccupied(col, row)) return; // 점유됨(정적/동적, 이미 갈린 흙 포함)
-
-    this.terrainFeatures.set(this.key(col, row), {
-      state: 0, // dry
-      fertilizer: 0, // none
-      crop: null,
-    });
-    this.renderTilled(col, row);
-    this.persist();
-  }
-
-  private renderTilled(col: number, row: number): void {
-    const ts = this.groundLayer.tilemap.tilesets.find(
-      (t) => t.name === "plowed_soil",
-    );
-    if (!ts) return;
-    this.groundLayer.putTileAt(
-      ts.firstgid + MapObject.TILLED_LOCAL_ID,
-      col,
-      row,
-    );
-  }
-
-  private loadDeltas(): void {
-    const saved = dataManager.getMapDelta(this.mapKey);
-    for (const [key, dirt] of Object.entries(saved)) {
-      this.terrainFeatures.set(key, dirt);
-      const [col, row] = key.split(",").map(Number);
-      this.renderTilled(col, row);
-    }
+    const feature =
+      dataManager.getMap(this.mapKey)[this.posToString(col, row)] ?? null;
+    return { diggable, isOccupied, feature };
   }
 
   private persist(): void {
-    dataManager.setMapDelta(
-      this.mapKey,
-      Object.fromEntries(this.terrainFeatures),
-    );
+    //   dataManager.setMapDelta(
+    //     this.mapKey,
+    //     Object.fromEntries(this.terrainFeatures),
+    //   );
   }
 }

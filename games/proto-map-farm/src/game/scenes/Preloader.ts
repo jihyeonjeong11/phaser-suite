@@ -71,7 +71,16 @@ export class Preloader extends Scene {
     // Image keys must equal each tileset image's basename (Worldmap.imageKeyFor).
     this.load.tilemapTiledJSON(MAP_KEYS.FARM, "json/farm_json.json");
     this.load.image("plowed_soil", "tilesets/farm/plowed_soil.png");
-    this.load.image("tallgrass", "tilesets/farm/tallgrass.png");
+    // 96×192, 32px 셀 → 3열×6행. 풀 tuft는 프레임 인덱스로 접근.
+    this.load.spritesheet("tallgrass", "tilesets/farm/tallgrass.png", {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
+    // 96×192, 32px 셀 → 3열×6행. 풀 tuft는 프레임 인덱스로 접근.
+    this.load.spritesheet("wheat", "tilesets/farm/wheat.png", {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
     this.load.image("fence_alt", "tilesets/farm/fence_alt.png");
 
     this.load.tilemapTiledJSON("Home", "home-map.json");

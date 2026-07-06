@@ -3,6 +3,14 @@
 > excalidraw 설계 기준. 파일 박스별 책임 + 남은 작업.
 > 목표 구조: `Constants` / `game/map/Tilemap.ts` / `Game.ts`(배선) / `gameobjects/mapObjects/MapObjects.ts`
 
+## Objects/actions
+
+- [] 툴별 사운드
+- [] 툴별 인벤토리 연결
+- [] 툴이 상호작용하는 오브젝트(타일셋에서 찾을 것)
+- [] 오브젝트 파일 이름 + 프레임 네임 연결
+- [] 리소스 제너레이션
+
 ## future todo
 
 - [x] 포탈 전환: `Portals`(오브젝트 레이어 zone) 플레이어 -> 이동 -> worldmap에 어떤 타일인지 화깅ㄴ -> portal이면 이동

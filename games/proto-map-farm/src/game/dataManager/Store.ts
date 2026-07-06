@@ -1,6 +1,6 @@
 import { Data, Events } from "phaser";
 import { DEFAULT_MAP_KEY } from "../utils/constants/mapKeys";
-import { DIRECTION, Direction } from "../utils/constants";
+import { DIRECTION, Direction } from "../utils/constants/constants";
 
 // inventory current scope
 // characterdata if battle implemented money, hp, stamina...
@@ -32,15 +32,14 @@ export interface PlayerData {
   direction: Direction;
 }
 
-// 갈린 흙 한 칸의 동적 상태(직렬화 대상). SDV TerrainFeatures/HoeDirt.cs 필드명.
-export interface HoeDirt {
-  state: number; // 0 = dry, 1 = watered
-  fertilizer: number; // 0 = none
-  crop: number | null; // 심긴 씨앗 index. null = 빈 흙
-}
+// 갈린 흙 한 칸의 동적 상태(직렬화 대상).
+export type TileObject =
+  | { kind: "grass" }
+  | { kind: "stone" }
+  | { kind: "tilled"; state: number; fertilizer: number; crop: number | null };
 
 // 한 맵의 delta 보드: "col,row" → HoeDirt. (SDV GameLocation.terrainFeatures 딕셔너리의 직렬화 형태)
-export type MapDelta = Record<string, HoeDirt>;
+export type MapDelta = Record<string, TileObject>;
 
 export const TEMP_INV: InventoryItem[] = [
   {
@@ -95,7 +94,7 @@ const initialState = {
   inventory: TEMP_INV,
   currentSelectedIdx: -1,
   // 맵별 delta 보드(변형된 칸만 희소 저장). mapKey → ("col,row" → HoeDirt)
-  maps: {} as Record<string, MapDelta>,
+  interactableMaps: {} as Record<string, MapDelta>,
   // volume 등 옵션은 세이브 상위 계층(GlobalConfig, localStorage)에서 관리한다.
 } as const;
 
@@ -166,19 +165,21 @@ class DataManager extends Events.EventEmitter {
   }
 
   // 해당 맵의 delta 보드를 반환(없으면 빈 객체). MapObject가 진입 시 로드에 사용.
-  getMapDelta(mapKey: string): MapDelta {
-    const maps = this.store.get("maps") as Record<string, MapDelta> | undefined;
+  getMap(mapKey: string): MapDelta {
+    const maps = this.store.get("interactableMaps") as
+      | Record<string, MapDelta>
+      | undefined;
     console.log("[DIAG] 3. getMapDelta(", mapKey, ") store.get(maps) =", maps);
     return maps?.[mapKey] ?? {};
   }
 
   // 해당 맵의 delta 보드를 갱신. save() 시 localStorage에 함께 직렬화됨.
-  setMapDelta(mapKey: string, delta: MapDelta) {
+  setMap(mapKey: string, delta: MapDelta) {
     const maps = {
-      ...(this.store.get("maps") as Record<string, MapDelta>),
+      ...(this.store.get("interactableMaps") as Record<string, MapDelta>),
       [mapKey]: delta,
     };
-    this.store.set("maps", maps);
+    this.store.set("interactableMaps", maps);
   }
 }
 

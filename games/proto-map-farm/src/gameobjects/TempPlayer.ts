@@ -171,12 +171,17 @@ export class TempPlayer {
     const row = Math.floor(y / th) + dy;
 
     const info = this.mapObject.getTileInfo(col, row);
-    console.log(`useTool → tile (${col}, ${row})`, info);
+    // console.log(`useTool → tile (${col}, ${row})`, info);
+
     // todo: need swing sound
-    if (info.diggable && !info.isOccupied) {
+    if (info.feature?.kind === "grass") {
+      // 풀이 있는 칸 → 논리 보드에서 제거(리렌더가 스프라이트 파괴)
+      playSound(this.scene, AUDIO_KEYS.PICKAXE_HIT);
+      this.mapObject.removeFeature(col, row);
+    } else if (info.diggable && !info.isOccupied) {
       playSound(this.scene, AUDIO_KEYS.PICKAXE_HIT);
 
-      this.mapObject.makeHoeDirt(col, row);
+      // this.mapObject.makeHoeDirt(col, row);
     }
   }
 

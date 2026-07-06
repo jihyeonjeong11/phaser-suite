@@ -65,6 +65,7 @@ export class Game extends BaseScene {
   private tempPlayer: TempPlayer;
   private transitioning = false;
   private quickBar: QuickBar;
+  private mapObject: MapObject;
 
   constructor() {
     super({ key: "Game" });
@@ -88,6 +89,7 @@ export class Game extends BaseScene {
       this.worldMap.getWorldLayer(),
       this.sceneData.area as MapKey,
     );
+    this.mapObject = mapObject;
 
     this.debugHud = new DebugHud(
       this,
@@ -149,6 +151,8 @@ export class Game extends BaseScene {
 
   update() {
     this.tempPlayer.update();
+    // reconciler
+    this.mapObject.update();
     this.quickBar.update();
     const numberKey = this._controls.wasQuickbarSlotJustPressed();
     if (numberKey > -1) {
