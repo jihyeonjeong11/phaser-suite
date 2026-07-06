@@ -1,7 +1,7 @@
 import { Scene, Tilemaps } from "phaser";
 import { MAP_KEYS, MapKey } from "../../../game/utils/constants/mapKeys";
 
-export class Features {
+export class StaticFeatures {
   private scene: Scene;
   private worldLayer: Tilemaps.TilemapLayer;
   private resourceClumps: Set<string>;
@@ -54,7 +54,7 @@ export class Features {
     this.worldLayer.forEachTile((tile) => {
       if (tile.index !== HEART_TREE_ANCHOR_GID) return;
 
-      for (const [dcol, drow] of Features.TREE_FOOTPRINT) {
+      for (const [dcol, drow] of StaticFeatures.TREE_FOOTPRINT) {
         this.markOccupied(tile.x + dcol, tile.y + drow);
       }
 

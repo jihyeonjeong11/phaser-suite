@@ -142,7 +142,9 @@ export class TempPlayer {
     const py = row * th + th / 2;
 
     const info = this.mapObject.getTileInfo(col, row);
-    const color = info.diggable ? 0x00ff00 : 0xff0000;
+    // 실제 갈 수 있을 때만 초록. diggable(정적)이어도 점유(텐트 등)면 빨강 — makeHoeDirt 조건과 일치.
+    const interactable = info.diggable && !info.isOccupied;
+    const color = interactable ? 0x00ff00 : 0xff0000;
 
     if (!this.targetHighlight) {
       this.targetHighlight = this.charSprite.scene.add
@@ -170,9 +172,10 @@ export class TempPlayer {
 
     const info = this.mapObject.getTileInfo(col, row);
     console.log(`useTool → tile (${col}, ${row})`, info);
-    playSound(this.scene, AUDIO_KEYS.PICKAXE_HIT);
-
+    // todo: need swing sound
     if (info.diggable && !info.isOccupied) {
+      playSound(this.scene, AUDIO_KEYS.PICKAXE_HIT);
+
       this.mapObject.makeHoeDirt(col, row);
     }
   }

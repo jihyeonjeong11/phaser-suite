@@ -1,10 +1,12 @@
 # assets
 
+- tent from https://opengameart.org/content/tent-rework
 - terrain from https://opengameart.org/content/lpc-terrain-repack
 - terrain from https://opengameart.org/content/lpc-cliffsmountains-with-grass-top-and-more
 - farming tileset from https://opengameart.org/content/lpc-farming-tilesets-magic-animations-and-ui-elements
 - apocalyptic tileset from https://opengameart.org/content/post-apocalyptic-16x16-tileset-update1
 - apocalyptic tileset from https://opengameart.org/content/post-apocalyptic-expansion
+- pickaxe sound from https://pixabay.com/sound-effects/film-special-effects-metal-hit-10-193281/
 
 # Phaser Vite TypeScript Template
 

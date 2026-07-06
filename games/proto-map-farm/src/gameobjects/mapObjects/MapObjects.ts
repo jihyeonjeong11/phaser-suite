@@ -65,32 +65,19 @@
 import { Tilemaps } from "phaser";
 import { MapKey } from "../../game/utils/constants/mapKeys";
 import { STATIC_TILE_PROPERTIES } from "../../game/utils/constants/tileProperties";
-import { Features } from "./Components/features";
 import { dataManager, HoeDirt } from "../../game/dataManager/Store";
+import { StaticFeatures } from "./Components/StaticFeatures";
 
-// getTileInfo 반환 shape. Step1: 능력 중 Diggable 하나만.
 export interface TileInfo {
   diggable: boolean;
   isOccupied: boolean;
 }
 
-// 1. 빈 map 형성
-// 2. static tile: cliff의 경우 artifact tree 스프라이트 등록. 속성 isOccupied 등록, 여기서는 경작 불가
-// 3. 정적 프로퍼티 확인, Diggable일때, map에 다른게 존재하지 않을때 useTool이 불릴 때 해당 맵에 등록
-// 4. 타일 덮어씌움, map 객체 저장
-// 5. 예외사항. 각 map 별로 static하게 배치한 오브젝트(이 경우는 game.ts의 artifact tree같은 경우는 따로 정적으로 tile 속성을 줘서 상호작용 불가해야함)
-
 export class MapObject {
   private groundLayer: Tilemaps.TilemapLayer;
   private worldLayer: Tilemaps.TilemapLayer;
-
   private terrainFeatures = new Map<string, HoeDirt>();
-
-  // ── 정적 점유 보드 (코드로 배치, 세이브 대상 아님) ──
-  // Features가 배치한 artifact tree 밑동 등. (SDV: GameLocation.resourceClumps)
   private resourceClumps = new Set<string>();
-
-  // 어느 맵인지 — store의 delta slice 키. (SDV: GameLocation.Name)
   private mapKey: MapKey;
 
   constructor(
@@ -101,11 +88,11 @@ export class MapObject {
     this.groundLayer = groundLayer;
     this.worldLayer = worldLayer;
     this.mapKey = mapKey;
-    new Features(mapKey, worldLayer, this.resourceClumps);
+    // 현재는 Cliff에 아티팩트 트리만 렌더.
+    new StaticFeatures(mapKey, worldLayer, this.resourceClumps);
     this.loadDeltas();
   }
 
-  // 갈린 흙 타일: plowed_soil 로컬 id 10 (가로2·세로4 = 중앙 균일 흙).
   private static readonly TILLED_LOCAL_ID = 10;
 
   private key(col: number, row: number): string {
