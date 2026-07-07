@@ -19,6 +19,7 @@ const QUICKBAR_KEY_NAMES = [
 export class Controls {
   #scene: Scene;
   #cursorKeys: Types.Input.Keyboard.CursorKeys | undefined;
+  #wasdKeys: Record<string, Input.Keyboard.Key> | undefined;
   private lockPlayerInput: boolean;
   #enterKey: Input.Keyboard.Key | undefined;
 
@@ -32,6 +33,9 @@ export class Controls {
     this.#enterKey = this.#scene.input.keyboard?.addKey(
       Input.Keyboard.KeyCodes.ENTER,
     );
+    this.#wasdKeys = this.#scene.input.keyboard?.addKeys(
+      "w, a, s, d",
+    ) as Record<string, Input.Keyboard.Key>;
     this.#fKey = this.#scene.input.keyboard?.addKey(Input.Keyboard.KeyCodes.F);
     this.#cKey = this.#scene.input.keyboard?.addKey(Input.Keyboard.KeyCodes.C);
     this.#numberKeys = this.#scene.input.keyboard?.addKeys(
@@ -61,7 +65,7 @@ export class Controls {
     return Input.Keyboard.JustDown(this.#cKey);
   }
 
-  wasQuickbarSlotJustPressed() {
+  wasNumberKeyPressed() {
     if (this.#numberKeys === undefined) {
       return -1;
     }
@@ -75,20 +79,57 @@ export class Controls {
   }
 
   getDirectionKeyPressedDown() {
-    if (this.#cursorKeys === undefined) {
+    if (this.#cursorKeys === undefined || this.#wasdKeys === undefined) {
       return DIRECTION.NONE;
     }
 
+    const isLeftPressed =
+      this.#cursorKeys.left.isDown || this.#wasdKeys.a.isDown;
+    const isRightPressed =
+      this.#cursorKeys.right.isDown || this.#wasdKeys?.d.isDown;
+    const isUpPressed = this.#cursorKeys.up.isDown || this.#wasdKeys?.w.isDown;
+    const isDownPressed =
+      this.#cursorKeys.down.isDown || this.#wasdKeys?.s.isDown;
     let selectedDirection: (typeof DIRECTION)[keyof typeof DIRECTION] =
       DIRECTION.NONE;
-    if (this.#cursorKeys.left.isDown) {
+
+    if (isLeftPressed) {
       selectedDirection = DIRECTION.LEFT;
-    } else if (this.#cursorKeys.right.isDown) {
+      if (isUpPressed) {
+        selectedDirection = DIRECTION.UPLEFT;
+      }
+      if (isDownPressed) {
+        selectedDirection = DIRECTION.DOWNLEFT;
+      }
+    }
+    if (isRightPressed) {
       selectedDirection = DIRECTION.RIGHT;
-    } else if (this.#cursorKeys.up.isDown) {
+      if (isUpPressed) {
+        selectedDirection = DIRECTION.UPRIGHT;
+      }
+      if (isDownPressed) {
+        selectedDirection = DIRECTION.DOWNRIGHT;
+      }
+    }
+
+    if (isUpPressed) {
       selectedDirection = DIRECTION.UP;
-    } else if (this.#cursorKeys.down.isDown) {
+      if (isLeftPressed) {
+        selectedDirection = DIRECTION.UPLEFT;
+      }
+      if (isRightPressed) {
+        selectedDirection = DIRECTION.UPRIGHT;
+      }
+    }
+
+    if (isDownPressed) {
       selectedDirection = DIRECTION.DOWN;
+      if (isLeftPressed) {
+        selectedDirection = DIRECTION.DOWNLEFT;
+      }
+      if (isRightPressed) {
+        selectedDirection = DIRECTION.DOWNRIGHT;
+      }
     }
 
     return selectedDirection;

@@ -9,6 +9,7 @@
 - pickaxe sound from https://pixabay.com/sound-effects/film-special-effects-metal-hit-10-193281/
 - watering sound from Sound Effect https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=39121
 - axe sound from https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=450247
+- footstep sound from https://pixabay.com/sound-effects//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=419017
 
 # Phaser Vite TypeScript Template
 

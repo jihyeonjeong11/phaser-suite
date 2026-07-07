@@ -154,7 +154,7 @@ export class Game extends BaseScene {
     // reconciler // todo:
     this.mapObject.update();
     this.quickBar.update();
-    const numberKey = this._controls.wasQuickbarSlotJustPressed();
+    const numberKey = this._controls.wasNumberKeyPressed();
     if (numberKey > -1) {
       dataManager.setCurrentSelectedIdx(numberKey);
     }

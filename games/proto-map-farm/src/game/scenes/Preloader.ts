@@ -87,9 +87,10 @@ export class Preloader extends Scene {
     });
     this.load.image("fence_alt", "tilesets/farm/fence_alt.png");
 
-    this.load.tilemapTiledJSON("Home", "home-map.json");
-
-    this.load.tilemapTiledJSON("home-map", "home-map.json");
+    // Home: farming_fishing 타일셋 기반 32px 맵.
+    // Image keys must equal each tileset image's basename (Worldmap.imageKeyFor).
+    this.load.tilemapTiledJSON(MAP_KEYS.HOME, "json/home_json.json");
+    this.load.image("farming_fishing", "tilesets/farm/farming_fishing.png");
 
     // Ruin: rebuilt at 32px on the apocalypse + 7DRL tilesets.
     // Image keys must equal each tileset image's basename (Worldmap.imageKeyFor).
@@ -149,6 +150,7 @@ export class Preloader extends Scene {
       { type: "audio", key: "axe", url: "sounds/axe.mp3" },
       { type: "audio", key: "hoe", url: "sounds/hoe.mp3" },
       { type: "audio", key: "watering", url: "sounds/watering.mp3" },
+      { type: "audio", key: "footstep", url: "sounds/footstep.mp3" },
     ];
 
     resources.forEach((resource) => {

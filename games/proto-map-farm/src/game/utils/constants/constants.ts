@@ -4,6 +4,10 @@ export const DIRECTION = {
   UP: "UP",
   DOWN: "DOWN",
   NONE: "NONE",
+  UPLEFT: "UPLEFT",
+  UPRIGHT: "UPRIGHT",
+  DOWNLEFT: "DOWNLEFT",
+  DOWNRIGHT: "DOWNRIGHT",
 } as const;
 
 // 입력 결과 포함(NONE 포함) — controls가 반환하는 값의 타입.

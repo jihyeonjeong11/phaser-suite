@@ -4,6 +4,7 @@ import { dataManager } from "../game/dataManager/Store";
 import { MapObject } from "./mapObjects/MapObjects";
 import { playSound } from "../game/utils/audios";
 import { AUDIO_KEYS } from "../game/utils/constants/audioKeys";
+import { DIRECTION } from "../game/utils/constants/constants";
 
 export class TempPlayer {
   charSprite: GameObjects.Sprite;
@@ -201,11 +202,67 @@ export class TempPlayer {
     const key = this.charSprite.texture.key;
     const dir = this._controls.getDirectionKeyPressedDown();
 
-    const dx = dir === "LEFT" ? -1 : dir === "RIGHT" ? 1 : 0;
-    const dy = dir === "UP" ? -1 : dir === "DOWN" ? 1 : 0;
+    let dx = 0;
+    let dy = 0;
 
-    if (dir === "LEFT") this.charSprite.setFlipX(true);
-    else if (dir === "RIGHT") this.charSprite.setFlipX(false);
+    switch (dir) {
+      case DIRECTION.LEFT: {
+        this.charSprite.setFlipX(true);
+        dx = -1;
+        dy = 0;
+        break;
+      }
+      case DIRECTION.UPLEFT: {
+        this.charSprite.setFlipX(true);
+
+        dx = -1;
+        dy = -1;
+        break;
+      }
+
+      case DIRECTION.DOWNLEFT: {
+        this.charSprite.setFlipX(true);
+
+        dx = -1;
+        dy = 1;
+        break;
+      }
+      case DIRECTION.RIGHT: {
+        this.charSprite.setFlipX(false);
+        dx = 1;
+        dy = 0;
+        break;
+      }
+      case DIRECTION.UPRIGHT: {
+        this.charSprite.setFlipX(false);
+        dx = 1;
+        dy = -1;
+        break;
+      }
+      case DIRECTION.DOWNRIGHT: {
+        this.charSprite.setFlipX(false);
+        dx = 1;
+        dy = 1;
+        break;
+      }
+      case DIRECTION.UP: {
+        dy = -1;
+        break;
+      }
+      case DIRECTION.DOWN: {
+        dy = 1;
+        break;
+      }
+      case DIRECTION.NONE: {
+        break;
+      }
+    }
+
+    // const dx = dir === "LEFT" ? -1 : dir === "RIGHT" ? 1 : 0;
+    // const dy = dir === "UP" ? -1 : dir === "DOWN" ? 1 : 0;
+
+    // if (dir === "LEFT") this.charSprite.setFlipX(true);
+    // else if (dir === "RIGHT") this.charSprite.setFlipX(false);
 
     if (dir !== "NONE") {
       dataManager.setPlayerData({ direction: dir });
@@ -222,8 +279,6 @@ export class TempPlayer {
       const targetCol = Math.floor(targetPos.x / map.tileWidth);
       const targetRow = Math.floor(targetPos.y / map.tileHeight);
 
-      console.log(this.mapObject.getTileInfo(targetCol, targetRow));
-
       if (
         !this.doesPositionCollideWithWorldLayer(targetPos) &&
         !this.doesPositionCollideWithBackgroundLayer(targetPos) &&
@@ -232,6 +287,7 @@ export class TempPlayer {
       ) {
         this.charSprite.setPosition(targetPos.x, targetPos.y);
         dataManager.setPlayerData({ x: targetPos.x, y: targetPos.y });
+        playSound(this.scene, AUDIO_KEYS.FOOTSTEP);
 
         const portal = this.getPortalAt(targetPos);
         if (portal) {
