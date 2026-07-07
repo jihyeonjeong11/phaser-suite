@@ -145,7 +145,6 @@ export class MapObject {
     dataManager.setMap(this.mapKey, board);
   }
 
-  // removeFeature의 대칭. 논리 보드에 그 칸을 기록 → store 갱신 → 리렌더가 스프라이트 생성.
   addFeature(col: number, row: number, feature: TileObject): void {
     const board = dataManager.getMap(this.mapKey);
     const key = this.posToString(col, row);
@@ -190,7 +189,6 @@ export class MapObject {
     return [col, row];
   }
 
-  // 흙 갈기: 논리 보드에 tilled 상태 기록 → 리렌더가 갈린 흙 스프라이트 생성.
   till(col: number, row: number): void {
     this.addFeature(col, row, {
       kind: "tilled",
@@ -201,7 +199,6 @@ export class MapObject {
     this.update();
   }
 
-  // SDV GameLocation.doesTileHaveProperty(x, y, prop, "Back")에 대응. 여기선 Back=belowLayer 고정.
   private doesTileHaveProperty(
     col: number,
     row: number,
@@ -210,7 +207,6 @@ export class MapObject {
     return this.belowLayer.getTileAt(col, row)?.properties?.[prop];
   }
 
-  // SDV GameLocation.isTileOccupied. 여러 소스를 OR로 그때그때 조회해 파생 계산(점유 플래그 저장 X).
   isTileOccupied(col: number, row: number): boolean {
     const key = `${col},${row}`;
     if (this.resourceClumps.has(key)) return true;
@@ -218,7 +214,6 @@ export class MapObject {
     return false;
   }
 
-  // 능력(정적) + 점유(정적+동적)를 합쳐 반환. Player·하이라이트가 사용.
   getTileInfo(col: number, row: number) {
     const diggable =
       this.doesTileHaveProperty(col, row, STATIC_TILE_PROPERTIES.DIGGABLE) ===
@@ -233,12 +228,5 @@ export class MapObject {
     const feature =
       dataManager.getMap(this.mapKey)[this.posToString(col, row)] ?? null;
     return { diggable, isOccupied, feature, watersource };
-  }
-
-  private persist(): void {
-    //   dataManager.setMapDelta(
-    //     this.mapKey,
-    //     Object.fromEntries(this.terrainFeatures),
-    //   );
   }
 }
