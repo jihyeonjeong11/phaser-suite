@@ -12,6 +12,7 @@ export class DebugHud {
   private collisionGraphics: Phaser.GameObjects.Graphics;
   private portalGraphics: Phaser.GameObjects.Graphics;
   private dynamicGraphics: Phaser.GameObjects.Graphics;
+  private container: Phaser.GameObjects.Container;
   private mapObject: MapObject;
   private debugVisible = false;
 
@@ -26,23 +27,29 @@ export class DebugHud {
   ) {
     this.mapObject = mapObject;
 
-    // 충돌 오버레이 (정적) — 맵당 1회만 그림.
-    this.collisionGraphics = scene.add
-      .graphics()
-      .setAlpha(0.75)
-      .setVisible(false);
+    const DEBUG_DEPTH = 10000;
+
+    this.collisionGraphics = scene.add.graphics().setAlpha(0.75);
     worldLayer?.renderDebug(this.collisionGraphics, {
       tileColor: null,
       collidingTileColor: new Display.Color(243, 134, 48, 255),
       faceColor: new Display.Color(40, 39, 37, 255),
     });
 
-    // 포탈 존 (정적).
-    this.portalGraphics = scene.add.graphics().setDepth(20).setVisible(false);
+    this.portalGraphics = scene.add.graphics();
     this.drawPortals(portalLayer, worldLayer);
 
-    // 점유/갈린 흙 (동적) — 경작 시 계속 바뀌므로 update에서 매 프레임 다시 그림.
-    this.dynamicGraphics = scene.add.graphics().setDepth(19).setVisible(false);
+    this.dynamicGraphics = scene.add.graphics();
+
+    this.container = scene.add
+      .container(0, 0, [
+        this.collisionGraphics,
+        this.portalGraphics,
+        this.dynamicGraphics,
+      ])
+      .setDepth(DEBUG_DEPTH)
+      .setVisible(false);
+    scene.children.bringToTop(this.container);
 
     scene.add
       .text(
@@ -61,7 +68,7 @@ export class DebugHud {
         },
       )
       .setScrollFactor(0)
-      .setDepth(30);
+      .setDepth(DEBUG_DEPTH);
 
     this.coordsText = scene.add
       .text(8, 62, "", {
@@ -71,16 +78,14 @@ export class DebugHud {
         padding: { x: 8, y: 6 },
       })
       .setScrollFactor(0)
-      .setDepth(30);
+      .setDepth(DEBUG_DEPTH);
 
     scene.input.keyboard!.on("keydown-P", () => this.toggleDebug());
   }
 
   private toggleDebug(): void {
     this.debugVisible = !this.debugVisible;
-    this.collisionGraphics.setVisible(this.debugVisible);
-    this.portalGraphics.setVisible(this.debugVisible);
-    this.dynamicGraphics.setVisible(this.debugVisible);
+    this.container.setVisible(this.debugVisible);
   }
 
   private drawPortals(

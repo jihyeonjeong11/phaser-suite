@@ -5,14 +5,17 @@ import { MainMenu } from "./scenes/MainMenu";
 import { AUTO, Game, Scale } from "phaser";
 import { Preloader } from "./scenes/Preloader";
 import { HUD } from "./scenes/Base";
+import { globalConfig } from "./utils/constants/GlobalConfig";
+
+const { width, height } = globalConfig.getResolution();
 
 //  Find out more information about the Game Config at:
 //  https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig
 const config: Phaser.Types.Core.GameConfig = {
   type: AUTO,
   scale: {
-    width: 800,
-    height: 600,
+    width,
+    height,
     mode: Scale.FIT,
     autoCenter: Scale.CENTER_BOTH,
   },

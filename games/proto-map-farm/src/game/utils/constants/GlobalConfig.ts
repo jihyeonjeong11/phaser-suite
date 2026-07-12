@@ -4,18 +4,27 @@ const GLOBAL_CONFIG_KEY = "proto-map-farm-config";
 
 export const GLOBAL_CONFIGS = {
   VOLUME: "volume",
+  RESOLUTION: "resolution",
 } as const;
 
 export const DEFAULT_CONFIGS = {
   BGM_VOLUME: 0.4,
+  RESOLUTION: { width: 800, height: 600 },
 } as const;
+
+export interface Resolution {
+  width: number;
+  height: number;
+}
 
 export interface GlobalConfig {
   [GLOBAL_CONFIGS.VOLUME]: number;
+  [GLOBAL_CONFIGS.RESOLUTION]: Resolution;
 }
 
 const DEFAULT_GLOBAL_CONFIG: GlobalConfig = {
   [GLOBAL_CONFIGS.VOLUME]: DEFAULT_CONFIGS.BGM_VOLUME,
+  [GLOBAL_CONFIGS.RESOLUTION]: { ...DEFAULT_CONFIGS.RESOLUTION },
 };
 
 function read(): GlobalConfig {
@@ -46,5 +55,11 @@ export const globalConfig = {
   },
   setVolume(volume: number): void {
     write({ [GLOBAL_CONFIGS.VOLUME]: volume });
+  },
+  getResolution(): Resolution {
+    return read()[GLOBAL_CONFIGS.RESOLUTION];
+  },
+  setResolution(resolution: Resolution): void {
+    write({ [GLOBAL_CONFIGS.RESOLUTION]: resolution });
   },
 };
