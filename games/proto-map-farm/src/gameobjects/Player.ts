@@ -6,7 +6,7 @@ import {
   dataManager,
   InventoryItem,
   TEMP_INV_LIMIT,
-} from "../game/dataManager/Store";
+} from "../game/managers/Store";
 
 export class Player extends Character {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;

@@ -22,6 +22,7 @@ export class Controls {
   #wasdKeys: Record<string, Input.Keyboard.Key> | undefined;
   private lockPlayerInput: boolean;
   #enterKey: Input.Keyboard.Key | undefined;
+  #eKey: Input.Keyboard.Key | undefined;
 
   #fKey: Input.Keyboard.Key | undefined;
   #cKey: Input.Keyboard.Key | undefined;
@@ -36,6 +37,8 @@ export class Controls {
     this.#wasdKeys = this.#scene.input.keyboard?.addKeys(
       "w, a, s, d",
     ) as Record<string, Input.Keyboard.Key>;
+    this.#eKey = this.#scene.input.keyboard?.addKey(Input.Keyboard.KeyCodes.E);
+
     this.#fKey = this.#scene.input.keyboard?.addKey(Input.Keyboard.KeyCodes.F);
     this.#cKey = this.#scene.input.keyboard?.addKey(Input.Keyboard.KeyCodes.C);
     this.#numberKeys = this.#scene.input.keyboard?.addKeys(
@@ -63,6 +66,13 @@ export class Controls {
       return false;
     }
     return Input.Keyboard.JustDown(this.#cKey);
+  }
+
+  wasEKeyPressed() {
+    if (this.#eKey === undefined) {
+      return false;
+    }
+    return Input.Keyboard.JustDown(this.#eKey);
   }
 
   wasNumberKeyPressed() {

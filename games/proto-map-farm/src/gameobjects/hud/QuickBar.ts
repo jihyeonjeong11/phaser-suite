@@ -1,5 +1,5 @@
 import { Cameras, GameObjects, Scene } from "phaser";
-import { dataManager, TEMP_INV_LIMIT } from "../../game/dataManager/Store";
+import { dataManager, TEMP_INV_LIMIT } from "../../game/managers/Store";
 
 export class QuickBar extends GameObjects.Container {
   private static readonly SLOT_SIZE = 44;

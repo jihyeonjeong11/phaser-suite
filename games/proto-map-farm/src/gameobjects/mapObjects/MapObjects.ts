@@ -63,8 +63,8 @@
 //   Step 3  영속화: delta 를 dataManager.maps[mapKey] 로 read/write. 진입 시 로드, save()에 포함.
 
 import { GameObjects, Math, Tilemaps } from "phaser";
-import { MapKey } from "../../game/utils/constants/mapKeys";
-import { dataManager, TileObject } from "../../game/dataManager/Store";
+import { MAP_KEYS, MapKey } from "../../game/utils/constants/mapKeys";
+import { dataManager, TileObject } from "../../game/managers/Store";
 import { StaticFeatures } from "./Components/StaticFeatures";
 import { STATIC_TILE_PROPERTIES } from "../../game/utils/constants/tiles";
 
@@ -85,6 +85,12 @@ export class MapObject {
   private static readonly GRASS_FRAME = 16;
   private static readonly TILLED_TILE_KEY = "plowed_soil";
   private static readonly TILLED_FRAME = 10;
+  // heart_anim 프레임 3 = 구슬 없는 나무(placeholder). 전용 트리 아트 생기면 교체.
+  private static readonly TREE_TILE_KEY = "heart_anim";
+  private static readonly TREE_FRAME = 3;
+  // apocalypse 시트 프레임 80(가로1·세로3) = 표지판. ruin 데코.
+  private static readonly SIGN_TILE_KEY = "apocalypse";
+  private static readonly SIGN_FRAME = 80;
 
   constructor(
     belowLayer: Tilemaps.TilemapLayer,
@@ -95,20 +101,38 @@ export class MapObject {
     this.worldLayer = worldLayer;
     this.mapKey = mapKey;
     // 현재는 Cliff에 아티팩트 트리만 렌더.
-    new StaticFeatures(mapKey, worldLayer, this.resourceClumps);
-    // For initial render, loop each tiles and compute objects at random.
-    if (Object.keys(dataManager.getMap(mapKey)).length === 0) {
-      let initialMap: Record<string, TileObject> = {};
-      this.belowLayer.forEachTile((t) => {
-        // 갈 수 있는 타일 && worldLayer 오브젝트·resourceClump에 안 막힌 칸에만 배치
-        if (t.properties.Diggable && !this.isTileOccupied(t.x, t.y)) {
-          const grassProbability = Math.Between(0, 1);
-          if (grassProbability > 0.7) {
-            initialMap[this.posToString(t.x, t.y)] = { kind: "grass" };
+    if (mapKey === MAP_KEYS.CLIFF) {
+      new StaticFeatures(mapKey, worldLayer, this.resourceClumps);
+      // For initial render, loop each tiles and compute objects at random.
+      if (Object.keys(dataManager.getMap(mapKey)).length === 0) {
+        let initialMap: Record<string, TileObject> = {};
+        this.belowLayer.forEachTile((t) => {
+          if (t.properties.Diggable && !this.isTileOccupied(t.x, t.y)) {
+            const roll = Math.FloatBetween(0, 1);
+            if (roll > 0.9) {
+              // todo: need resource features
+              initialMap[this.posToString(t.x, t.y)] = { kind: "tree" }; // ~10%
+            } else if (roll > 0.7) {
+              initialMap[this.posToString(t.x, t.y)] = { kind: "grass" }; // ~20%
+            }
           }
-        }
-      });
-      dataManager.setMap(mapKey, initialMap);
+        });
+        dataManager.setMap(mapKey, initialMap);
+      }
+    } else if (mapKey === MAP_KEYS.RUIN) {
+      // ruin은 Diggable 타일이 없어서, 점유 안 된 칸에 낮은 확률로 표지판 배치.
+      if (Object.keys(dataManager.getMap(mapKey)).length === 0) {
+        const initialMap: Record<string, TileObject> = {};
+        this.belowLayer.forEachTile((t) => {
+          if (
+            !this.isTileOccupied(t.x, t.y) &&
+            Math.FloatBetween(0, 1) > 0.99
+          ) {
+            initialMap[this.posToString(t.x, t.y)] = { kind: "sign" }; // ~1%
+          }
+        });
+        dataManager.setMap(mapKey, initialMap);
+      }
     }
     // 그 다음 렌더
     this.update();
@@ -121,6 +145,12 @@ export class MapObject {
       switch (k.kind) {
         case "grass":
           this.drawGrass(col, row);
+          break;
+        case "tree":
+          this.drawTree(col, row);
+          break;
+        case "sign":
+          this.drawSign(col, row);
           break;
         case "tilled":
           this.drawTilled(col, row);
@@ -136,7 +166,6 @@ export class MapObject {
     }
   }
 
-  // 논리 보드에서 그 칸을 제거 → store 갱신 → 리렌더로 스프라이트 정리.
   removeFeature(col: number, row: number): void {
     const board = dataManager.getMap(this.mapKey);
     const key = this.posToString(col, row);
@@ -148,7 +177,7 @@ export class MapObject {
   addFeature(col: number, row: number, feature: TileObject): void {
     const board = dataManager.getMap(this.mapKey);
     const key = this.posToString(col, row);
-    if (board[key] !== undefined) return; // 이미 뭔가 있으면 덮지 않음
+    if (board[key] !== undefined) return;
     board[key] = feature;
     dataManager.setMap(this.mapKey, board);
   }
@@ -167,9 +196,39 @@ export class MapObject {
     this.drawnSprites.set(key, img);
   }
 
+  private drawTree(col: number, row: number): void {
+    const key = this.posToString(col, row);
+    if (this.drawnSprites.has(key)) return;
+
+    const scene = this.worldLayer.scene;
+    const wx = (this.worldLayer.tileToWorldX(col) ?? 0) + 16;
+    const wy = (this.worldLayer.tileToWorldY(row) ?? 0) + 32;
+    const img = scene.add
+      .image(wx, wy, MapObject.TREE_TILE_KEY, MapObject.TREE_FRAME)
+      .setOrigin(0.5, 1)
+      .setDepth(wy)
+      .setData("isPassable", false);
+    this.drawnSprites.set(key, img);
+  }
+
+  private drawSign(col: number, row: number): void {
+    const key = this.posToString(col, row);
+    if (this.drawnSprites.has(key)) return;
+
+    const scene = this.worldLayer.scene;
+    const wx = (this.worldLayer.tileToWorldX(col) ?? 0) + 16;
+    const wy = (this.worldLayer.tileToWorldY(row) ?? 0) + 32;
+    const img = scene.add
+      .image(wx, wy, MapObject.SIGN_TILE_KEY, MapObject.SIGN_FRAME)
+      .setOrigin(0.5, 1)
+      .setDepth(wy)
+      .setData("isPassable", false);
+    this.drawnSprites.set(key, img);
+  }
+
   private drawTilled(col: number, row: number): void {
     const key = this.posToString(col, row);
-    if (this.drawnSprites.has(key)) return; // 이미 그려둠
+    if (this.drawnSprites.has(key)) return;
 
     const scene = this.belowLayer.scene;
     const wx = (this.belowLayer.tileToWorldX(col) ?? 0) + 16;
@@ -187,6 +246,23 @@ export class MapObject {
   private stringToPos(s: string): [number, number] {
     const [col, row] = s.split(",").map(Number);
     return [col, row];
+  }
+
+  swingAxe(col: number, row: number) {
+    this.removeFeature(col, row);
+  }
+  swingPickaxe(col: number, row: number) {
+    this.removeFeature(col, row);
+  }
+
+  water(col: number, row: number): void {
+    const board = dataManager.getMap(this.mapKey);
+    const key = this.posToString(col, row);
+    const feat = board[key];
+    if (feat?.kind !== "tilled" || feat.state === 1) return;
+    feat.state = 1;
+    dataManager.setMap(this.mapKey, board);
+    this.drawnSprites.get(key)?.setTint(0x6f8fb0); // 젖은 색조
   }
 
   till(col: number, row: number): void {
@@ -214,6 +290,11 @@ export class MapObject {
     return false;
   }
 
+  isTilePassable(col: number, row: number): boolean {
+    const img = this.drawnSprites.get(this.posToString(col, row));
+    return img?.getData("isPassable") ?? true;
+  }
+
   getTileInfo(col: number, row: number) {
     const diggable =
       this.doesTileHaveProperty(col, row, STATIC_TILE_PROPERTIES.DIGGABLE) ===
@@ -224,9 +305,14 @@ export class MapObject {
         row,
         STATIC_TILE_PROPERTIES.WATERSOURCE,
       ) === true;
+    const action = this.doesTileHaveProperty(
+      col,
+      row,
+      STATIC_TILE_PROPERTIES.ACTION,
+    );
     const isOccupied = this.isTileOccupied(col, row);
     const feature =
       dataManager.getMap(this.mapKey)[this.posToString(col, row)] ?? null;
-    return { diggable, isOccupied, feature, watersource };
+    return { diggable, isOccupied, feature, watersource, action };
   }
 }

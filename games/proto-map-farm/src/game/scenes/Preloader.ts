@@ -1,5 +1,4 @@
 import { Scene } from "phaser";
-import { TEMP_INV } from "../dataManager/Store";
 import { MAP_KEYS } from "../utils/constants/mapKeys";
 
 export class Preloader extends Scene {
@@ -85,29 +84,48 @@ export class Preloader extends Scene {
       frameWidth: 32,
       frameHeight: 32,
     });
-    this.load.image("fence_alt", "tilesets/farm/fence_alt.png");
+    this.load.spritesheet("fence_alt", "tilesets/farm/fence_alt.png", {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
 
-    // Home: farming_fishing 타일셋 기반 32px 맵.
-    // Image keys must equal each tileset image's basename (Worldmap.imageKeyFor).
     this.load.tilemapTiledJSON(MAP_KEYS.HOME, "json/home_json.json");
-    this.load.image("farming_fishing", "tilesets/farm/farming_fishing.png");
+    this.load.spritesheet(
+      "farming_fishing",
+      "tilesets/farm/farming_fishing.png",
+      {
+        frameWidth: 32,
+        frameHeight: 32,
+      },
+    );
 
-    // Ruin: rebuilt at 32px on the apocalypse + 7DRL tilesets.
-    // Image keys must equal each tileset image's basename (Worldmap.imageKeyFor).
     this.load.tilemapTiledJSON(MAP_KEYS.RUIN, "json/ruin_json.json");
-    this.load.image("apocalypse", "tilesets/ruin/apocalypse.png");
-    this.load.image("7DRL-Tiles2", "tilesets/ruin/7DRL-Tiles2.png");
+    this.load.spritesheet("apocalypse", "tilesets/ruin/apocalypse.png", {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
+    this.load.spritesheet("7DRL-Tiles2", "tilesets/ruin/7DRL-Tiles2.png", {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
 
     // Cliff: LPC cliffs tileset.
     // Image keys must equal each tileset image's basename (Worldmap.imageKeyFor).
     this.load.tilemapTiledJSON(MAP_KEYS.CLIFF, "json/cliff_json.json");
-    this.load.image(
+    this.load.spritesheet(
       "LPC_cliffs_grass",
       "tilesets/terrain/LPC_cliffs_grass.png",
+      { frameWidth: 32, frameHeight: 32 },
     );
     // 물 타일 등 terrain 타일셋 (cliff_json에서 firstgid 1504로 참조)
-    this.load.image("terrain", "tilesets/terrain/terrain.png");
-    this.load.image("tent-tan", "img/tent-tan.png");
+    this.load.spritesheet("terrain", "tilesets/terrain/terrain.png", {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
+    this.load.spritesheet("tent-tan", "img/tent-tan.png", {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
 
     this.load.spritesheet("heart_anim", "sprites/heart_anim.png", {
       frameWidth: 128,

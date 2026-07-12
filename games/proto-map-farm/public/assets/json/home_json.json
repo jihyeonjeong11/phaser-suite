@@ -155,6 +155,16 @@
          "spacing":0,
          "tilecount":400,
          "tileheight":32,
+         "tiles":[
+                {
+                 "id":145,
+                 "properties":[
+                        {
+                         "name":"Action",
+                         "type":"string",
+                         "value":"sleep"
+                        }]
+                }],
          "tilewidth":32,
          "transparentcolor":"#ff00ff"
         }],

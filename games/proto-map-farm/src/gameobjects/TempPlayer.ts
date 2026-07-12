@@ -1,10 +1,38 @@
 import { GameObjects, Scene, Tilemaps, Types } from "phaser";
 import { Controls } from "../game/utils/controls";
-import { dataManager } from "../game/dataManager/Store";
+import { dataManager } from "../game/managers/Store";
 import { MapObject } from "./mapObjects/MapObjects";
 import { playSound } from "../game/utils/audios";
 import { AUDIO_KEYS } from "../game/utils/constants/audioKeys";
-import { DIRECTION } from "../game/utils/constants/constants";
+import { DIRECTION, POS } from "../game/utils/constants/constants";
+
+class TargetTile {
+  private targetHighlight: GameObjects.Rectangle;
+  private targetPos: POS = { col: 0, row: 0 };
+  private map: Tilemaps.Tilemap;
+
+  constructor(scene: Scene, map: Tilemaps.Tilemap) {
+    this.map = map;
+    this.targetHighlight = scene.add
+      .rectangle(0, 0, map.tileWidth, map.tileHeight, 0x00ff00, 0.25)
+      .setStrokeStyle(2, 0x00ff00, 0.9)
+      .setDepth(5);
+  }
+
+  setTarget(col: number, row: number): void {
+    this.targetPos = { col, row };
+    const world = this.map.tileToWorldXY(col, row);
+    if (!world) return;
+    this.targetHighlight.setPosition(
+      world.x + this.map.tileWidth / 2,
+      world.y + this.map.tileHeight / 2,
+    );
+  }
+
+  getPos(): POS {
+    return this.targetPos;
+  }
+}
 
 export class TempPlayer {
   charSprite: GameObjects.Sprite;
@@ -15,7 +43,7 @@ export class TempPlayer {
   _portalLayer: Tilemaps.ObjectLayer | null;
   private onEnterPortal: (dest: string) => void;
   private mapObject: MapObject;
-  private targetHighlight?: GameObjects.Rectangle;
+  private targetTile: TargetTile;
   protected readonly baseScale: number = 3;
   // todo: compute actual speed for Player class
   protected readonly baseSpeed: number = 1.5;
@@ -32,6 +60,7 @@ export class TempPlayer {
     this.scene = scene;
     this._controls = _controls;
     this._worldLayer = collisionLayer;
+    this.targetTile = new TargetTile(scene, this._worldLayer.tilemap);
     this._backgroundLayer = backgroundLayer;
     this._portalLayer = portalLayer;
     this.onEnterPortal = onEnterPortal;
@@ -129,32 +158,13 @@ export class TempPlayer {
   }
 
   private updateTargetTile(): void {
-    const map = this._worldLayer.tilemap;
-    const tw = map.tileWidth;
-    const th = map.tileHeight;
-
-    const { x, y, direction } = dataManager.getPlayerData();
+    const { direction } = dataManager.getPlayerData();
     const dx = direction === "LEFT" ? -1 : direction === "RIGHT" ? 1 : 0;
     const dy = direction === "UP" ? -1 : direction === "DOWN" ? 1 : 0;
 
-    const col = Math.floor(x / tw) + dx;
-    const row = Math.floor(y / th) + dy;
-    const px = col * tw + tw / 2;
-    const py = row * th + th / 2;
-
-    const color = 0x00ff00;
-
-    if (!this.targetHighlight) {
-      this.targetHighlight = this.charSprite.scene.add
-        .rectangle(px, py, tw, th, color, 0.25)
-        .setStrokeStyle(2, color, 0.9)
-        .setDepth(5);
-    } else {
-      this.targetHighlight
-        .setPosition(px, py)
-        .setFillStyle(color, 0.25)
-        .setStrokeStyle(2, color, 0.9);
-    }
+    // 발밑 타일 → 바라보는 앞 칸. 픽셀 변환·이동·pos 저장은 TargetTile이 담당.
+    const { col, row } = this.playerPixelToPOS();
+    this.targetTile.setTarget(col + dx, row + dy);
   }
 
   private useTool(): void {
@@ -173,25 +183,60 @@ export class TempPlayer {
     const row = Math.floor(y / th) + dy;
 
     const info = this.mapObject.getTileInfo(col, row);
-    // console.log(`useTool → tile (${col}, ${row})`, info);
 
-    // 선택한 툴에 따라 스윙 사운드 재생
-    if (currentHand.name === "testing_pickaxe") {
+    if (
+      currentHand.name === "testing_pickaxe" &&
+      info.feature?.kind === "sign"
+    ) {
       playSound(this.scene, AUDIO_KEYS.PICKAXE);
-    } else if (currentHand.name === "testing_axe") {
+      this.mapObject.swingPickaxe(col, row);
+    } else if (
+      currentHand.name === "testing_axe" &&
+      info.feature?.kind === "tree"
+    ) {
       playSound(this.scene, AUDIO_KEYS.AXE);
-    } else if (currentHand.name === "testing_hoe") {
+      this.mapObject.swingAxe(col, row);
+    } else if (
+      currentHand.name === "testing_hoe" &&
+      info.diggable &&
+      !info.isOccupied
+    ) {
       playSound(this.scene, AUDIO_KEYS.HOE);
-    } else if (currentHand.name === "testing_watering_can") {
+      this.mapObject.till(col, row);
+    } else if (
+      currentHand.name === "testing_watering_can" &&
+      info.feature?.kind === "tilled"
+    ) {
       playSound(this.scene, AUDIO_KEYS.WATERING);
+      this.mapObject.water(col, row);
     }
-
     if (info.feature?.kind === "grass") {
       // 풀이 있는 칸 → 논리 보드에서 제거(리렌더가 스프라이트 파괴)
       this.mapObject.removeFeature(col, row);
-    } else if (info.diggable && !info.isOccupied) {
-      this.mapObject.till(col, row);
     }
+  }
+
+  private interact() {
+    const { col, row } = this.targetTile.getPos();
+    const isInteractable = this._worldLayer.getTileAt(col, row)?.properties
+      ?.action;
+    if (isInteractable === "sleep") {
+      const cam = this.scene.cameras.main;
+      this._controls.lockInput = true; // 전환 중 이동 잠금
+      cam.fadeOut(500, 0, 0, 0);
+      cam.once("camerafadeoutcomplete", () => {
+        // 여기서 잠자기 로직(시간 경과/회복 등)
+        cam.fadeIn(500, 0, 0, 0);
+        this._controls.lockInput = false;
+      });
+    }
+  }
+
+  private playerPixelToPOS(): POS {
+    const { x, y } = dataManager.getPlayerData();
+    const pos = this._worldLayer.tilemap.worldToTileXY(x, y);
+    if (!pos) throw new Error("location calculation failed");
+    return { col: pos.x, row: pos.y };
   }
 
   update() {
@@ -258,12 +303,6 @@ export class TempPlayer {
       }
     }
 
-    // const dx = dir === "LEFT" ? -1 : dir === "RIGHT" ? 1 : 0;
-    // const dy = dir === "UP" ? -1 : dir === "DOWN" ? 1 : 0;
-
-    // if (dir === "LEFT") this.charSprite.setFlipX(true);
-    // else if (dir === "RIGHT") this.charSprite.setFlipX(false);
-
     if (dir !== "NONE") {
       dataManager.setPlayerData({ direction: dir });
     }
@@ -283,7 +322,8 @@ export class TempPlayer {
         !this.doesPositionCollideWithWorldLayer(targetPos) &&
         !this.doesPositionCollideWithBackgroundLayer(targetPos) &&
         this.isWithinBounds(targetPos) &&
-        !this.mapObject.getTileInfo(targetCol, targetRow).watersource
+        !this.mapObject.getTileInfo(targetCol, targetRow).watersource &&
+        this.mapObject.isTilePassable(targetCol, targetRow)
       ) {
         this.charSprite.setPosition(targetPos.x, targetPos.y);
         dataManager.setPlayerData({ x: targetPos.x, y: targetPos.y });
@@ -301,6 +341,7 @@ export class TempPlayer {
 
     this.updateTargetTile();
     if (this._controls.wasCKeyPressed()) this.useTool();
+    if (this._controls.wasEKeyPressed()) this.interact();
     this.charSprite.play(`${key}-${moving ? "walk" : "idle"}`, true);
   }
 }

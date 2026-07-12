@@ -52,7 +52,7 @@
       "entry": "games/proto-map-farm/dist/index.html",
       "thumbnail": "",
       "tags": ["farming", "simulation"],
-      "enabled": false
+      "enabled": true
     }
   ]
 }
