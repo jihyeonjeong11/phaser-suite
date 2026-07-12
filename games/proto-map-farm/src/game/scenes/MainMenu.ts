@@ -1,11 +1,8 @@
 import { Scene, GameObjects } from "phaser";
-import { dataManager } from "../dataManager/Store";
+import { dataManager } from "../managers/Store";
 import { ModalBehavoir } from "phaser4-rex-plugins/plugins/modal.js";
 import { DEFAULT_MAP_KEY } from "../utils/constants/mapKeys";
-import {
-  DEFAULT_CONFIGS,
-  globalConfig,
-} from "../utils/constants/GlobalConfig";
+import { DEFAULT_CONFIGS, globalConfig } from "../utils/constants/GlobalConfig";
 
 const BTN_WIDTH = 180;
 const BTN_HEIGHT = 56;

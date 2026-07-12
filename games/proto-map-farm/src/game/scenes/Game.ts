@@ -1,7 +1,7 @@
 import { Cameras } from "phaser";
 import { DebugHud } from "../../gameobjects/hud/DebugHud";
 import { BaseScene } from "./Base";
-import { dataManager } from "../dataManager/Store";
+import { dataManager } from "../managers/Store";
 import { Worldmap } from "../../gameobjects/Worldmap";
 import { QuickBar } from "../../gameobjects/hud/QuickBar";
 import { DEFAULT_MAP_KEY, MAP_KEYS, MapKey } from "../utils/constants/mapKeys";
