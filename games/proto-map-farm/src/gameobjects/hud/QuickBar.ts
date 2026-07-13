@@ -1,11 +1,10 @@
-import { Cameras, GameObjects, Scene } from "phaser";
+import { GameObjects, Scene } from "phaser";
 import { dataManager, TEMP_INV_LIMIT } from "../../game/managers/Store";
 
 export class QuickBar extends GameObjects.Container {
   private static readonly SLOT_SIZE = 44;
   private static readonly GAP = 4;
   private static readonly MARGIN_BOTTOM = 12;
-  private static readonly ICON_PADDING = 8;
 
   private slots: GameObjects.Rectangle[] = [];
   private icons: (GameObjects.Image | null)[] = [];
@@ -17,7 +16,6 @@ export class QuickBar extends GameObjects.Container {
     this.setDepth(1000);
 
     this.build();
-    // 데이터는 커스텀 dataManager(자체 EventEmitter)에 쓰이므로 여기에 리스너를 건다.
     // 키가 "currentSelectedIdx" → 이벤트명은 changedata-currentSelectedIdx.
 
     // todo: EventEmitter로 가기
@@ -27,9 +25,7 @@ export class QuickBar extends GameObjects.Container {
     this.buildSaveButton();
     this.render();
 
-    scene.cameras.main.once(Cameras.Scene2D.Events.FADE_IN_START, () =>
-      this.cleanup(),
-    );
+    this.once(GameObjects.Events.DESTROY, this.cleanup, this);
   }
 
   private build(): void {
@@ -62,7 +58,6 @@ export class QuickBar extends GameObjects.Container {
     }
   }
 
-  // 퀵바 오른쪽에 테스트용 세이브 버튼 (클릭 시 localStorage 저장)
   private buildSaveButton(): void {
     const { SLOT_SIZE, GAP, MARGIN_BOTTOM } = QuickBar;
     const n = TEMP_INV_LIMIT;

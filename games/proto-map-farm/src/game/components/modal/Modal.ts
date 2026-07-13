@@ -75,7 +75,6 @@ export class Modal {
     const isActiveRes = (w: number, h: number) =>
       scene.scale.width === w && scene.scale.height === h;
 
-    // 현재 게임 크기와 일치하는 항목에만 체크 표시(단일 선택).
     const refreshResBoxes = () => {
       resBoxes.forEach((b) => {
         const active = isActiveRes(b.w, b.h);
@@ -105,14 +104,10 @@ export class Modal {
         })
         .setOrigin(0.5);
 
-      // pointerup 이후 다음 프레임에 리사이즈한다.
-      // rex 모달은 커버의 pointerup에서 클릭 좌표가 다이얼로그 밖이면 닫는데,
-      // pointerdown~up 사이에 setGameSize가 실행되면 좌표 매핑이 바뀌어
-      // 이 클릭이 "바깥 클릭"으로 오인돼 모달이 닫힌다. up 뒤로 미뤄 회피.
       box.on("pointerup", () => {
         scene.time.delayedCall(0, () => {
           scene.scale.setGameSize(w, h);
-          globalConfig.setResolution({ width: w, height: h }); // localStorage 저장
+          globalConfig.setResolution({ width: w, height: h });
           refreshResBoxes();
         });
       });
@@ -140,11 +135,9 @@ export class Modal {
       destroy: true,
     });
 
-    // 해상도 변경 시 다이얼로그를 새 화면 중앙으로 이동(옛 좌표에 남지 않게).
     const recenter = () =>
       dialog.setPosition(scene.scale.width / 2, scene.scale.height / 2);
     scene.scale.on(Scale.Events.RESIZE, recenter);
-    // 모달이 닫히며 dialog가 destroy되면 리스너 해제(파괴된 객체 참조 방지).
     dialog.once("destroy", () =>
       scene.scale.off(Scale.Events.RESIZE, recenter),
     );

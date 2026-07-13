@@ -4,7 +4,6 @@ import { Game as MainGame } from "./scenes/Game";
 import { MainMenu } from "./scenes/MainMenu";
 import { AUTO, Game, Scale } from "phaser";
 import { Preloader } from "./scenes/Preloader";
-import { HUD } from "./scenes/Base";
 import { globalConfig } from "./utils/constants/GlobalConfig";
 
 const { width, height } = globalConfig.getResolution();
@@ -23,7 +22,7 @@ const config: Phaser.Types.Core.GameConfig = {
   backgroundColor: "#028af8",
   zoom: 1,
   pixelArt: true,
-  scene: [Boot, Preloader, MainMenu, MainGame, GameOver, HUD],
+  scene: [Boot, Preloader, MainMenu, MainGame, GameOver],
   physics: {
     default: "arcade",
     arcade: {

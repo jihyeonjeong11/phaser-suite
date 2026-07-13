@@ -72,7 +72,7 @@ export class Game extends BaseScene {
   }
 
   init(data: { area?: string; fromSave?: boolean } = {}) {
-    super.init();
+    super.init({});
     this.sceneData = {
       area: data.area ?? DEFAULT_MAP_KEY,
       fromSave: data.fromSave ?? false,

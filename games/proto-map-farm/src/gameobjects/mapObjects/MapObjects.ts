@@ -64,7 +64,7 @@
 
 import { GameObjects, Math, Tilemaps } from "phaser";
 import { MAP_KEYS, MapKey } from "../../game/utils/constants/mapKeys";
-import { dataManager, TileObject } from "../../game/managers/Store";
+import { dataManager, MapDelta, TileObject } from "../../game/managers/Store";
 import { StaticFeatures } from "./Components/StaticFeatures";
 import { STATIC_TILE_PROPERTIES } from "../../game/utils/constants/tiles";
 
@@ -73,6 +73,69 @@ export interface TileInfo {
   isOccupied: boolean;
 }
 
+// 타일
+export const Tiles = {
+  "0": {
+    Name: "Weeds",
+    DisplayName: "[LocalizedText Strings\\Objects:Weeds_Name]",
+    Description: "[LocalizedText Strings\\Objects:Weeds_Description]",
+    Type: "Litter",
+    Category: -999,
+    Price: 0,
+    Texture: null,
+    SpriteIndex: 0,
+    ColorOverlayFromNextIndex: false,
+    Edibility: -300,
+    IsDrink: false,
+    Buffs: null,
+    GeodeDropsDefaultItems: false,
+    GeodeDrops: null,
+    ArtifactSpotChances: null,
+    CanBeGivenAsGift: true,
+    CanBeTrashed: true,
+    ExcludeFromFishingCollection: false,
+    ExcludeFromShippingCollection: false,
+    ExcludeFromRandomSale: false,
+    ContextTags: null,
+    CustomFields: null,
+  },
+};
+
+// ─────────────────────────────────────────────────────────────
+// 우리가 "지금" 필요한 값들 (스타듀 스키마에서 추려낸 최소 형태)
+// ─────────────────────────────────────────────────────────────
+// 위 Weeds 항목은 스타듀 Data/Objects 원본. 필드 대부분(Price/Edibility/
+// Buffs/Geode.../Collection...)은 상점·요리·경제 시스템용이라 지금은 불필요.
+// 우리 렌더/판정 코드가 실제로 읽는 값만 남기면 아래 정도:
+//
+// Tiles["grass"] = {
+//   // ── 식별 ──
+//   Name: "Grass",              // 표시용 (스듀 Name)
+//   Type: "Litter",            // 분류 = "Litter"(잡초/돌) | "Crop" | "Structure" ...
+//
+//   // ── 렌더 (스듀엔 Texture+SpriteIndex, Phaser는 textureKey+frame) ──
+//   Texture: "tallgrass",      // Phaser 텍스처 키 (스듀 Texture)
+//   SpriteIndex: 16,           // 스프라이트시트 프레임 (스듀 SpriteIndex)
+//   Layer: "below",            // "below"=지면(정렬X) | "world"=오브젝트(depth=wy 정렬)  ← 스듀엔 없음, 엔진 필요
+//
+//   // ── 판정(모델 규칙) — 뷰 아닌 여기서 읽어야 함 ──
+//   Passable: true,            // 통행 가능? (스듀 타일 프로퍼티 Passable). false면 나무/표지판처럼 막힘
+//   Occupies: false,           // 이 칸을 점유해 다른 배치 막나? (isTileOccupied 판정)
+// };
+//
+// [현재 우리 kind 목록과 매핑]  (Store.TileObject / MapObject draw* 기준)
+//   grass  → Texture "tallgrass",   frame 16, below, Passable true
+//   tilled → Texture "plowed_soil", frame 10, below, Passable true   (+동적: state/fertilizer/crop)
+//   tree   → Texture "heart_anim",  frame 3,  world, Passable false
+//   sign   → Texture "apocalypse",  frame 80, world, Passable false
+//   stone  → (미구현) Type "Litter", world, Passable false
+//
+// ⚠️ 불일치: Store.TileObject 는 grass|stone|tilled 인데 draw*는 grass|tree|sign|tilled.
+//    JSON kind 키로 이 목록을 단일화(kind = keyof Tiles)해야 함.
+//
+// [정적 vs 동적 구분] 위 필드는 전부 정적(불변). tilled의 state/fertilizer/crop 같은
+//    "변하는 상태"는 여기 넣지 말 것 — 그건 store delta(모델)로 감. 이 Tiles는 "정적 능력" 층.
+
 export class MapObject {
   private belowLayer: Tilemaps.TilemapLayer;
   private worldLayer: Tilemaps.TilemapLayer;
@@ -80,6 +143,7 @@ export class MapObject {
   private mapKey: MapKey;
   // 이미 그린 오브젝트 스프라이트("col,row" → Image). 같은 칸 중복 그림 방지.
   private drawnSprites = new Map<string, GameObjects.Image>();
+  private board: MapDelta;
   // 실제 프레임 위치
   private static readonly GRASS_TILE_KEY = "tallgrass";
   private static readonly GRASS_FRAME = 16;
@@ -139,8 +203,8 @@ export class MapObject {
   }
 
   update() {
-    const board = dataManager.getMap(this.mapKey);
-    Object.entries(board).forEach(([posString, k]) => {
+    this.board = dataManager.getMap(this.mapKey);
+    Object.entries(this.board).forEach(([posString, k]) => {
       const [col, row] = this.stringToPos(posString);
       switch (k.kind) {
         case "grass":
@@ -159,7 +223,7 @@ export class MapObject {
     });
     // 2. 그렸는데 board에서 사라진 칸 → 스프라이트 파괴
     for (const [key, img] of this.drawnSprites) {
-      if (board[key] === undefined) {
+      if (this.board[key] === undefined) {
         img.destroy();
         this.drawnSprites.delete(key);
       }
@@ -316,3 +380,112 @@ export class MapObject {
     return { diggable, isOccupied, feature, watersource, action };
   }
 }
+
+// expand)
+
+// ● 코드 다시 봤습니다. 지금 상황을 일반 게임개발 관점에서 정확히 재정의하면, 이건 "모델–뷰 동기화(Model–View sync)" 문제입니다. Phaser는 잊고 그 관점에서만
+//   정리하겠습니다.
+
+//   지금 당신이 가진 3개의 층 (개념적으로)
+
+//   ┌──────────────────────┬────────────────────────────────────────────────────────────┬───────────────────────────────────────────┐
+//   │          층          │                         지금 코드                          │                   성격                    │
+//   ├──────────────────────┼────────────────────────────────────────────────────────────┼───────────────────────────────────────────┤
+//   │ 정적 능력(static)    │ 타일맵 프로퍼티 (Diggable, Water...)                       │ 불변. Tiled에 박혀 있음                   │
+//   ├──────────────────────┼────────────────────────────────────────────────────────────┼───────────────────────────────────────────┤
+//   │ 동적 상태(OBJECTMAP) │ dataManager.getMap(mapKey) = Record<"col,row", TileObject> │ 모델. 상호작용으로 변함. 저장 대상        │
+//   ├──────────────────────┼────────────────────────────────────────────────────────────┼───────────────────────────────────────────┤
+//   │ 뷰(view)             │ drawnSprites: Map<"col,row", Image>                        │ 파생물. 모델에서 언제든 다시 만들 수 있음 │
+//   └──────────────────────┴────────────────────────────────────────────────────────────┴───────────────────────────────────────────┘
+
+//   핵심 통찰: 뷰 = f(모델). 스프라이트는 모델에서 파생된 그림자일 뿐이고, 언제 다 지우고 다시 그려도 똑같아야 합니다. "업데이트를 어떻게 하느냐"는 곧 "이 등식을
+//   어떻게 값싸게 유지하느냐" 입니다.
+
+//   지금 코드의 근본 문제 2가지 (일반 원칙 위반)
+
+//   ① 뷰가 모델을 겸하고 있음 (view-as-model 안티패턴)
+//   isTilePassable(col, row) {
+//     const img = this.drawnSprites.get(...);      // 스프라이트(뷰)에서
+//     return img?.getData("isPassable") ?? true;   // 통행 여부(모델)를 읽음
+//   }
+//   통행 가능성은 모델의 속성인데 스프라이트(뷰)에 저장돼 있습니다. 뷰는 언제든 파괴·재생성되는 임시물이라, 뷰를 지우면 게임 규칙(통행)이 사라집니다. 모든 판정
+//   데이터는 모델에 있어야 합니다.
+
+//   ② 갱신 경로가 제각각 (split-brain)
+//   - till() → 모델 수정 후 update() (전체 재diff)
+//   - removeFeature() → 모델만 수정, 갱신 안 함 (매 프레임 update에 의존)
+//   - water() → 모델 수정 + 스프라이트 직접 setTint (뷰 직접 조작)
+
+//   같은 "변경"인데 세 가지 다른 방식으로 뷰를 맞춥니다. 이게 버그의 온상입니다.
+
+//   업데이트 전략 — 일반적으로 3가지, 순위대로
+
+//   ┌─────────────────────────────────────┬────────────────────────────────────────────┬───────────────┬──────────────────────────────────────────────────────┐
+//   │                전략                 │                    방식                    │     비용      │                         언제                         │
+//   ├─────────────────────────────────────┼────────────────────────────────────────────┼───────────────┼──────────────────────────────────────────────────────┤
+//   │ A. 매 틱 전체 재구축 (immediate)    │ 매 프레임 뷰 버리고 모델로 재생성          │ O(N)/프레임   │ 아주 작거나 거의 정적인 맵 (Stardew식)               │
+//   ├─────────────────────────────────────┼────────────────────────────────────────────┼───────────────┼──────────────────────────────────────────────────────┤
+//   │ B. 변경 시 전체 재diff (coarse      │ 뭔가 바뀌면 dirty 플래그 → 다음 틱에 전체  │ O(N)/변경묶음 │ 중간. 단순·견고 (= 지금 update()를 플래그로 게이팅한 │
+//   │ dirty)                              │ 비교                                       │               │  것)                                                 │
+//   ├─────────────────────────────────────┼────────────────────────────────────────────┼───────────────┼──────────────────────────────────────────────────────┤
+//   │ C. 국소 무효화 (fine-grained)       │ 변경된 칸만 뷰 갱신                        │ O(변경 칸)    │ 큰 맵. 최소 작업 ✅                                  │
+//   └─────────────────────────────────────┴────────────────────────────────────────────┴───────────────┴──────────────────────────────────────────────────────┘
+
+//   일반적으로 가장 바람직한 답은 C (국소 무효화) 입니다. 타일 기반 게임의 표준이에요 — Minecraft 청크 dirty, Factorio, Stardew의 TerrainFeature 갱신 모두 "바뀐
+//   것만 건드린다"입니다.
+
+//   그걸 안전하게 만드는 2개의 일반 규칙
+
+//   규칙 1 — 변경 깔때기(mutation funnel)
+//   모델을 바꾸는 길은 딱 몇 개의 명령 함수뿐이어야 합니다 (till, water, place, remove...). 외부 코드가 board를 직접 못 만짐. 그래야 "뷰가 모르는 변경"이
+//   원천적으로 불가능 → 국소 갱신이 신뢰 가능.
+
+//   규칙 2 — 단일 원시함수 syncCell(coord)
+//   "이 칸 하나를 모델 상태와 일치시켜라"는 멱등(idempotent) 함수 하나를 만듭니다. 그 칸의 모델 상태를 읽어서:
+//   - 모델엔 있는데 뷰엔 없음 → 생성
+//   - 둘 다 있는데 다름 → 갱신 (예: 젖음 tint)
+//   - 모델엔 없는데 뷰엔 있음 → 파괴
+
+//   그러면 모든 전략이 이 한 함수 위에 서게 됩니다:
+//   - 전략 C: mutate → syncCell(그 칸)
+//   - 전략 A/B(전체): for (칸 of 전체) syncCell(칸)
+
+//   → 지금처럼 drawGrass/drawTilled/setTint가 흩어진 split-brain이 하나로 합쳐집니다. 그리기 로직 중복 제거.
+
+//   실전 권장: C + dirty set 배칭
+
+//   명령들이 바뀐 좌표를 dirty: Set<coord>에 넣고, 틱당 한 번 비웁니다:
+//   mutate(coord): 모델 변경 → dirty.add(coord)
+//   flush(): for (coord of dirty) syncCell(coord); dirty.clear()
+//   이점:
+//   - 중복 제거: 한 틱에 같은 칸이 여러 번 바뀌어도 1번만 sync.
+//   - 배칭: 광역 변경(예: 스프링클러가 9칸 적심)도 한 번에.
+//   - 디커플링: "언제 모델이 바뀌나"와 "언제 뷰를 맞추나"를 분리 → 시뮬레이션 로직이 렌더 타이밍에 안 묶임.
+
+//   이게 A(매 프레임 전체, 지금 문제의 원인)와 정반대이자, 일반적으로 가장 바람직한 지점입니다.
+
+//   덤으로 깨끗해지는 것들
+
+//   - 저장/로드: 뷰가 파생물이므로 모델(OBJECTMAP delta)만 직렬화. 로드 시 전체 syncCell 한 번으로 뷰 재구축. (당신 comment의 Step 3 그대로)
+//   - 맵 전환: 모델 슬라이스 교체 + 전체 sync 1회. 지금 씬 재시작마다 재생성하는 것과 자연스럽게 맞음.
+//   - 통행/점유 판정: 전부 모델에서 → 뷰 없어도 규칙 유지 (①번 문제 해소).
+
+//   목표 아키텍처 한 장 요약
+
+//   [정적 능력] 타일맵 프로퍼티 (읽기전용)
+//         +
+//   [모델] OBJECTMAP: coord → objectState   ← 유일한 진실, 저장 대상
+//         │  (변경은 오직 명령 함수로: till/water/remove/place)
+//         │  변경 → dirty.add(coord)
+//         ▼
+//   [flush] dirty의 각 coord에 syncCell(coord)   ← 멱등, 유일한 그리기 경로
+//         ▼
+//   [뷰] 스프라이트 (파생물, 언제든 재구축 가능)
+
+//   판정 API(getTileInfo, isTilePassable, isTileOccupied)는 전부 모델·정적능력만 읽고, 뷰는 절대 안 읽음.
+
+//   ---
+//   여기까지가 엔진 무관 설계입니다. 이 방향(모델=유일 진실 / 변경은 명령 깔때기 / dirty set + 멱등 syncCell / 뷰는 파생)에 동의하시면, 다음 단계로 이걸 Phaser에
+//   어떻게 얹을지(누가 syncCell을 호출할지 — 명령 직후 즉시 vs 프레임 flush, 스프라이트 add/destroy 매핑, depth 정렬 등)를 잡으면 됩니다.
+
+//   한 가지 확인하고 싶은 게 있는데, 답에 따라 dirty flush를 "즉시" 할지 "틱 배칭"할지가 갈립니다:

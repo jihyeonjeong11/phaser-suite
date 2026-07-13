@@ -1,6 +1,4 @@
-import { Scene, Scenes, Types } from "phaser";
-import { QuickBar } from "../../gameobjects/hud/QuickBar";
-//import { theatre } from "../dataManager/EventEmitter";
+import { Scene, Types } from "phaser";
 import { Controls } from "../utils/controls";
 
 // goal: complete lifecycle for phaser game scene, registry ingame event emission and scene trasitions
@@ -26,10 +24,17 @@ export abstract class BaseScene extends Scene {
     super(config);
   }
 
-  init() {
+  init(data: any) {
     // declare variables and constants to be referenced in all regular game scenes here with the prefix this
     // e.g. this.foo = 'bar';
     // DO NOT declare listeners to the theatre here with .on, as they will spam in every new scene
+    if (data) {
+      this._log(
+        `[${this.constructor.name}:init] invoked, data provided: ${JSON.stringify(data)}`,
+      );
+      return;
+    }
+    this._log(`[${this.constructor.name}:init] invoked`);
   }
 
   create() {
@@ -37,48 +42,45 @@ export abstract class BaseScene extends Scene {
     //this._log(`[${this.constructor.name}:create] invoked`);
     this.scene.bringToTop();
   }
-
-  // no create() needed or desirable in the BaseScene, if you want overlay objects use HUD
-
   nextScene(oldscene: Scene, newscene: Scene, payload: any) {
     this.scene.stop(oldscene);
     this.scene.run(newscene, payload);
   }
+  _log(message: string) {
+    console.log(`%c${message}`, "color: orange; background: black;");
+  }
 }
 
-export class HUD extends BaseScene {
-  quickBar: QuickBar;
+// export class HUD extends BaseScene {
+//   quickBar: QuickBar;
 
-  constructor() {
-    super({
-      key: "hud",
-    });
-  }
+//   constructor() {
+//     super({
+//       key: "hud",
+//     });
+//   }
 
-  init() {
-    super.init();
-  }
+//   init() {
+//     super.init();
+//   }
 
-  create() {
-    this.quickBar = new QuickBar(this);
-    this.events.on(Scenes.Events.SHUTDOWN, () => {
-      console.log("HUD scene shutdown");
-    });
-    // for (let fnc of ["hudFocus"]) {
-    //   theatre.on(fnc, this[fnc], this);
-    // }
-    // 그렇다면 카메라 이벤트 fadeout과 fadein 콜백은 어디서?
-    // Example of invoking theatre emitter:
-    // foo.on("pointerdown", () => theatre.emit('barEvent', payload) );
-  }
+//   create() {
+//     this.quickBar = new QuickBar(this);
+//     this.events.on(Scenes.Events.SHUTDOWN, () => {
+//       console.log("HUD scene shutdown");
+//     });
+//     // for (let fnc of ["hudFocus"]) {
+//     //   theatre.on(fnc, this[fnc], this);
+//     // }
+//     // 그렇다면 카메라 이벤트 fadeout과 fadein 콜백은 어디서?
+//     // Example of invoking theatre emitter:
+//     // foo.on("pointerdown", () => theatre.emit('barEvent', payload) );
+//   }
 
-  hudFocus() {
-    this.scene.run("hud");
-    this.scene.bringToTop("hud");
-    console.log(123);
-    this.quickBar = new QuickBar(this);
-  }
-  //   updateScore() {
-  //     this.score.text = Number(this.score.text) + 1;
-  //   }
-}
+//   hudFocus() {
+//     this.scene.run("hud");
+//     this.scene.bringToTop("hud");
+//     console.log(123);
+//     this.quickBar = new QuickBar(this);
+//   }
+// }
