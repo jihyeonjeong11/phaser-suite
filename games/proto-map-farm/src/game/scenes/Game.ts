@@ -1,12 +1,12 @@
-import { Cameras } from "phaser";
-import { DebugHud } from "../../gameobjects/hud/DebugHud";
-import { BaseScene } from "./Base";
-import { dataManager } from "../managers/Store";
-import { Worldmap } from "../../gameobjects/Worldmap";
-import { QuickBar } from "../../gameobjects/hud/QuickBar";
-import { DEFAULT_MAP_KEY, MAP_KEYS, MapKey } from "../utils/constants/mapKeys";
-import { TempPlayer } from "../../gameobjects/TempPlayer";
-import { MapObject } from "../../gameobjects/mapObjects/MapObjects";
+import { Cameras } from 'phaser'
+import { DebugHud } from '../../gameobjects/hud/DebugHud'
+import { BaseScene } from './Base'
+import { dataManager } from '../managers/Store'
+import { Worldmap } from '../../gameobjects/Worldmap'
+import { QuickBar } from '../../gameobjects/hud/QuickBar'
+import { DEFAULT_MAP_KEY, MAP_KEYS, MapKey } from '../utils/constants/mapKeys'
+import { TempPlayer } from '../../gameobjects/TempPlayer'
+import { MapObject } from '../../gameobjects/mapObjects/MapObjects'
 
 // 1. 맵 / 레벨 구성
 
@@ -55,34 +55,34 @@ import { MapObject } from "../../gameobjects/mapObjects/MapObjects";
 // 6. 모듈 레벨
 
 export class Game extends BaseScene {
-  private camera: Cameras.Scene2D.Camera;
-  private worldMap: Worldmap;
-  private debugHud: DebugHud;
+  private camera: Cameras.Scene2D.Camera
+  private worldMap: Worldmap
+  private debugHud: DebugHud
   private sceneData: { area: MapKey; fromSave: boolean } = {
     area: DEFAULT_MAP_KEY,
-    fromSave: false,
-  };
-  private tempPlayer: TempPlayer;
-  private transitioning = false;
-  private quickBar: QuickBar;
-  private mapObject: MapObject;
+    fromSave: false
+  }
+  private tempPlayer: TempPlayer
+  private transitioning = false
+  private quickBar: QuickBar
+  private mapObject: MapObject
 
   constructor() {
-    super({ key: "Game" });
+    super({ key: 'Game' })
   }
 
-  init(data: { area?: string; fromSave?: boolean } = {}) {
-    super.init({});
+  init(data: { area?: MapKey; fromSave?: boolean } = {}) {
+    super.init({})
     this.sceneData = {
       area: data.area ?? DEFAULT_MAP_KEY,
-      fromSave: data.fromSave ?? false,
-    };
+      fromSave: data.fromSave ?? false
+    }
   }
 
   create() {
-    super.create();
-    this.transitioning = false;
-    this.worldMap = new Worldmap(this, this.sceneData.area);
+    super.create()
+    this.transitioning = false
+    this.worldMap = new Worldmap(this, this.sceneData.area)
 
     // const mapObject = new MapObject(
     //   this.worldMap.belowLayer,
@@ -91,27 +91,25 @@ export class Game extends BaseScene {
     // );
     // this.mapObject = mapObject;
 
-    // this.debugHud = new DebugHud(
-    //   this,
-    //   mapObject,
-    //   this.worldMap.getWorldLayer(),
-    //   this.worldMap.getPortalLayer(),
-    // );
-    this.quickBar = new QuickBar(this);
+    this.debugHud = new DebugHud(
+      this,
+      this.mapObject,
+      this.worldMap.getWorldLayer(),
+      this.worldMap.getPortalLayer()
+    )
+    this.quickBar = new QuickBar(this)
 
     if (this.sceneData.area === MAP_KEYS.CLIFF) {
       //this.spawnCliffTrees();
     }
 
-    dataManager.setPlayerData({ currentMapKey: this.sceneData.area });
+    dataManager.setPlayerData({ currentMapKey: this.sceneData.area })
 
-    const map = this.worldMap.getMap();
-    this.camera = this.cameras.main;
-    this.camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    const map = this.worldMap.getMap()
+    this.camera = this.cameras.main
+    this.camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels)
 
-    const start = this.sceneData.fromSave
-      ? this.getSavedPosition()
-      : this.getSpawnPosition();
+    const start = this.sceneData.fromSave ? this.getSavedPosition() : this.getSpawnPosition()
 
     this.tempPlayer = new TempPlayer(
       this,
@@ -121,44 +119,44 @@ export class Game extends BaseScene {
       this.worldMap.getBackgroundLayer(),
       this.worldMap.getPortalLayer(),
       (dest) => this.enterPortal(dest),
-      this.worldMap.mapObjects,
-    );
-    this.camera.startFollow(this.tempPlayer.charSprite);
+      this.worldMap.mapObjects
+    )
+    this.camera.startFollow(this.tempPlayer.charSprite)
   }
 
   private getSavedPosition(): { x: number; y: number } {
-    const { x, y } = dataManager.getPlayerData();
-    return { x, y };
+    const { x, y } = dataManager.getPlayerData()
+    return { x, y }
   }
 
   private getSpawnPosition(): { x: number; y: number } {
-    const spawn = this.worldMap.getSpawnPoint();
+    const spawn = this.worldMap.getSpawnPoint()
     if (spawn.x == null || spawn.y == null) {
-      throw new Error("No spawn point in worldmap");
+      throw new Error('No spawn point in worldmap')
     }
-    return { x: spawn.x, y: spawn.y };
+    return { x: spawn.x, y: spawn.y }
   }
 
   private enterPortal(dest: string): void {
-    if (this.transitioning) return;
-    this.transitioning = true;
-    this._controls.lockInput = true;
-    this.camera.fadeOut(500, 0, 0, 0);
+    if (this.transitioning) return
+    this.transitioning = true
+    this._controls.lockInput = true
+    this.camera.fadeOut(500, 0, 0, 0)
     this.camera.once(Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.start("Game", { area: dest });
-    });
+      this.scene.start('Game', { area: dest })
+    })
   }
 
   update() {
-    this.tempPlayer.update();
+    this.tempPlayer.update()
     // reconciler // todo:
     //this.mapObject.update();
-    this.quickBar.update();
-    const numberKey = this._controls.wasNumberKeyPressed();
+    this.quickBar.update()
+    const numberKey = this._controls.wasNumberKeyPressed()
     if (numberKey > -1) {
-      dataManager.setCurrentSelectedIdx(numberKey);
+      dataManager.setCurrentSelectedIdx(numberKey)
     }
-    //this.debugHud.update(this.tempPlayer.charSprite, this.worldMap.getMap());
+    this.debugHud.update(this.tempPlayer.charSprite, this.worldMap.getMap())
   }
 
   //   const bullets = player.getBullets();

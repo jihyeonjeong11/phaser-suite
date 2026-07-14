@@ -17,68 +17,69 @@
 //
 
 // Ground layer
-export const BASE_INTERACTABLE_TILE_FRAME = 19;
+export const BASE_INTERACTABLE_TILE_FRAME = 19
 
-export const BASE_TILLED_TILE_FRAME = 10;
+export const BASE_TILLED_TILE_FRAME = 10
 
 // World Layer
 
 // todo: add more properties!
 export const STATIC_TILE_PROPERTIES = {
-  DIGGABLE: "Diggable",
-  WATERSOURCE: "watersource",
-  ACTION: "action",
-} as const;
+  DIGGABLE: 'Diggable',
+  WATERSOURCE: 'watersource',
+  ACTION: 'action'
+} as const
 
 export const DYNAMIC_TILE_PROPERTIES = {
-  ISOCCUPIED: "IsOccupied",
-} as const;
+  ISOCCUPIED: 'IsOccupied'
+} as const
 
 export const TEMP_OBJECT_TILES = {
   grass: {
-    name: "grass",
-    type: "Litter",
-    texture: "tallgrass",
+    name: 'grass',
+    type: 'Litter',
+    texture: 'tallgrass',
     frame: 16,
-    passable: true,
-    occupies: false,
+    isPassable: true,
+    isOccupied: false
   },
   tree: {
     name: 'tree',
-    type: "Structure",
-    texture: "heart_anim",
+    type: 'resource',
+    texture: 'heart_anim',
     frame: 3,
-    passable: false,
-    occupies: true,
+    isPassable: false,
+    isOccupied: true
   },
   sign: {
     name: 'sign',
-    type: "Scrap",
-    texture: "apocalypse",
+    type: 'Scrap',
+    texture: 'apocalypse',
     frame: 80,
-    passable: false,
-    occupies: true,
+    isPassable: false,
+    isOccupied: true
   },
   tilled: {
     name: 'tilled_dirt',
-    type: "Crop",
-    texture: "plowed_soil",
-    frame: 10,
-    passable: true,
-    occupies: false,
-  },
-} as const;
+    type: 'Crop',
+    texture: 'plowed_soil',
+    frame: 15,
+    watered: false as boolean,
+    isPassable: true,
+    isOccupied: false
+  }
+} as const
 
-export type Tile = typeof TEMP_OBJECT_TILES[keyof typeof TEMP_OBJECT_TILES];
-export type ObjectMap = Record<string, Tile>;
+export type Tile = (typeof TEMP_OBJECT_TILES)[keyof typeof TEMP_OBJECT_TILES]
+export type ObjectMap = Record<string, Tile>
 
 // from stardew valley for ref
 export const Tiles = {
-  "0": {
-    Name: "Weeds",
-    DisplayName: "[LocalizedText Strings\\Objects:Weeds_Name]",
-    Description: "[LocalizedText Strings\\Objects:Weeds_Description]",
-    Type: "Litter",
+  '0': {
+    Name: 'Weeds',
+    DisplayName: '[LocalizedText Strings\\Objects:Weeds_Name]',
+    Description: '[LocalizedText Strings\\Objects:Weeds_Description]',
+    Type: 'Litter',
     Category: -999,
     Price: 0,
     Texture: null,
@@ -96,9 +97,9 @@ export const Tiles = {
     ExcludeFromShippingCollection: false,
     ExcludeFromRandomSale: false,
     ContextTags: null,
-    CustomFields: null,
-  },
-};
+    CustomFields: null
+  }
+}
 
 // ─────────────────────────────────────────────────────────────
 // 우리가 "지금" 필요한 값들 (스타듀 스키마에서 추려낸 최소 형태)
