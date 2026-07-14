@@ -21,6 +21,18 @@
     "dev:fishy": "pnpm --filter game-fishy dev",
     "dev:fcd": "pnpm --filter game-five-card-draw dev",
     "dev:sichuan": "pnpm --filter game-mahjong-solitaire dev",
-    "dev:showcase": "pnpm --filter game-stickfigure-showcase dev"
+    "dev:showcase": "pnpm --filter game-stickfigure-showcase dev",
+    "lint": "eslint games",
+    "lint:fix": "eslint games --fix",
+    "lint:all": "pnpm lint && pnpm --filter arcade lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.0.1",
+    "prettier": "^3.8.4",
+    "typescript-eslint": "^8.61.1"
   }
 }

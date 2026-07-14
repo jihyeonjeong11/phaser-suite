@@ -1,6 +1,11 @@
-out
+node_modules
 dist
+build
+out
 pnpm-lock.yaml
+LICENSE
 LICENSE.md
 tsconfig.json
 tsconfig.*.json
+**/public
+save.json
