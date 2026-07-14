@@ -46,7 +46,7 @@ export class TempPlayer {
   private targetTile: TargetTile;
   protected readonly baseScale: number = 3;
   // todo: compute actual speed for Player class
-  protected readonly baseSpeed: number = 1.5;
+  protected readonly baseSpeed: number = 3;
   constructor(
     scene: Scene,
     startPos: { x: number; y: number },

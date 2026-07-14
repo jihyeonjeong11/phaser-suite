@@ -1,6 +1,8 @@
 import { Data, Events } from "phaser";
 import { DEFAULT_MAP_KEY } from "../utils/constants/mapKeys";
 import { DIRECTION, Direction } from "../utils/constants/constants";
+import { ObjectMap } from "../utils/constants/tiles";
+import { MapObject } from "../../gameobjects/mapObjects/MapObjects";
 
 // inventory current scope
 // characterdata if battle implemented money, hp, stamina...
@@ -31,15 +33,6 @@ export interface PlayerData {
   currentMapKey: string;
   direction: Direction;
 }
-
-// 갈린 흙 한 칸의 동적 상태(직렬화 대상).
-export type TileObject =
-  | { kind: "grass" }
-  | { kind: "stone" }
-  | { kind: "tilled"; state: number; fertilizer: number; crop: number | null };
-
-// 한 맵의 delta 보드: "col,row" → HoeDirt. (SDV GameLocation.terrainFeatures 딕셔너리의 직렬화 형태)
-export type MapDelta = Record<string, TileObject>;
 
 export const TEMP_INV: InventoryItem[] = [
   {
@@ -94,7 +87,7 @@ const initialState = {
   inventory: TEMP_INV,
   currentSelectedIdx: -1,
   // 맵별 delta 보드(변형된 칸만 희소 저장). mapKey → ("col,row" → HoeDirt)
-  interactableMaps: {} as Record<string, MapDelta>,
+  interactableMaps: Object.assign({}, {} as MapObject),
   // volume 등 옵션은 세이브 상위 계층(GlobalConfig, localStorage)에서 관리한다.
 } as const;
 
@@ -165,17 +158,15 @@ class DataManager extends Events.EventEmitter {
   }
 
   // 해당 맵의 delta 보드를 반환(없으면 빈 객체). MapObject가 진입 시 로드에 사용.
-  getMap(mapKey: string): MapDelta {
-    const maps = this.store.get("interactableMaps") as
-      | Record<string, MapDelta>
-      | undefined;
+  getMap(mapKey: string): ObjectMap {
+    const maps = this.store.get("interactableMaps");
+
     return maps?.[mapKey] ?? {};
   }
 
-  // 해당 맵의 delta 보드를 갱신. save() 시 localStorage에 함께 직렬화됨.
-  setMap(mapKey: string, delta: MapDelta) {
+  setMap(mapKey: string, delta: ObjectMap) {
     const maps = {
-      ...(this.store.get("interactableMaps") as Record<string, MapDelta>),
+      ...this.store.get("interactableMaps"),
       [mapKey]: delta,
     };
     this.store.set("interactableMaps", maps);

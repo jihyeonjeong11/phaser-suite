@@ -58,7 +58,7 @@ export class Game extends BaseScene {
   private camera: Cameras.Scene2D.Camera;
   private worldMap: Worldmap;
   private debugHud: DebugHud;
-  private sceneData: { area: string; fromSave: boolean } = {
+  private sceneData: { area: MapKey; fromSave: boolean } = {
     area: DEFAULT_MAP_KEY,
     fromSave: false,
   };
@@ -84,19 +84,19 @@ export class Game extends BaseScene {
     this.transitioning = false;
     this.worldMap = new Worldmap(this, this.sceneData.area);
 
-    const mapObject = new MapObject(
-      this.worldMap.belowLayer,
-      this.worldMap.getWorldLayer(),
-      this.sceneData.area as MapKey,
-    );
-    this.mapObject = mapObject;
+    // const mapObject = new MapObject(
+    //   this.worldMap.belowLayer,
+    //   this.worldMap.getWorldLayer(),
+    //   this.sceneData.area as MapKey,
+    // );
+    // this.mapObject = mapObject;
 
-    this.debugHud = new DebugHud(
-      this,
-      mapObject,
-      this.worldMap.getWorldLayer(),
-      this.worldMap.getPortalLayer(),
-    );
+    // this.debugHud = new DebugHud(
+    //   this,
+    //   mapObject,
+    //   this.worldMap.getWorldLayer(),
+    //   this.worldMap.getPortalLayer(),
+    // );
     this.quickBar = new QuickBar(this);
 
     if (this.sceneData.area === MAP_KEYS.CLIFF) {
@@ -121,7 +121,7 @@ export class Game extends BaseScene {
       this.worldMap.getBackgroundLayer(),
       this.worldMap.getPortalLayer(),
       (dest) => this.enterPortal(dest),
-      mapObject,
+      this.worldMap.mapObjects,
     );
     this.camera.startFollow(this.tempPlayer.charSprite);
   }
@@ -152,13 +152,13 @@ export class Game extends BaseScene {
   update() {
     this.tempPlayer.update();
     // reconciler // todo:
-    this.mapObject.update();
+    //this.mapObject.update();
     this.quickBar.update();
     const numberKey = this._controls.wasNumberKeyPressed();
     if (numberKey > -1) {
       dataManager.setCurrentSelectedIdx(numberKey);
     }
-    this.debugHud.update(this.tempPlayer.charSprite, this.worldMap.getMap());
+    //this.debugHud.update(this.tempPlayer.charSprite, this.worldMap.getMap());
   }
 
   //   const bullets = player.getBullets();

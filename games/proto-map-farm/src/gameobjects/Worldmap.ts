@@ -1,4 +1,6 @@
 import { Scene, Tilemaps, Types } from "phaser";
+import { MapObject } from "./mapObjects/MapObjects";
+import { MapKey } from "../game/utils/constants/mapKeys";
 
 function imageKeyFor(source: string): string {
   const base = source.split(/[\\/]/).pop() ?? source;
@@ -17,7 +19,9 @@ export class Worldmap {
   readonly spawnPoint: Types.Tilemaps.TiledObject;
   readonly portalLayer: Tilemaps.ObjectLayer | null;
 
-  constructor(scene: Scene, key: string) {
+  mapObjects: MapObject;
+
+  constructor(scene: Scene, key: MapKey) {
     this.map = scene.make.tilemap({ key });
 
     const tilesets = this.resolveTilesets(scene, key);
@@ -68,6 +72,12 @@ export class Worldmap {
     }
 
     this.portalLayer = this.map.getObjectLayer("Portals");
+
+    this.mapObjects = new MapObject(
+      this.belowLayer,
+      this.getWorldLayer(),
+      key as MapKey,
+    );
 
     this.addMapCollision(scene);
   }
