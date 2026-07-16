@@ -112,7 +112,7 @@ export class Game extends BaseScene {
     this.camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels)
 
     const startPos = this.sceneData.fromSave ? this.getSavedPosition() : this.getSpawnPosition()
-    new Player(this, startPos)
+    // new Player(this, startPos)
     this.tempPlayer = new TempPlayer(
       this,
       startPos,
