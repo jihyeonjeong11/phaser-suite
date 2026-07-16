@@ -7,6 +7,8 @@ import { QuickBar } from '../../gameobjects/hud/QuickBar'
 import { DEFAULT_MAP_KEY, MAP_KEYS, MapKey } from '../utils/constants/mapKeys'
 import { TempPlayer } from '../../gameobjects/TempPlayer'
 import { MapObject } from '../../gameobjects/mapObjects/MapObjects'
+import { Character } from '../../gameobjects/characters/Character'
+import { Player } from '../../gameobjects/characters/Player'
 
 // 1. 맵 / 레벨 구성
 
@@ -109,11 +111,11 @@ export class Game extends BaseScene {
     this.camera = this.cameras.main
     this.camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels)
 
-    const start = this.sceneData.fromSave ? this.getSavedPosition() : this.getSpawnPosition()
-
+    const startPos = this.sceneData.fromSave ? this.getSavedPosition() : this.getSpawnPosition()
+    new Player(this, startPos)
     this.tempPlayer = new TempPlayer(
       this,
-      start,
+      startPos,
       this._controls,
       this.worldMap.getWorldLayer(),
       this.worldMap.getBackgroundLayer(),
@@ -150,13 +152,12 @@ export class Game extends BaseScene {
   update() {
     this.tempPlayer.update()
     // reconciler // todo:
-    //this.mapObject.update();
-    this.quickBar.update()
+    // this.quickBar.update()
     const numberKey = this._controls.wasNumberKeyPressed()
     if (numberKey > -1) {
       dataManager.setCurrentSelectedIdx(numberKey)
     }
-    this.debugHud.update(this.tempPlayer.charSprite, this.worldMap.getMap())
+    //  this.debugHud.update(this.tempPlayer.charSprite, this.worldMap.getMap())
   }
 
   //   const bullets = player.getBullets();

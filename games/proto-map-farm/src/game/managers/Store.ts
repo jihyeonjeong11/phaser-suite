@@ -153,6 +153,12 @@ class DataManager extends Events.EventEmitter {
     this.store.set('inventory', inventory)
   }
 
+  addItem(item: InventoryItem) {
+    const inventory = this.store.get('inventory') as InventoryItem[]
+    if (inventory.length >= TEMP_INV_LIMIT) return
+    this.setInventory([...inventory, item])
+  }
+
   // 해당 맵의 delta 보드를 반환(없으면 빈 객체). MapObject가 진입 시 로드에 사용.
   getMap(mapKey: string): ObjectMap {
     const maps = this.store.get('interactableMaps')

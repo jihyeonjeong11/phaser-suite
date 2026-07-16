@@ -5,6 +5,7 @@ import { MapObject } from './mapObjects/MapObjects'
 import { playSound } from '../game/utils/audios'
 import { AUDIO_KEYS } from '../game/utils/constants/audioKeys'
 import { DIRECTION, POS } from '../game/utils/constants/constants'
+import { TEMP_ITEMS } from '../game/utils/constants/items'
 
 class TargetTile {
   private targetHighlight: GameObjects.Rectangle
@@ -66,7 +67,7 @@ export class TempPlayer {
     this.onEnterPortal = onEnterPortal
     this.mapObject = mapObject
     dataManager.setPlayerData({ x: startPos.x, y: startPos.y })
-    this.charSprite = scene.add.sprite(startPos.x, startPos.y, 'base_char', 0)
+    this.charSprite = scene.add.sprite(startPos.x, startPos.y, 'base_char', 0).setDepth(2)
 
     // setscale
     this.charSprite.setScale(this.baseScale)
@@ -171,25 +172,26 @@ export class TempPlayer {
     const col = Math.floor(x / tw) + dx
     const row = Math.floor(y / th) + dy
 
-    const info = this.mapObject.getTileInfo(col, row)
+    // 물뿌리개는 스타듀밸리처럼 어떤 타일에서든 사용 가능 (게이팅 제외, water() 내부에서 자체 검증)
+    if (currentHand.name === 'testing_watering_can') {
+      playSound(this.scene, AUDIO_KEYS.WATERING)
+      this.mapObject.water(col, row)
+      return
+    }
 
-    console.log(info)
+    if (!this.mapObject.isInteractable(col, row, currentHand.name)) return
 
     if (currentHand.name === 'testing_pickaxe') {
       playSound(this.scene, AUDIO_KEYS.PICKAXE)
       this.mapObject.swingPickaxe(col, row)
+      dataManager.addItem(TEMP_ITEMS.scrap_metal)
     } else if (currentHand.name === 'testing_axe') {
       playSound(this.scene, AUDIO_KEYS.AXE)
       this.mapObject.swingAxe(col, row)
+      dataManager.addItem(TEMP_ITEMS.wood)
     } else if (currentHand.name === 'testing_hoe') {
       playSound(this.scene, AUDIO_KEYS.HOE)
       this.mapObject.till(col, row)
-    } else if (currentHand.name === 'testing_watering_can') {
-      playSound(this.scene, AUDIO_KEYS.WATERING)
-      this.mapObject.water(col, row)
-    }
-    if (info.features.name === 'grass') {
-      this.mapObject.removeFeature(col, row)
     }
   }
 
