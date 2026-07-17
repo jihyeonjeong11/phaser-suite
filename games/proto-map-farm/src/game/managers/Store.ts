@@ -3,6 +3,8 @@ import { DEFAULT_MAP_KEY } from '../utils/constants/mapKeys'
 import { DIRECTION, Direction } from '../utils/constants/constants'
 import { ObjectMap } from '../utils/constants/tiles'
 import { MapObject } from '../../gameobjects/mapObjects/MapObjects'
+import { TEMP_ITEMS } from '../utils/constants/items'
+import { TEMP_CROPS } from '../utils/constants/crops'
 
 // inventory current scope
 // characterdata if battle implemented money, hp, stamina...
@@ -22,9 +24,12 @@ export const TEMP_INV_LIMIT = 10
 // type 추가 (weapon | tool | resource...) — 아직 미적용, 임시로 frame 유무로 Weapon/Tool 판별
 export interface InventoryItem {
   name: string
+  type: string
   textureKey: string
-  frame?: number
+  frame?: number | string
   soundMap?: Record<string, string>
+  maxStack?: number
+  currentStack?: number
 }
 
 export interface PlayerData {
@@ -34,49 +39,6 @@ export interface PlayerData {
   direction: Direction
 }
 
-export const TEMP_INV: InventoryItem[] = [
-  {
-    name: 'testing_rifle',
-    textureKey: 'weapons', // 스프라이트시트 "weapons"의 frame 0 (Preloader: load.spritesheet)
-    frame: undefined, // undefined = Weapon으로 판별 + 기본 frame 0 렌더
-    soundMap: {
-      //fire, reload
-    }
-  },
-  {
-    name: 'testing_watering_can',
-    textureKey: 'tools', // spritesheet "tools"
-    frame: 0,
-    soundMap: {
-      //pour, refill
-    }
-  },
-  {
-    name: 'testing_pickaxe',
-    textureKey: 'tools',
-    frame: 1,
-    soundMap: {
-      //mine
-    }
-  },
-  {
-    name: 'testing_hoe',
-    textureKey: 'tools',
-    frame: 2,
-    soundMap: {
-      //till
-    }
-  },
-  {
-    name: 'testing_axe',
-    textureKey: 'tools',
-    frame: 2,
-    soundMap: {
-      //chop
-    }
-  }
-]
-
 const initialState = {
   player: {
     x: 0,
@@ -84,7 +46,14 @@ const initialState = {
     currentMapKey: DEFAULT_MAP_KEY,
     direction: DIRECTION.DOWN
   },
-  inventory: TEMP_INV,
+  inventory: [
+    TEMP_ITEMS.testing_rifle,
+    TEMP_ITEMS.testing_watering_can,
+    TEMP_ITEMS.testing_pickaxe,
+    TEMP_ITEMS.testing_hoe,
+    TEMP_ITEMS.testing_axe,
+    { ...TEMP_ITEMS.seed_corn, currentStack: 1 }
+  ],
   currentSelectedIdx: -1,
   interactableMaps: Object.assign({}, {} as MapObject)
   // volume 등 옵션은 세이브 상위 계층(GlobalConfig, localStorage)에서 관리한다.
@@ -155,8 +124,40 @@ class DataManager extends Events.EventEmitter {
 
   addItem(item: InventoryItem) {
     const inventory = this.store.get('inventory') as InventoryItem[]
+
+    // 스택 가능한 아이템은 기존 칸에 여유가 있으면 currentStack만 올리고, 새 칸을 차지하지 않는다.
+    if (item.maxStack !== undefined) {
+      const idx = inventory.findIndex(
+        (i) => i.name === item.name && (i.currentStack ?? 0) < (i.maxStack ?? Infinity)
+      )
+      if (idx !== -1) {
+        const updated = [...inventory]
+        const existing = updated[idx]
+        updated[idx] = { ...existing, currentStack: (existing.currentStack ?? 0) + 1 }
+        this.setInventory(updated)
+        return
+      }
+    }
+
     if (inventory.length >= TEMP_INV_LIMIT) return
-    this.setInventory([...inventory, item])
+    const newItem = item.maxStack !== undefined ? { ...item, currentStack: 1 } : item
+    this.setInventory([...inventory, newItem])
+  }
+
+  // 스택이 있으면 1개만 줄이고, 없거나 다 떨어지면 칸에서 제거한다.
+  consumeItem(index: number) {
+    const inventory = this.store.get('inventory') as InventoryItem[]
+    const item = inventory[index]
+    if (!item) return
+
+    if (item.currentStack !== undefined && item.currentStack > 1) {
+      const updated = [...inventory]
+      updated[index] = { ...item, currentStack: item.currentStack - 1 }
+      this.setInventory(updated)
+      return
+    }
+
+    this.setInventory(inventory.filter((_, i) => i !== index))
   }
 
   // 해당 맵의 delta 보드를 반환(없으면 빈 객체). MapObject가 진입 시 로드에 사용.
@@ -172,6 +173,45 @@ class DataManager extends Events.EventEmitter {
       [mapKey]: delta
     }
     this.store.set('interactableMaps', maps)
+  }
+
+  // 하루 경과: 현재 보고 있는 맵뿐 아니라 저장된 모든 맵의 watered crop을 성장시킨다.
+  // (예: Farm에서 심고 Home에서 잠들어도 Farm의 작물이 자라야 한다.)
+  advanceAllMaps(): void {
+    const allMaps = this.store.get('interactableMaps') as Record<string, ObjectMap>
+    let changed = false
+    const nextMaps: Record<string, ObjectMap> = { ...allMaps }
+
+    for (const [mapKey, board] of Object.entries(allMaps)) {
+      const next: ObjectMap = { ...board }
+      let mapChanged = false
+
+      for (const [pos, feature] of Object.entries(board)) {
+        if (feature.name !== 'tilled_dirt' || !feature.cropKey || !feature.watered) continue
+
+        const crop = TEMP_CROPS[feature.cropKey]
+        const stageIdx = feature.growthStage ?? 0
+        const stage = crop.stages[stageIdx]
+        if (!stage) continue
+
+        const daysInStage = (feature.daysInStage ?? 0) + 1
+        const isMature = stageIdx >= crop.stages.length - 1
+
+        next[pos] = isMature
+          ? { ...feature, watered: false }
+          : daysInStage >= stage.days
+            ? { ...feature, growthStage: stageIdx + 1, daysInStage: 0, watered: false }
+            : { ...feature, daysInStage, watered: false }
+        mapChanged = true
+      }
+
+      if (mapChanged) {
+        nextMaps[mapKey] = next
+        changed = true
+      }
+    }
+
+    if (changed) this.store.set('interactableMaps', nextMaps)
   }
 }
 

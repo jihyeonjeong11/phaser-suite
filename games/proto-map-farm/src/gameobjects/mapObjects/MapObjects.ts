@@ -1,6 +1,7 @@
 import { GameObjects, Math, Tilemaps } from 'phaser'
 import { MAP_KEYS, MapKey } from '../../game/utils/constants/mapKeys'
 import { dataManager } from '../../game/managers/Store'
+import type { InventoryItem } from '../../game/managers/Store'
 import { StaticFeatures } from './Components/StaticFeatures'
 import {
   ObjectMap,
@@ -8,6 +9,7 @@ import {
   TEMP_OBJECT_TILES,
   Tile
 } from '../../game/utils/constants/tiles'
+import { CropKey, TEMP_CROPS } from '../../game/utils/constants/crops'
 
 export class MapObject {
   private belowLayer: Tilemaps.TilemapLayer
@@ -15,6 +17,7 @@ export class MapObject {
   private resourceClumps = new Set<string>()
   private mapKey: MapKey
   private drawnSprites = new Map<string, GameObjects.Image>()
+  private cropSprites = new Map<string, GameObjects.Image>()
 
   constructor(
     belowLayer: Tilemaps.TilemapLayer,
@@ -67,6 +70,8 @@ export class MapObject {
     dataManager.off('changedata-interactableMaps', this.draw, this)
     for (const img of this.drawnSprites.values()) img.destroy()
     this.drawnSprites.clear()
+    for (const img of this.cropSprites.values()) img.destroy()
+    this.cropSprites.clear()
   }
 
   draw() {
@@ -93,6 +98,13 @@ export class MapObject {
       if (board[key] === undefined) {
         img.destroy()
         this.drawnSprites.delete(key)
+      }
+    }
+    for (const [key, img] of this.cropSprites) {
+      const feature = board[key]
+      if (!feature || !('cropKey' in feature) || !feature.cropKey) {
+        img.destroy()
+        this.cropSprites.delete(key)
       }
     }
   }
@@ -161,6 +173,30 @@ export class MapObject {
     } else {
       img.clearTint()
     }
+
+    this.drawCrop(col, row, k)
+  }
+
+  private drawCrop(col: number, row: number, k: Tile): void {
+    if (!('cropKey' in k) || !k.cropKey) return
+
+    const crop = TEMP_CROPS[k.cropKey]
+    const stageIdx = 'growthStage' in k ? (k.growthStage ?? 0) : 0
+    const stage = crop.stages[stageIdx] ?? crop.stages[crop.stages.length - 1]
+    console.log(crop, stage)
+    const key = this.posToString(col, row)
+    let img = this.cropSprites.get(key)
+    if (!img) {
+      const wx = (this.belowLayer.tileToWorldX(col) ?? 0) + 16
+      const wy = (this.belowLayer.tileToWorldY(row) ?? 0) + 32
+      img = this.belowLayer.scene.add
+        .image(wx, wy, crop.textureKey, stage.frame)
+        .setOrigin(0.5, 1)
+        .setDepth(1)
+      this.cropSprites.set(key, img)
+    } else {
+      img.setFrame(stage.frame)
+    }
   }
 
   private posToString(col: number, row: number): string {
@@ -193,6 +229,32 @@ export class MapObject {
     this.addFeature(col, row, TEMP_OBJECT_TILES.tilled)
   }
 
+  seed(col: number, row: number, cropKey: CropKey): void {
+    const pos = this.posToString(col, row)
+    const board = dataManager.getMap(this.mapKey)
+    const feature = board[pos]
+    if (!feature || feature.name !== 'tilled_dirt' || feature.cropKey) return
+
+    const planted: Tile = { ...feature, cropKey, growthStage: 0, daysInStage: 0 }
+    dataManager.setMap(this.mapKey, { ...board, [pos]: planted })
+  }
+
+  // 다 자란 작물만 수확한다. 성공 시 심어져 있던 cropKey를 반환, 아니면 null.
+  // (regrowDays 미지원: 수확하면 tilled_dirt까지 통째로 제거된다. 다시 심으려면 갈아야 함)
+  harvest(col: number, row: number): CropKey | null {
+    const board = dataManager.getMap(this.mapKey)
+    const feature = board[this.posToString(col, row)]
+    if (!feature || feature.name !== 'tilled_dirt' || !feature.cropKey) return null
+
+    const crop = TEMP_CROPS[feature.cropKey]
+    const stageIdx = feature.growthStage ?? 0
+    if (stageIdx < crop.stages.length - 1) return null
+
+    const cropKey = feature.cropKey
+    this.removeFeature(col, row)
+    return cropKey
+  }
+
   private doesTileHaveProperty(col: number, row: number, prop: string): unknown {
     return this.belowLayer.getTileAt(col, row)?.properties?.[prop]
   }
@@ -220,10 +282,15 @@ export class MapObject {
     return { diggable, features, watersource, action }
   }
 
-  isInteractable(col: number, row: number, tool: string): boolean {
+  isInteractable(col: number, row: number, tool: InventoryItem): boolean {
     const feature = dataManager.getMap(this.mapKey)[this.posToString(col, row)]
 
-    if (tool === 'testing_hoe') {
+    // 씨앗은 아직 작물이 없는 tilled_dirt 위에서만 사용 가능
+    if (tool.type === 'seed') {
+      return feature?.name === 'tilled_dirt' && !feature.cropKey
+    }
+
+    if (tool.name === 'testing_hoe') {
       if (feature) return false
       return this.doesTileHaveProperty(col, row, STATIC_TILE_PROPERTIES.DIGGABLE) === true
     }
@@ -232,11 +299,11 @@ export class MapObject {
 
     switch (feature.name) {
       case 'tree':
-        return tool === 'testing_axe'
+        return tool.name === 'testing_axe'
       case 'sign':
-        return tool === 'testing_pickaxe'
+        return tool.name === 'testing_pickaxe'
       case 'tilled_dirt':
-        return tool === 'testing_watering_can'
+        return tool.name === 'testing_watering_can'
       default:
         return false
     }

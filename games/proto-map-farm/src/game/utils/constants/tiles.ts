@@ -1,8 +1,10 @@
+import { CropKey } from './crops'
+
 // todo: add more properties!
 export const STATIC_TILE_PROPERTIES = {
   DIGGABLE: 'Diggable',
   WATERSOURCE: 'watersource',
-  ACTION: 'action'
+  ACTION: 'Action'
 } as const
 
 export const DYNAMIC_TILE_PROPERTIES = {
@@ -41,7 +43,11 @@ export const TEMP_OBJECT_TILES = {
     frame: 15,
     watered: false as boolean,
     isPassable: true,
-    isOccupied: false
+    isOccupied: false,
+    // 심어진 작물이 있을 때만 채워짐 (없으면 빈 tilled_dirt)
+    cropKey: undefined as CropKey | undefined,
+    growthStage: undefined as number | undefined,
+    daysInStage: undefined as number | undefined
   }
 } as const
 

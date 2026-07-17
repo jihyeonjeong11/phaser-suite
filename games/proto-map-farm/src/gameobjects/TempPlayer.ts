@@ -6,6 +6,8 @@ import { playSound } from '../game/utils/audios'
 import { AUDIO_KEYS } from '../game/utils/constants/audioKeys'
 import { DIRECTION, POS } from '../game/utils/constants/constants'
 import { TEMP_ITEMS } from '../game/utils/constants/items'
+import { TEMP_CROPS } from '../game/utils/constants/crops'
+import { STATIC_TILE_PROPERTIES } from '../game/utils/constants/tiles'
 
 class TargetTile {
   private targetHighlight: GameObjects.Rectangle
@@ -179,9 +181,19 @@ export class TempPlayer {
       return
     }
 
-    if (!this.mapObject.isInteractable(col, row, currentHand.name)) return
+    if (!this.mapObject.isInteractable(col, row, currentHand)) return
 
-    if (currentHand.name === 'testing_pickaxe') {
+    if (currentHand.type === 'seed') {
+      // items.ts 키(TEMP_CROPS[key].seedItem)로 현재 든 아이템에 대응하는 작물을 찾는다.
+      const cropKey = (Object.keys(TEMP_CROPS) as (keyof typeof TEMP_CROPS)[]).find(
+        (key) =>
+          TEMP_ITEMS[TEMP_CROPS[key].seedItem as keyof typeof TEMP_ITEMS]?.name === currentHand.name
+      )
+      if (cropKey) {
+        this.mapObject.seed(col, row, cropKey)
+        dataManager.consumeItem(currentIdx)
+      }
+    } else if (currentHand.name === 'testing_pickaxe') {
       playSound(this.scene, AUDIO_KEYS.PICKAXE)
       this.mapObject.swingPickaxe(col, row)
       dataManager.addItem(TEMP_ITEMS.scrap_metal)
@@ -197,16 +209,24 @@ export class TempPlayer {
 
   private interact() {
     const { col, row } = this.targetTile.getPos()
-    const isInteractable = this._worldLayer.getTileAt(col, row)?.properties?.action
-    if (isInteractable === 'sleep') {
+    const action = this._worldLayer.getTileAt(col, row)?.properties?.[STATIC_TILE_PROPERTIES.ACTION]
+    if (action === 'sleep') {
       const cam = this.scene.cameras.main
       this._controls.lockInput = true // 전환 중 이동 잠금
       cam.fadeOut(500, 0, 0, 0)
       cam.once('camerafadeoutcomplete', () => {
-        // 여기서 잠자기 로직(시간 경과/회복 등)
+        // temp daypassing
+        dataManager.advanceAllMaps()
         cam.fadeIn(500, 0, 0, 0)
         this._controls.lockInput = false
       })
+      return
+    }
+
+    const cropKey = this.mapObject.harvest(col, row)
+    if (cropKey) {
+      const harvestKey = TEMP_CROPS[cropKey].harvestItem as keyof typeof TEMP_ITEMS
+      dataManager.addItem(TEMP_ITEMS[harvestKey])
     }
   }
 
@@ -220,8 +240,6 @@ export class TempPlayer {
   update() {
     if (this._controls.isInputLocked) return
 
-    // 방향, 전환 // 전환은 마우스로 하는거 아님? 총 들었을때는 마우스로 해야하고(뒤로가면서 사격하게) 아닐떄는 아닌데, 지금은 복잡하니까 마우스는 빼고 여기서 돌릭 ㅔ하자.
-    // 이동
     const key = this.charSprite.texture.key
     const dir = this._controls.getDirectionKeyPressedDown()
 

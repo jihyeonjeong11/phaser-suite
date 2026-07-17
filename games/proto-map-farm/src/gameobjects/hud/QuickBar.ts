@@ -8,6 +8,7 @@ export class QuickBar extends GameObjects.Container {
 
   private slots: GameObjects.Rectangle[] = [];
   private icons: (GameObjects.Image | null)[] = [];
+  private stackLabels: (GameObjects.Text | null)[] = [];
 
   constructor(scene: Scene) {
     super(scene, 0, 0);
@@ -55,6 +56,7 @@ export class QuickBar extends GameObjects.Container {
       this.add([slot, label]);
       this.slots.push(slot);
       this.icons.push(null);
+      this.stackLabels.push(null);
     }
   }
 
@@ -106,6 +108,8 @@ export class QuickBar extends GameObjects.Container {
 
       this.icons[i]?.destroy();
       this.icons[i] = null;
+      this.stackLabels[i]?.destroy();
+      this.stackLabels[i] = null;
 
       const item = inv[i];
       if (!item) continue;
@@ -117,6 +121,21 @@ export class QuickBar extends GameObjects.Container {
 
       this.add(icon);
       this.icons[i] = icon;
+
+      if (item.maxStack !== undefined) {
+        const stackLabel = this.scene.add
+          .text(
+            slot.x + QuickBar.SLOT_SIZE / 2 - 4,
+            slot.y + QuickBar.SLOT_SIZE / 2 - 2,
+            String(item.currentStack ?? 0),
+            { fontSize: "10px", color: "#ffffff", fontStyle: "bold" },
+          )
+          .setOrigin(1, 1)
+          .setScrollFactor(0);
+
+        this.add(stackLabel);
+        this.stackLabels[i] = stackLabel;
+      }
     }
   }
 

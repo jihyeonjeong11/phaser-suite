@@ -88,6 +88,11 @@ export class Preloader extends Scene {
       frameWidth: 32,
       frameHeight: 32,
     });
+    // 288×384, 32px 셀 → 9열×12행. 작물 성장 단계/수확물 아이콘을 프레임 인덱스로 접근.
+    this.load.spritesheet("plants", "tilesets/farm/plants.png", {
+      frameWidth: 32,
+      frameHeight: 32,
+    });
 
     this.load.tilemapTiledJSON(MAP_KEYS.HOME, "json/home_json.json");
     this.load.spritesheet(
@@ -191,6 +196,29 @@ export class Preloader extends Scene {
   }
 
   create() {
+    this.registerPlantFrames();
     this.scene.start("MainMenu");
+  }
+
+  // plants.png는 32px 균일 그리드 스프라이트시트라, 다 자란 옥수수처럼 세로로
+  // 여러 셀을 침범하는 그림은 load.spritesheet의 고정 슬라이싱으로 담을 수 없다.
+  // 스타듀밸리가 crops.png를 애초에 큰 셀로 잘라두는 것처럼, 여기서는 실제
+  // 픽셀 bbox로 커스텀 named frame을 텍스처에 직접 등록해 우회한다.
+  private registerPlantFrames(): void {
+    const plants = this.textures.get("plants");
+    const cornFrames: Record<string, [number, number, number, number]> = {
+      corn_sprout: [200, 46, 20, 16],
+      corn_2: [196, 84, 25, 41],
+      corn_3: [194, 129, 28, 62],
+      corn_4: [194, 193, 28, 62],
+      corn_5: [194, 257, 28, 62],
+      corn_harvest: [197, 366, 20, 17],
+    };
+
+    Object.entries(cornFrames).forEach(([name, [x, y, width, height]]) => {
+      if (!plants.has(name)) {
+        plants.add(name, 0, x, y, width, height);
+      }
+    });
   }
 }
