@@ -1,5 +1,7 @@
 import { Scene } from "phaser";
 import { MAP_KEYS } from "../utils/constants/mapKeys";
+import { DATA_KEYS } from "../utils/constants/dataKeys";
+import { DataUtils } from "../utils/dataUtils";
 
 export class Preloader extends Scene {
   constructor() {
@@ -68,6 +70,8 @@ export class Preloader extends Scene {
 
     // Farm: rebuilt at 32px on the LPC farm tilesets.
     // Image keys must equal each tileset image's basename (Worldmap.imageKeyFor).
+    this.load.json(DATA_KEYS.ANIMATIONS, "json/animation.json");
+
     this.load.tilemapTiledJSON(MAP_KEYS.FARM, "json/farm_json.json");
     // 96×192, 32px 셀 → 3열×6행. 타일셋이자 개별 프레임(갈린 흙)으로 접근하므로 스프라이트시트로 로드.
     this.load.spritesheet("plowed_soil", "tilesets/farm/plowed_soil.png", {
@@ -197,7 +201,21 @@ export class Preloader extends Scene {
 
   create() {
     this.registerPlantFrames();
+    this.createAnimations();
     this.scene.start("MainMenu");
+  }
+
+  private createAnimations(): void {
+    DataUtils.getAnimations(this).forEach((anim) => {
+      this.anims.create({
+        key: anim.key,
+        frames: anim.frames
+          ? this.anims.generateFrameNumbers(anim.assetKey, { frames: anim.frames })
+          : this.anims.generateFrameNumbers(anim.assetKey),
+        frameRate: anim.frameRate,
+        repeat: anim.repeat,
+      });
+    });
   }
 
   // plants.png는 32px 균일 그리드 스프라이트시트라, 다 자란 옥수수처럼 세로로

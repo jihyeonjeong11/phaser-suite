@@ -10,9 +10,14 @@ export const DIRECTION = {
   DOWNRIGHT: 'DOWNRIGHT'
 } as const
 
-export interface POS {
+export interface TilePos {
   col: number
   row: number
+}
+
+export interface WorldPos {
+  x: number
+  y: number
 }
 
 // 입력 결과 포함(NONE 포함) — controls가 반환하는 값의 타입.

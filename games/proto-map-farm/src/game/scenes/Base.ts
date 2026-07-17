@@ -1,5 +1,5 @@
-import { Scene, Types } from "phaser";
-import { Controls } from "../utils/controls";
+import { Scene, Types } from 'phaser'
+import { Controls } from '../utils/controls'
 
 // goal: complete lifecycle for phaser game scene, registry ingame event emission and scene trasitions
 // 1. preloader.ts -> loads initial registry, after expand to save/load feature
@@ -19,35 +19,33 @@ import { Controls } from "../utils/controls";
 
 // todo: controls
 export abstract class BaseScene extends Scene {
-  _controls!: Controls;
+  _controls!: Controls
   constructor(config: Types.Scenes.SettingsConfig) {
-    super(config);
+    super(config)
   }
 
-  init(data: any) {
+  init(data: unknown) {
     // declare variables and constants to be referenced in all regular game scenes here with the prefix this
     // e.g. this.foo = 'bar';
     // DO NOT declare listeners to the theatre here with .on, as they will spam in every new scene
     if (data) {
-      this._log(
-        `[${this.constructor.name}:init] invoked, data provided: ${JSON.stringify(data)}`,
-      );
-      return;
+      this._log(`[${this.constructor.name}:init] invoked, data provided: ${JSON.stringify(data)}`)
+      return
     }
-    this._log(`[${this.constructor.name}:init] invoked`);
+    this._log(`[${this.constructor.name}:init] invoked`)
   }
 
   create() {
-    this._controls = new Controls(this);
+    this._controls = new Controls(this)
     //this._log(`[${this.constructor.name}:create] invoked`);
-    this.scene.bringToTop();
+    this.scene.bringToTop()
   }
-  nextScene(oldscene: Scene, newscene: Scene, payload: any) {
-    this.scene.stop(oldscene);
-    this.scene.run(newscene, payload);
-  }
+  // nextScene(oldscene: Scene, newscene: Scene, payload: unknown) {
+  //   this.scene.stop(oldscene)
+  //   this.scene.run(newscene, payload)
+  // }
   _log(message: string) {
-    console.log(`%c${message}`, "color: orange; background: black;");
+    console.log(`%c${message}`, 'color: orange; background: black;')
   }
 }
 

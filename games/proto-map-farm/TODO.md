@@ -2,6 +2,11 @@
 
 - godot tutorial에서 타일셋 베낄만한거 많음
 
+# Aesthetics
+
+- fallout 과 하베스트문 공존 가능?
+- 픽셀로 만들기 가능?
+
 # TODO
 
 > excalidraw 설계 기준. 파일 박스별 책임 + 남은 작업.

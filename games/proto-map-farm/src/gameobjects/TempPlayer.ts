@@ -4,14 +4,14 @@ import { dataManager } from '../game/managers/Store'
 import { MapObject } from './mapObjects/MapObjects'
 import { playSound } from '../game/utils/audios'
 import { AUDIO_KEYS } from '../game/utils/constants/audioKeys'
-import { DIRECTION, POS } from '../game/utils/constants/constants'
+import { DIRECTION, TilePos, WorldPos } from '../game/utils/constants/constants'
 import { TEMP_ITEMS } from '../game/utils/constants/items'
 import { TEMP_CROPS } from '../game/utils/constants/crops'
 import { STATIC_TILE_PROPERTIES } from '../game/utils/constants/tiles'
 
 class TargetTile {
   private targetHighlight: GameObjects.Rectangle
-  private targetPos: POS = { col: 0, row: 0 }
+  private targetPos: TilePos = { col: 0, row: 0 }
   private map: Tilemaps.Tilemap
 
   constructor(scene: Scene, map: Tilemaps.Tilemap) {
@@ -32,7 +32,7 @@ class TargetTile {
     )
   }
 
-  getPos(): POS {
+  getPos(): TilePos {
     return this.targetPos
   }
 }
@@ -52,7 +52,7 @@ export class TempPlayer {
   protected readonly baseSpeed: number = 3
   constructor(
     scene: Scene,
-    startPos: { x: number; y: number },
+    startPos: WorldPos,
     _controls: Controls,
     collisionLayer: Tilemaps.TilemapLayer,
     backgroundLayer: Tilemaps.TilemapLayer | null,
@@ -102,7 +102,7 @@ export class TempPlayer {
     // 툴
   }
 
-  private doesPositionCollideWithWorldLayer(position: { x: number; y: number }): boolean {
+  private doesPositionCollideWithWorldLayer(position: WorldPos): boolean {
     if (!this._worldLayer) {
       return false
     }
@@ -115,7 +115,7 @@ export class TempPlayer {
     return tile.index !== -1
   }
 
-  private doesPositionCollideWithBackgroundLayer(position: { x: number; y: number }): boolean {
+  private doesPositionCollideWithBackgroundLayer(position: WorldPos): boolean {
     if (!this._backgroundLayer) {
       return false
     }
@@ -128,13 +128,13 @@ export class TempPlayer {
     return tile.index !== -1
   }
 
-  private isWithinBounds(position: { x: number; y: number }): boolean {
+  private isWithinBounds(position: WorldPos): boolean {
     const map = this._worldLayer.tilemap
     const { x, y } = position
     return x >= 0 && y >= 0 && x <= map.widthInPixels && y <= map.heightInPixels
   }
 
-  private getPortalAt(position: { x: number; y: number }): Types.Tilemaps.TiledObject | null {
+  private getPortalAt(position: WorldPos): Types.Tilemaps.TiledObject | null {
     if (!this._portalLayer) return null
     const map = this._worldLayer.tilemap
     const tw = map.tileWidth
@@ -212,7 +212,7 @@ export class TempPlayer {
     const action = this._worldLayer.getTileAt(col, row)?.properties?.[STATIC_TILE_PROPERTIES.ACTION]
     if (action === 'sleep') {
       const cam = this.scene.cameras.main
-      this._controls.lockInput = true // 전환 중 이동 잠금
+      this._controls.lockInput = true
       cam.fadeOut(500, 0, 0, 0)
       cam.once('camerafadeoutcomplete', () => {
         // temp daypassing
@@ -230,7 +230,7 @@ export class TempPlayer {
     }
   }
 
-  private playerPixelToPOS(): POS {
+  private playerPixelToPOS(): TilePos {
     const { x, y } = dataManager.getPlayerData()
     const pos = this._worldLayer.tilemap.worldToTileXY(x, y)
     if (!pos) throw new Error('location calculation failed')

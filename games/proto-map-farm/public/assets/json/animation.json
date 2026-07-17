@@ -1,0 +1,9 @@
+[
+  {
+    "key": "base_char-idle",
+    "assetKey": "base_char",
+    "frames": [0, 1],
+    "frameRate": 3,
+    "repeat": -1
+  }
+]
