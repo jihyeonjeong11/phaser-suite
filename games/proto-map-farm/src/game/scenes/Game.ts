@@ -9,7 +9,13 @@ import { TempPlayer } from '../../gameobjects/TempPlayer'
 import { MapObject } from '../../gameobjects/mapObjects/MapObjects'
 import { stopAllSfx } from '../utils/audios'
 import { Player } from '../../gameobjects/characters/Player'
+import { Enemy } from '../../gameobjects/characters/Enemy'
 import { WorldPos } from '../utils/constants/constants'
+import { HUD } from '../../gameobjects/hud/HUD'
+
+const ZOMBIE_TEXTURE = 'apocalypse'
+const ZOMBIE_FRAME = 1 * 40 + 9
+const ZOMBIE_COUNT = 3
 
 // 1. 맵 / 레벨 구성
 
@@ -61,6 +67,7 @@ export class Game extends BaseScene {
   private camera: Cameras.Scene2D.Camera
   private worldMap: Worldmap
   private debugHud: DebugHud
+  private HUD: HUD
   private sceneData: { area: MapKey; fromSave: boolean } = {
     area: DEFAULT_MAP_KEY,
     fromSave: false
@@ -70,6 +77,7 @@ export class Game extends BaseScene {
   private transitioning = false
   private quickBar: QuickBar
   private mapObject: MapObject
+  private enemies: Enemy[] = []
 
   constructor() {
     super({ key: 'Game' })
@@ -87,7 +95,6 @@ export class Game extends BaseScene {
     super.create()
     this.transitioning = false
     this.worldMap = new Worldmap(this, this.sceneData.area)
-
     this.debugHud = new DebugHud(
       this,
       this.mapObject,
@@ -108,14 +115,22 @@ export class Game extends BaseScene {
 
     const startPos = this.sceneData.fromSave ? this.getSavedPosition() : this.getSpawnPosition()
 
-    this.player = new Player(
-      this,
-      startPos,
-      'base_char',
-      this.worldMap.getPortalLayer(),
-      (dest) => this.enterPortal(dest)
+    this.player = new Player(this, startPos, 'base_char', this.worldMap.getPortalLayer(), (dest) =>
+      this.enterPortal(dest)
     )
     this.camera.startFollow(this.player.charSprite)
+    this.HUD = new HUD(this, this.player)
+
+    // ruin map일 경우 npc 좀비 추가. npc 배열에?
+    if (this.sceneData.area === MAP_KEYS.RUIN) {
+      for (let i = 0; i < ZOMBIE_COUNT; i++) {
+        const pos: WorldPos = {
+          x: Math.random() * map.widthInPixels,
+          y: Math.random() * map.heightInPixels
+        }
+        this.enemies.push(new Enemy(this, pos, ZOMBIE_TEXTURE, ZOMBIE_FRAME))
+      }
+    }
 
     // this.tempPlayer = new TempPlayer(
     //   this,
@@ -163,7 +178,11 @@ export class Game extends BaseScene {
     }
 
     const directionKey = this._controls.getDirectionKeyPressed()
-    if (directionKey) this.player.moveCharacter(directionKey)
+    const isSprinting = !!directionKey && this._controls.isShiftKeyDown()
+    if (directionKey) this.player.moveCharacter(directionKey, isSprinting)
+    if (!isSprinting) this.player.regenStamina()
+
+    this.HUD.update()
 
     //  this.debugHud.update(this.tempPlayer.charSprite, this.worldMap.getMap())
   }

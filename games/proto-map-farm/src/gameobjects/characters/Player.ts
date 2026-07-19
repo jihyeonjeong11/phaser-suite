@@ -5,6 +5,8 @@ import { DIRECTION, DirectionOrNone, WorldPos } from '../../game/utils/constants
 export class Player extends Character {
   private portalLayer: Tilemaps.ObjectLayer | null
   private onEnterPortal: (dest: string) => void
+  computedSpeed: number
+  computedStamina: number
 
   constructor(
     scene: Scene,
@@ -14,6 +16,8 @@ export class Player extends Character {
     onEnterPortal: (dest: string) => void
   ) {
     super()
+    this.computedStamina = this.baseStamina
+    this.computedSpeed = this.baseSpeed
     this.portalLayer = portalLayer
     this.onEnterPortal = onEnterPortal
     this.charSprite = scene.add
@@ -23,8 +27,12 @@ export class Player extends Character {
     scene.add.existing(this.charSprite)
   }
 
-  moveCharacter(directionKey: DirectionOrNone) {
-    super.moveCharacter(directionKey)
+  moveCharacter(directionKey: DirectionOrNone, isRunning = false) {
+    if (isRunning && this.computedStamina > 0) {
+      this.computedStamina--
+    }
+    super.moveCharacter(directionKey, this.computedStamina > 0 ? isRunning : false)
+
     const animKey =
       directionKey !== DIRECTION.NONE
         ? `${this.charSprite.texture.key}_walk`
@@ -36,6 +44,17 @@ export class Player extends Character {
 
     const dest = this.findPortalProperties(this.charSprite.x, this.charSprite.y)
     if (dest) this.onEnterPortal(dest)
+  }
+
+  private static readonly STAMINA_REGEN_RATE = 0.2
+
+  regenStamina() {
+    if (this.computedStamina < this.baseStamina) {
+      this.computedStamina = Math.min(
+        this.baseStamina,
+        this.computedStamina + Player.STAMINA_REGEN_RATE
+      )
+    }
   }
   // 플레이어 오브젝트는 character에서 관리할 것.
   // todo: 플레이어와 오브젝트 레이어 오브젝트는 하나의 rentangle로 맵 오브젝트에서 관리해야 함.

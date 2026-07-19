@@ -23,8 +23,9 @@ export class Controls {
   private lockPlayerInput: boolean
   #enterKey: Input.Keyboard.Key | undefined
   #eKey: Input.Keyboard.Key | undefined
+  #shiftKey: Input.Keyboard.Key | undefined
 
-  #fKey: Input.Keyboard.Key | undefined
+  //#fKey: Input.Keyboard.Key | undefined
   #cKey: Input.Keyboard.Key | undefined
   #numberKeys: Record<string, Input.Keyboard.Key> | undefined
 
@@ -37,8 +38,8 @@ export class Controls {
       Input.Keyboard.Key
     >
     this.#eKey = this.#scene.input.keyboard?.addKey(Input.Keyboard.KeyCodes.E)
-
-    this.#fKey = this.#scene.input.keyboard?.addKey(Input.Keyboard.KeyCodes.F)
+    this.#shiftKey = this.#scene.input.keyboard?.addKey(Input.Keyboard.KeyCodes.SHIFT)
+    //this.#fKey = this.#scene.input.keyboard?.addKey(Input.Keyboard.KeyCodes.F)
     this.#cKey = this.#scene.input.keyboard?.addKey(Input.Keyboard.KeyCodes.C)
     this.#numberKeys = this.#scene.input.keyboard?.addKeys(
       'ONE,TWO,THREE,FOUR,FIVE,SIX,SEVEN,EIGHT,NINE,ZERO'
@@ -53,6 +54,14 @@ export class Controls {
   set lockInput(val: boolean) {
     this.lockPlayerInput = val
   }
+
+  isShiftKeyDown() {
+    if (this.#shiftKey === undefined) {
+      return false
+    }
+    return this.#shiftKey.isDown
+  }
+
   wasEnterKeyPressed() {
     if (this.#enterKey === undefined) {
       return false

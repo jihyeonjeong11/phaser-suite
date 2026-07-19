@@ -23,7 +23,7 @@ export abstract class Character {
     return this.charSprite
   }
 
-  moveCharacter(directionKey: DirectionOrNone) {
+  moveCharacter(directionKey: DirectionOrNone, isRunning = false) {
     let dest: WorldPos = { x: 0, y: 0 }
 
     switch (directionKey) {
@@ -70,9 +70,11 @@ export abstract class Character {
       }
     }
 
+    const speed = isRunning ? this.baseSpeed + 0.5 : this.baseSpeed
+
     const targetPos = {
-      x: this.charSprite.x + dest.x * this.baseSpeed,
-      y: this.charSprite.y + dest.y * this.baseSpeed
+      x: this.charSprite.x + dest.x * speed,
+      y: this.charSprite.y + dest.y * speed
     }
 
     this.charSprite.setPosition(targetPos.x, targetPos.y)
