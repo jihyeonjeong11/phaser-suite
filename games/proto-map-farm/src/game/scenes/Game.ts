@@ -107,7 +107,10 @@ export class Game extends BaseScene {
     this.camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels)
 
     const startPos = this.sceneData.fromSave ? this.getSavedPosition() : this.getSpawnPosition()
-    this.player = new Player(this, startPos, 'base_char', {})
+
+    this.player = new Player(this, startPos, 'base_char')
+    this.camera.startFollow(this.player.charSprite)
+
     // this.tempPlayer = new TempPlayer(
     //   this,
     //   startPos,
@@ -118,7 +121,6 @@ export class Game extends BaseScene {
     //   (dest) => this.enterPortal(dest),
     //   this.worldMap.mapObjects
     // )
-    this.camera.startFollow(this.player.charSprite)
   }
 
   private getSavedPosition(): WorldPos {
@@ -153,6 +155,10 @@ export class Game extends BaseScene {
     if (numberKey > -1) {
       dataManager.setCurrentSelectedIdx(numberKey)
     }
+
+    const directionKey = this._controls.getDirectionKeyPressed()
+    if (directionKey) this.player.moveCharacter(directionKey)
+
     //  this.debugHud.update(this.tempPlayer.charSprite, this.worldMap.getMap())
   }
 
