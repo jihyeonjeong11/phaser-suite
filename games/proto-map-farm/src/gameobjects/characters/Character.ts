@@ -1,6 +1,6 @@
 // 슈퍼클래스 — Sprite 상속(x/y는 이미 GameObject가 소유), position/direction/baseSpeed/hair만 베이스에. HP·stamina·store 의존 없음
 
-import { GameObjects, Scene } from 'phaser'
+import { GameObjects } from 'phaser'
 import { DIRECTION, DirectionOrNone, WorldPos } from '../../game/utils/constants/constants'
 
 export abstract class Character {
@@ -23,7 +23,7 @@ export abstract class Character {
     return this.charSprite
   }
 
-  moveCharacter(directionKey: DirectionOrNone): void {
+  moveCharacter(directionKey: DirectionOrNone) {
     let dest: WorldPos = { x: 0, y: 0 }
 
     switch (directionKey) {

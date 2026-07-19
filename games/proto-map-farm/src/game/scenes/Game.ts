@@ -108,7 +108,13 @@ export class Game extends BaseScene {
 
     const startPos = this.sceneData.fromSave ? this.getSavedPosition() : this.getSpawnPosition()
 
-    this.player = new Player(this, startPos, 'base_char')
+    this.player = new Player(
+      this,
+      startPos,
+      'base_char',
+      this.worldMap.getPortalLayer(),
+      (dest) => this.enterPortal(dest)
+    )
     this.camera.startFollow(this.player.charSprite)
 
     // this.tempPlayer = new TempPlayer(
