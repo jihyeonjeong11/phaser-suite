@@ -12,6 +12,19 @@
     "frames": [2, 3],
     "frameRate": 3,
     "repeat": -1
+  },
+  {
+    "key": "zombies_idle",
+    "assetKey": "zombies",
+    "frames": [0, 1],
+    "frameRate": 3,
+    "repeat": -1
+  },
+  {
+    "key": "zombies_walk",
+    "assetKey": "zombies",
+    "frames": [2, 3],
+    "frameRate": 3,
+    "repeat": -1
   }
-
 ]

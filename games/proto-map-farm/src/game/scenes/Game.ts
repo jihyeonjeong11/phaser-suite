@@ -9,13 +9,10 @@ import { TempPlayer } from '../../gameobjects/TempPlayer'
 import { MapObject } from '../../gameobjects/mapObjects/MapObjects'
 import { stopAllSfx } from '../utils/audios'
 import { Player } from '../../gameobjects/characters/Player'
-import { Enemy } from '../../gameobjects/characters/Enemy'
+import { Zombie } from '../../gameobjects/characters/Zombie'
 import { WorldPos } from '../utils/constants/constants'
 import { HUD } from '../../gameobjects/hud/HUD'
-
-const ZOMBIE_TEXTURE = 'apocalypse'
-const ZOMBIE_FRAME = 1 * 40 + 9
-const ZOMBIE_COUNT = 3
+import { TEMP_ENEMIES } from '../utils/constants/enemies'
 
 // 1. 맵 / 레벨 구성
 
@@ -77,7 +74,7 @@ export class Game extends BaseScene {
   private transitioning = false
   private quickBar: QuickBar
   private mapObject: MapObject
-  private enemies: Enemy[] = []
+  private enemies: Zombie[] = []
 
   constructor() {
     super({ key: 'Game' })
@@ -123,12 +120,13 @@ export class Game extends BaseScene {
 
     // ruin map일 경우 npc 좀비 추가. npc 배열에?
     if (this.sceneData.area === MAP_KEYS.RUIN) {
-      for (let i = 0; i < ZOMBIE_COUNT; i++) {
+      const zombie = TEMP_ENEMIES.zombie
+      for (let i = 0; i < 4; i++) {
         const pos: WorldPos = {
           x: Math.random() * map.widthInPixels,
           y: Math.random() * map.heightInPixels
         }
-        this.enemies.push(new Enemy(this, pos, ZOMBIE_TEXTURE, ZOMBIE_FRAME))
+        this.enemies.push(new Zombie(this, pos, zombie.textureKey, zombie.frame))
       }
     }
 

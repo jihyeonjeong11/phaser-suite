@@ -131,6 +131,12 @@ export class Preloader extends Scene {
       frameHeight: 256
     })
 
+    // 256×64, 64px 셀 → 4열×1행. base_char와 같은 규칙: [0,1]=idle, [2,3]=walk
+    this.load.spritesheet('zombies', 'sprites/zombies.png', {
+      frameWidth: 64,
+      frameHeight: 64
+    })
+
     // Drawn by me
     const resources = [
       {
