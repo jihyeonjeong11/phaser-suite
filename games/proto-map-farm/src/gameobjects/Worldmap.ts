@@ -1,6 +1,7 @@
 import { Scene, Tilemaps, Types } from 'phaser'
 import { MapObject } from './mapObjects/MapObjects'
 import { MapKey } from '../game/utils/constants/mapKeys'
+import { WorldPos } from '../game/utils/constants/constants'
 
 function imageKeyFor(source: string): string {
   const base = source.split(/[\\/]/).pop() ?? source
@@ -85,6 +86,38 @@ export class Worldmap {
 
   getPortalLayer() {
     return this.portalLayer
+  }
+
+  // "이 픽셀 위치를 지나갈 수 있나?" — 걷기 이동의 통과 규칙(경계/장애물/물/오브젝트)을 한곳에 모은다.
+  isPassable(pos: WorldPos): boolean {
+    if (!this.isWithinBounds(pos)) return false
+    if (this.collidesObstacle(pos)) return false
+
+    const tile = this.map.worldToTileXY(pos.x, pos.y)
+    if (!tile) return false
+    if (this.mapObjects.getTileInfo(tile.x, tile.y).watersource) return false
+    if (!this.mapObjects.isTilePassable(tile.x, tile.y)) return false
+
+    return true
+  }
+
+  private isWithinBounds(pos: WorldPos): boolean {
+    return (
+      pos.x >= 0 &&
+      pos.y >= 0 &&
+      pos.x <= this.map.widthInPixels &&
+      pos.y <= this.map.heightInPixels
+    )
+  }
+
+  private collidesObstacle(pos: WorldPos): boolean {
+    return this.collidesLayer(this.worldLayer, pos) || this.collidesLayer(this.backgroundLayer, pos)
+  }
+
+  private collidesLayer(layer: Tilemaps.TilemapLayer | null, pos: WorldPos): boolean {
+    if (!layer) return false
+    const tile = layer.getTileAtWorldXY(pos.x, pos.y, true)
+    return tile != null && tile.index !== -1
   }
 
   private addMapCollision(scene: Scene) {

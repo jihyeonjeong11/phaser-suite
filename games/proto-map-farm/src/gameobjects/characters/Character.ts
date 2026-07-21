@@ -1,7 +1,9 @@
-// 슈퍼클래스 — Sprite 상속(x/y는 이미 GameObject가 소유), position/direction/baseSpeed/hair만 베이스에. HP·stamina·store 의존 없음
+// 슈퍼클래스 — Sprite 상속(x/y는 이미 GameObject가 소유), position/direction/baseSpeed/hair만 베이스에.
+// 걷기 이동의 통과 판정을 위해 worldMap을 소유한다(모든 캐릭터가 같은 월드 규칙을 공유).
 
 import { GameObjects } from 'phaser'
 import { DIRECTION, DirectionOrNone, WorldPos } from '../../game/utils/constants/constants'
+import { Worldmap } from '../Worldmap'
 
 export abstract class Character {
   charSprite: GameObjects.Sprite
@@ -12,8 +14,10 @@ export abstract class Character {
   baseStamina: number = 100
   // param: config - 어떤 sprite를 쓸것인지 확정 필요함.
   isMoving: boolean
-  constructor() {
+  protected worldMap: Worldmap
+  constructor(worldMap: Worldmap) {
     this.isMoving = false
+    this.worldMap = worldMap
     // if (this.constructor === Character) {
     //   throw new Error('Character is an abstract class and cannot be instantiated.')
     // }
@@ -77,6 +81,8 @@ export abstract class Character {
       y: this.charSprite.y + dest.y * speed
     }
 
-    this.charSprite.setPosition(targetPos.x, targetPos.y)
+    if (this.worldMap.isPassable(targetPos)) {
+      this.charSprite.setPosition(targetPos.x, targetPos.y)
+    }
   }
 }

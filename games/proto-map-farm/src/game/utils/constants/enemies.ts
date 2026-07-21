@@ -7,7 +7,7 @@ export const TEMP_ENEMIES = {
     frame: 0,
     scale: 1.5,
     hp: 100,
-    speed: 1
+    baseSpeed: 0.5
   }
 } as const
 

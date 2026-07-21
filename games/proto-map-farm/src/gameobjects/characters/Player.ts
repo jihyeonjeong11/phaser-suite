@@ -1,6 +1,7 @@
 import { Scene, Tilemaps } from 'phaser'
 import { Character } from './Character'
 import { DIRECTION, DirectionOrNone, WorldPos } from '../../game/utils/constants/constants'
+import { Worldmap } from '../Worldmap'
 
 export class Player extends Character {
   private portalLayer: Tilemaps.ObjectLayer | null
@@ -24,9 +25,10 @@ export class Player extends Character {
     startPos: WorldPos,
     textureKey: string,
     portalLayer: Tilemaps.ObjectLayer | null,
-    onEnterPortal: (dest: string) => void
+    onEnterPortal: (dest: string) => void,
+    worldMap: Worldmap
   ) {
-    super()
+    super(worldMap)
     this.computedStamina = this.baseStamina
     this.computedSpeed = this.baseSpeed
     this.portalLayer = portalLayer

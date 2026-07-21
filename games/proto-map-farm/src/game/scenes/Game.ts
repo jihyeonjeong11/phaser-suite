@@ -112,8 +112,13 @@ export class Game extends BaseScene {
 
     const startPos = this.sceneData.fromSave ? this.getSavedPosition() : this.getSpawnPosition()
 
-    this.player = new Player(this, startPos, 'base_char', this.worldMap.getPortalLayer(), (dest) =>
-      this.enterPortal(dest)
+    this.player = new Player(
+      this,
+      startPos,
+      'base_char',
+      this.worldMap.getPortalLayer(),
+      (dest) => this.enterPortal(dest),
+      this.worldMap
     )
     this.camera.startFollow(this.player.charSprite)
     this.HUD = new HUD(this, this.player)
@@ -126,7 +131,7 @@ export class Game extends BaseScene {
           x: Math.random() * map.widthInPixels,
           y: Math.random() * map.heightInPixels
         }
-        this.enemies.push(new Zombie(this, pos, zombie.textureKey, zombie.frame))
+        this.enemies.push(new Zombie(this, pos, zombie, this.worldMap))
       }
     }
 
@@ -179,6 +184,12 @@ export class Game extends BaseScene {
     const wantsSprint = !!directionKey && this._controls.isShiftKeyDown()
     const isSprinting = this.player.updateStamina(delta, wantsSprint)
     if (directionKey) this.player.moveCharacter(directionKey, isSprinting)
+
+    // 좀비들에게 플레이어 위치(sense 입력)를 넘겨 추격시킨다.
+    const playerPos: WorldPos = { x: this.player.charSprite.x, y: this.player.charSprite.y }
+    for (const enemy of this.enemies) {
+      enemy.update(playerPos)
+    }
 
     this.HUD.update()
 
