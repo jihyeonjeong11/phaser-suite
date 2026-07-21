@@ -168,7 +168,7 @@ export class Game extends BaseScene {
     })
   }
 
-  update() {
+  update(_time: number, delta: number) {
     //  this.tempPlayer.update()
     // reconciler // todo:
     // this.quickBar.update()
@@ -178,9 +178,9 @@ export class Game extends BaseScene {
     }
 
     const directionKey = this._controls.getDirectionKeyPressed()
-    const isSprinting = !!directionKey && this._controls.isShiftKeyDown()
+    const wantsSprint = !!directionKey && this._controls.isShiftKeyDown()
+    const isSprinting = this.player.updateStamina(delta, wantsSprint)
     if (directionKey) this.player.moveCharacter(directionKey, isSprinting)
-    if (!isSprinting) this.player.regenStamina()
 
     this.HUD.update()
 

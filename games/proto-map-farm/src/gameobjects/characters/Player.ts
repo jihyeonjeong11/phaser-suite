@@ -5,8 +5,19 @@ import { DIRECTION, DirectionOrNone, WorldPos } from '../../game/utils/constants
 export class Player extends Character {
   private portalLayer: Tilemaps.ObjectLayer | null
   private onEnterPortal: (dest: string) => void
+
   computedSpeed: number
   computedStamina: number
+  isExhausted = false
+
+  private static readonly STAMINA_DRAIN_RATE = 25 // 초당 소모량
+  private static readonly STAMINA_REGEN_DELAY_MS = 600 // 스프린트를 멈춘 뒤 회복이 시작되기까지의 대기 시간
+  private static readonly STAMINA_REGEN_RAMP_MS = 1500 // 회복 속도가 0에서 최대치까지 가속되는 데 걸리는 시간
+  private static readonly STAMINA_REGEN_MAX_RATE = 30 // 가속이 끝난 뒤의 초당 회복량
+  private static readonly EXHAUSTION_RECOVER_RATIO = 0.4 // 완전히 소진된 뒤 이 비율만큼 회복해야 다시 스프린트 가능
+
+  private regenDelayRemainingMs = 0
+  private regenRampElapsedMs = 0
 
   constructor(
     scene: Scene,
@@ -27,11 +38,63 @@ export class Player extends Character {
     scene.add.existing(this.charSprite)
   }
 
-  moveCharacter(directionKey: DirectionOrNone, isRunning = false) {
-    if (isRunning && this.computedStamina > 0) {
-      this.computedStamina--
+  // 매 프레임 호출. 탈진/스태미너 상태를 반영한 "실제 스프린트 가능 여부"를 반환한다.
+  updateStamina(deltaMs: number, wantsSprint: boolean): boolean {
+    const canSprint = wantsSprint && !this.isExhausted && this.computedStamina > 0
+
+    if (canSprint) {
+      this.drainStamina(deltaMs)
+    } else {
+      this.regenStamina(deltaMs)
     }
-    super.moveCharacter(directionKey, this.computedStamina > 0 ? isRunning : false)
+
+    return canSprint
+  }
+
+  private drainStamina(deltaMs: number): void {
+    this.computedStamina = Math.max(
+      0,
+      this.computedStamina - Player.STAMINA_DRAIN_RATE * (deltaMs / 1000)
+    )
+    // 스프린트 중엔 계속 갱신되다가, 멈추는 순간부터 이 값이 줄어들며 회복 시작을 늦춘다.
+    this.regenDelayRemainingMs = Player.STAMINA_REGEN_DELAY_MS
+    this.regenRampElapsedMs = 0
+
+    if (this.computedStamina <= 0) {
+      this.isExhausted = true
+    }
+  }
+
+  private regenStamina(deltaMs: number): void {
+    if (this.computedStamina >= this.baseStamina) {
+      this.regenRampElapsedMs = 0
+      return
+    }
+
+    if (this.regenDelayRemainingMs > 0) {
+      this.regenDelayRemainingMs = Math.max(0, this.regenDelayRemainingMs - deltaMs)
+      return
+    }
+
+    this.regenRampElapsedMs += deltaMs
+    const rampProgress = Math.min(1, this.regenRampElapsedMs / Player.STAMINA_REGEN_RAMP_MS)
+    const easedRate = Player.STAMINA_REGEN_MAX_RATE * rampProgress * rampProgress // ease-in: 처음엔 느리게, 점점 빠르게
+
+    this.computedStamina = Math.min(
+      this.baseStamina,
+      this.computedStamina + easedRate * (deltaMs / 1000)
+    )
+
+    if (
+      this.isExhausted &&
+      this.computedStamina >= this.baseStamina * Player.EXHAUSTION_RECOVER_RATIO
+    ) {
+      this.isExhausted = false
+    }
+  }
+
+  moveCharacter(directionKey: DirectionOrNone, isRunning = false) {
+    super.moveCharacter(directionKey, isRunning)
 
     const animKey =
       directionKey !== DIRECTION.NONE
@@ -44,17 +107,6 @@ export class Player extends Character {
 
     const dest = this.findPortalProperties(this.charSprite.x, this.charSprite.y)
     if (dest) this.onEnterPortal(dest)
-  }
-
-  private static readonly STAMINA_REGEN_RATE = 0.2
-
-  regenStamina() {
-    if (this.computedStamina < this.baseStamina) {
-      this.computedStamina = Math.min(
-        this.baseStamina,
-        this.computedStamina + Player.STAMINA_REGEN_RATE
-      )
-    }
   }
   // 플레이어 오브젝트는 character에서 관리할 것.
   // todo: 플레이어와 오브젝트 레이어 오브젝트는 하나의 rentangle로 맵 오브젝트에서 관리해야 함.

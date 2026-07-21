@@ -22,8 +22,12 @@ export class HUD {
   }
 
   update() {
-    this.hpText.setText(`HP: ${this.player.baseHp}`)
-    this.staminaText.setText(`Stamina: ${this.player.computedStamina}`)
+    this.hpText.setText(`HP: ${Math.round(this.player.baseHp)}`)
+    const staminaLabel = this.player.isExhausted
+      ? `Stamina: ${Math.round(this.player.computedStamina)} (EXHAUSTED)`
+      : `Stamina: ${Math.round(this.player.computedStamina)}`
+    this.staminaText.setText(staminaLabel)
+    this.staminaText.setColor(this.player.isExhausted ? '#ff5555' : '#ffffff')
   }
 
   // todo: 나중에 진짜 그래픽 바로 바꿀 것
