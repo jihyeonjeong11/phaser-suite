@@ -12,17 +12,17 @@ export class Player extends Character {
   private computedHP: number
   private isExhausted = false
 
-  private static readonly STAMINA_DRAIN_RATE = 25 // 초당 소모량
-  private static readonly STAMINA_REGEN_DELAY_MS = 600 // 스프린트를 멈춘 뒤 회복이 시작되기까지의 대기 시간
-  private static readonly STAMINA_REGEN_RAMP_MS = 1500 // 회복 속도가 0에서 최대치까지 가속되는 데 걸리는 시간
-  private static readonly STAMINA_REGEN_MAX_RATE = 30 // 가속이 끝난 뒤의 초당 회복량
-  private static readonly EXHAUSTION_RECOVER_RATIO = 0.4 // 완전히 소진된 뒤 이 비율만큼 회복해야 다시 스프린트 가능
+  private static readonly STAMINA_DRAIN_RATE = 25
+  private static readonly STAMINA_REGEN_DELAY_MS = 600
+  private static readonly STAMINA_REGEN_RAMP_MS = 1500
+  private static readonly STAMINA_REGEN_MAX_RATE = 30
+  private static readonly EXHAUSTION_RECOVER_RATIO = 0.4
 
   private regenDelayRemainingMs = 0
   private regenRampElapsedMs = 0
 
-  private static readonly INVINCIBLE_DURATION_MS = 1000 // 피격 후 무적 지속(스타듀는 1200)
-  private static readonly FLICKER_INTERVAL_MS = 60 // 무적 중 깜빡임 주기
+  private static readonly INVINCIBLE_DURATION_MS = 1000
+  private static readonly FLICKER_INTERVAL_MS = 60
   public temporarilyInvincible = false
   private invincibilityRemainingMs = 0
 
@@ -43,9 +43,10 @@ export class Player extends Character {
     this.charSprite = scene.add.sprite(startPos.x, startPos.y, textureKey, 0).setDepth(2)
     scene.add.existing(this.charSprite)
     scene.physics.add.existing(this.charSprite)
+    // 1:1.5 테스트본(base_char_ratio15w_test): content 39×57, x[12..50] y[4..60] 실측
     const body = this.charSprite.body as Physics.Arcade.Body
-    body.setSize(46, 57)
-    body.setOffset(9, 4)
+    body.setSize(39, 57)
+    body.setOffset(12, 4)
   }
 
   updateStamina(deltaMs: number, wantsSprint: boolean): boolean {

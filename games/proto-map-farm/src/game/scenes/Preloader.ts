@@ -156,7 +156,7 @@ export class Preloader extends Scene {
       {
         type: 'spritesheet',
         key: 'base_char',
-        url: 'sprites/base_char.png', // 좀비(64) 복사본 → 재작성 예정. frameWidth 재작성 시 맞출 것
+        url: 'sprites/base_char.png', // 1:1.5 슬림(가로 축소). 프레임 64×64
         frameWidth: 64,
         frameHeight: 64
       },

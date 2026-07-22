@@ -19,6 +19,10 @@ export class Zombie extends Character {
     this.baseSpeed = properties.baseSpeed
     scene.add.existing(this.charSprite)
     scene.physics.add.existing(this.charSprite)
+    // 1:1.5 슬림화 후 히트박스: content 39×57, x[12..50] y[4..60] 실측
+    const body = this.charSprite.body as Physics.Arcade.Body
+    body.setSize(39, 57)
+    body.setOffset(12, 4)
 
     const idleKey = `${properties.textureKey}_idle`
     if (scene.anims.exists(idleKey)) {
