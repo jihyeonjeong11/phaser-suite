@@ -1,4 +1,4 @@
-import { Cameras, GameObjects, Physics } from 'phaser'
+import { Cameras, GameObjects, Physics, Scenes } from 'phaser'
 import { DebugHud } from '../../gameobjects/hud/DebugHud'
 import { BaseScene } from './Base'
 import { dataManager } from '../managers/Store'
@@ -148,6 +148,13 @@ export class Game extends BaseScene {
         const z = (enemySprite as GameObjects.Sprite).getData('owner') as Zombie
         this.player.takeDamage(z.properties.attackPower)
       }
+    )
+    this.events.once(
+      Scenes.Events.SHUTDOWN,
+      () => {
+        this.enemies = []
+      },
+      this
     )
   }
 

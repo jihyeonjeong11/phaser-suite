@@ -1,16 +1,19 @@
-import { Physics, Scene, Tilemaps } from 'phaser'
+import { Physics, Scene, Scenes, Tilemaps } from 'phaser'
 import { Character } from './Character'
 import { DIRECTION, DirectionOrNone, WorldPos } from '../../game/utils/constants/constants'
 import { Worldmap } from '../Worldmap'
+import { dataManager } from '../../game/managers/Store'
+import { Hand } from '../hand/Hand'
 
 export class Player extends Character {
+  scene: Scene
   private portalLayer: Tilemaps.ObjectLayer | null
   private onEnterPortal: (dest: string) => void
 
-  private computedSpeed: number
-  private computedStamina: number
-  private computedHP: number
-  private isExhausted = false
+  computedSpeed: number
+  computedStamina: number
+  computedHP: number
+  isExhausted = false
 
   private static readonly STAMINA_DRAIN_RATE = 25
   private static readonly STAMINA_REGEN_DELAY_MS = 600
@@ -26,6 +29,8 @@ export class Player extends Character {
   public temporarilyInvincible = false
   private invincibilityRemainingMs = 0
 
+  private hand: Hand | null = null
+
   constructor(
     scene: Scene,
     startPos: WorldPos,
@@ -35,6 +40,7 @@ export class Player extends Character {
     worldMap: Worldmap
   ) {
     super(worldMap)
+    this.scene = scene
     this.computedHP = this.baseHp
     this.computedStamina = this.baseStamina
     this.computedSpeed = this.baseSpeed
@@ -43,10 +49,28 @@ export class Player extends Character {
     this.charSprite = scene.add.sprite(startPos.x, startPos.y, textureKey, 0).setDepth(2)
     scene.add.existing(this.charSprite)
     scene.physics.add.existing(this.charSprite)
-    // 1:1.5 테스트본(base_char_ratio15w_test): content 39×57, x[12..50] y[4..60] 실측
     const body = this.charSprite.body as Physics.Arcade.Body
     body.setSize(39, 57)
     body.setOffset(12, 4)
+
+    const onSelectChange = () => this.equipSelected()
+    dataManager.on('changedata-currentSelectedIdx', onSelectChange)
+
+    scene.events.once(Scenes.Events.SHUTDOWN, () => {
+      dataManager.off('changedata-currentSelectedIdx', onSelectChange)
+      this.hand?.destroy()
+      this.hand = null
+    })
+  }
+
+  private equipSelected(): void {
+    this.hand?.destroy()
+    this.hand = null
+
+    const current = dataManager.getInventory()[dataManager.getCurrentSelectedIdx()]
+    if (current?.type === 'weapon') {
+      this.hand = new Hand(this.scene, this.charSprite, current)
+    }
   }
 
   updateStamina(deltaMs: number, wantsSprint: boolean): boolean {
@@ -151,6 +175,8 @@ export class Player extends Character {
   }
 
   update(deltaMs: number): void {
+    this.hand?.sync()
+
     if (!this.temporarilyInvincible) return
 
     this.invincibilityRemainingMs -= deltaMs

@@ -7,16 +7,17 @@ export class HUD {
   private container: GameObjects.Container
   private hpText: GameObjects.Text
   private staminaText: GameObjects.Text
+  private hpIcon: GameObjects.Sprite
+  private staminaIcon: GameObjects.Sprite
 
   constructor(scene: Scene, player: Player) {
     this.scene = scene
     this.player = player
-    // hp 바, 스태미너 바
-    const [hpText, staminaText] = this.createTexts()
-    this.hpText = hpText
-    this.staminaText = staminaText
+
+    this.hpIcon = this.drawHealth()
+    this.staminaIcon = this.drawStamina()
     this.container = scene.add
-      .container(10, 10, [this.createStatusBar(), this.hpText, this.staminaText])
+      .container(30, 30, [this.hpIcon, this.staminaIcon])
       .setScrollFactor(0)
       .setDepth(10000)
   }
@@ -28,30 +29,23 @@ export class HUD {
       : `Stamina: ${Math.round(this.player.computedStamina)}`
     this.staminaText.setText(staminaLabel)
     this.staminaText.setColor(this.player.isExhausted ? '#ff5555' : '#ffffff')
+
+    this.tintByRatio(this.hpIcon, this.player.computedHP, this.player.baseHp)
+    this.tintByRatio(this.staminaIcon, this.player.computedStamina, this.player.baseStamina)
   }
 
-  // todo: 나중에 진짜 그래픽 바로 바꿀 것
-  private createTexts() {
-    return [
-      this.scene.add.text(10, 10, 'hp', {
-        fontSize: '14px',
-        color: '#ffffff',
-        backgroundColor: '#000000'
-      }),
-      this.scene.add.text(10, 30, 'stamina', {
-        fontSize: '14px',
-        color: '#ffffff',
-        backgroundColor: '#000000'
-      })
-    ]
+  private tintByRatio(icon: GameObjects.Sprite, current: number, max: number): void {
+    const ratio = Math.max(0, Math.min(1, current / max))
+    const level = (Math.ceil(ratio / 0.2) / 5) * 255
+    const c = Math.round(level)
+    icon.setTint((c << 16) | (c << 8) | c)
   }
 
-  private createStatusBar() {
-    const graphics = this.scene.add.graphics()
-    const menuColor = 0x000000
-    graphics.fillStyle(menuColor)
-    graphics.fillRect(1, 0, 300, 100)
-    // g.setAlpha(0.9);
-    return graphics
+  private drawHealth() {
+    return this.scene.add.sprite(0, 0, 'icons', 0)
+  }
+
+  private drawStamina() {
+    return this.scene.add.sprite(0, 40, 'icons', 1)
   }
 }

@@ -137,12 +137,18 @@ export class Preloader extends Scene {
       frameHeight: 64
     })
 
+    // HUD 아이콘 시트. 32px 셀 → 프레임 인덱스로 접근.
+    this.load.spritesheet('icons', 'sprites/icons.png', {
+      frameWidth: 32,
+      frameHeight: 32
+    })
+
     // Drawn by me
     const resources = [
       {
         type: 'spritesheet',
-        key: 'weapons',
-        url: 'weapons.png',
+        key: 'sprites/weapons', // items.ts testing_rifle.textureKey와 일치
+        url: 'sprites/weapons.png',
         frameWidth: 64,
         frameHeight: 64
       },

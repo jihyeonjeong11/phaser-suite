@@ -23,8 +23,8 @@ export const TEMP_ITEMS = {
   testing_rifle: {
     name: 'testing_rifle',
     type: 'weapon',
-    textureKey: 'weapons', // 스프라이트시트 "weapons"의 frame 0 (Preloader: load.spritesheet)
-    frame: undefined, // undefined = Weapon으로 판별 + 기본 frame 0 렌더
+    textureKey: 'sprites/weapons',
+    frame: 0,
     soundMap: {
       //fire, reload
     }
