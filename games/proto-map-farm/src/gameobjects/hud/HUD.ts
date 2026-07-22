@@ -5,8 +5,6 @@ export class HUD {
   private scene: Scene
   private player: Player
   private container: GameObjects.Container
-  private hpText: GameObjects.Text
-  private staminaText: GameObjects.Text
   private hpIcon: GameObjects.Sprite
   private staminaIcon: GameObjects.Sprite
 
@@ -23,13 +21,6 @@ export class HUD {
   }
 
   update() {
-    this.hpText.setText(`HP: ${Math.round(this.player.computedHP)}`)
-    const staminaLabel = this.player.isExhausted
-      ? `Stamina: ${Math.round(this.player.computedStamina)} (EXHAUSTED)`
-      : `Stamina: ${Math.round(this.player.computedStamina)}`
-    this.staminaText.setText(staminaLabel)
-    this.staminaText.setColor(this.player.isExhausted ? '#ff5555' : '#ffffff')
-
     this.tintByRatio(this.hpIcon, this.player.computedHP, this.player.baseHp)
     this.tintByRatio(this.staminaIcon, this.player.computedStamina, this.player.baseStamina)
   }
