@@ -69,7 +69,6 @@ export class Game extends BaseScene {
     area: DEFAULT_MAP_KEY,
     fromSave: false
   }
-  private tempPlayer: TempPlayer
   private player: Player
   private transitioning = false
   private quickBar: QuickBar
@@ -128,7 +127,7 @@ export class Game extends BaseScene {
 
     if (this.sceneData.area === MAP_KEYS.RUIN) {
       const zombie = TEMP_ENEMIES.zombie
-      for (let i = 0; i < 101; i++) {
+      for (let i = 0; i < 11; i++) {
         const pos: WorldPos = {
           x: Math.random() * map.widthInPixels,
           y: Math.random() * map.heightInPixels
@@ -177,9 +176,6 @@ export class Game extends BaseScene {
   }
 
   update(time: number, delta: number) {
-    //  this.tempPlayer.update()
-    // reconciler // todo:
-    // this.quickBar.update()
     const numberKey = this._controls.wasNumberKeyPressed()
     if (numberKey > -1) {
       dataManager.setCurrentSelectedIdx(numberKey)
@@ -190,7 +186,7 @@ export class Game extends BaseScene {
     const isSprinting = this.player.updateStamina(delta, wantsSprint)
     if (directionKey) this.player.moveCharacter(directionKey, isSprinting)
 
-    this.player.update(delta) // 무적 타이머 카운트다운 (없으면 무적이 안 풀림)
+    this.player.update(delta)
 
     const playerPos: WorldPos = this.player.getPlayerPos()
     for (const enemy of this.enemies) {
@@ -199,7 +195,6 @@ export class Game extends BaseScene {
 
     this.HUD.update()
 
-    // 실제 히트박스(Arcade 바디) 오버레이 — P키로 토글. 플레이어=초록, 좀비=빨강.
     this.debugHud.drawHitboxes([
       { sprite: this.player.charSprite, color: 0x00ff00 },
       ...this.enemies.map((e) => ({ sprite: e.getSprite(), color: 0xff0000 }))

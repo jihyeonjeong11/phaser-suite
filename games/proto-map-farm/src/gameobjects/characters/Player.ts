@@ -42,14 +42,12 @@ export class Player extends Character {
     this.onEnterPortal = onEnterPortal
     this.charSprite = scene.add.sprite(startPos.x, startPos.y, textureKey, 0).setDepth(2)
     scene.add.existing(this.charSprite)
-    scene.physics.add.existing(this.charSprite) // 겹침 판정용 Arcade 바디(이동은 여전히 수동 setPosition)
-    // 히트박스: 현재 base_char는 64×64 좀비 복사본(46×57/9,4). base_char 재작성 후 재측정 필요.
+    scene.physics.add.existing(this.charSprite)
     const body = this.charSprite.body as Physics.Arcade.Body
     body.setSize(46, 57)
     body.setOffset(9, 4)
   }
 
-  // 매 프레임 호출. 탈진/스태미너 상태를 반영한 "실제 스프린트 가능 여부"를 반환한다.
   updateStamina(deltaMs: number, wantsSprint: boolean): boolean {
     const canSprint = wantsSprint && !this.isExhausted && this.computedStamina > 0
 
@@ -92,7 +90,7 @@ export class Player extends Character {
 
     this.regenRampElapsedMs += deltaMs
     const rampProgress = Math.min(1, this.regenRampElapsedMs / Player.STAMINA_REGEN_RAMP_MS)
-    const easedRate = Player.STAMINA_REGEN_MAX_RATE * rampProgress * rampProgress // ease-in: 처음엔 느리게, 점점 빠르게
+    const easedRate = Player.STAMINA_REGEN_MAX_RATE * rampProgress * rampProgress // ease-in
 
     this.computedStamina = Math.min(
       this.baseStamina,
@@ -145,24 +143,22 @@ export class Player extends Character {
   }
 
   takeDamage(attackPower = 0) {
-    if (this.temporarilyInvincible) return // 무적 중이면 데미지 무시 (overlap이 매 프레임 호출돼도 1회만 적용)
+    if (this.temporarilyInvincible) return
     this.computedHP -= attackPower
     this.temporarilyInvincible = true
     this.invincibilityRemainingMs = Player.INVINCIBLE_DURATION_MS
   }
 
-  // 매 프레임 호출. 무적 타이머를 delta(ms)만큼 깎고, 만료 시 무적 해제 + 깜빡임 처리.
   update(deltaMs: number): void {
     if (!this.temporarilyInvincible) return
 
     this.invincibilityRemainingMs -= deltaMs
     if (this.invincibilityRemainingMs <= 0) {
       this.temporarilyInvincible = false
-      this.charSprite.setAlpha(1) // 깜빡임 원복
+      this.charSprite.setAlpha(1)
       return
     }
 
-    // FLICKER_INTERVAL_MS 주기로 반투명↔불투명 토글 → 피격 깜빡임 연출
     const on = Math.floor(this.invincibilityRemainingMs / Player.FLICKER_INTERVAL_MS) % 2 === 0
     this.charSprite.setAlpha(on ? 0.3 : 1)
   }

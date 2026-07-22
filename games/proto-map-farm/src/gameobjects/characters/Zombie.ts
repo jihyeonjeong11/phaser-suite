@@ -19,7 +19,6 @@ export class Zombie extends Character {
     this.baseSpeed = properties.baseSpeed
     scene.add.existing(this.charSprite)
     scene.physics.add.existing(this.charSprite)
-    this.charSprite.body as Physics.Arcade.Body
 
     const idleKey = `${properties.textureKey}_idle`
     if (scene.anims.exists(idleKey)) {
@@ -31,15 +30,14 @@ export class Zombie extends Character {
     const body = this.charSprite.body as Physics.Arcade.Body
     const dx = target.x - this.charSprite.x
     const dy = target.y - this.charSprite.y
-    const speed = this.properties.baseSpeed // px/초 (velocity)
+    const speed = this.properties.baseSpeed
 
-    if (this.properties.awarness > Math.abs(dx) + Math.abs(dy) || true) {
+    if (this.properties.awarness > Math.abs(dx) + Math.abs(dy)) {
       this.charSprite.scene.physics.moveTo(this.charSprite, target.x, target.y, speed)
       this.applyAnim(body)
       return
     }
-
-    // wander/idle 상태를 1초마다 토글 (상태 전환만 시간 게이트).
+    // TODO: needs state machine
     if (time >= this.timeBeforeAIMovementAgain) {
       this.timeBeforeAIMovementAgain = time + this.properties.aiDuration
       if (this.prevAction === 'idle') {
@@ -66,7 +64,6 @@ export class Zombie extends Character {
     body.setVelocity(vx, vy)
   }
 
-  // velocity 크기로 walk/idle, x부호로 좌우 flip 결정.
   private applyAnim(body: Physics.Arcade.Body): void {
     const moving = body.velocity.x !== 0 || body.velocity.y !== 0
     if (body.velocity.x !== 0) this.charSprite.setFlipX(body.velocity.x < 0)
