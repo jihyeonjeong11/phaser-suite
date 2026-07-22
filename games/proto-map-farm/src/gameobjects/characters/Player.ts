@@ -1,4 +1,4 @@
-import { Scene, Tilemaps } from 'phaser'
+import { GameObjects, Scene, Tilemaps } from 'phaser'
 import { Character } from './Character'
 import { DIRECTION, DirectionOrNone, WorldPos } from '../../game/utils/constants/constants'
 import { Worldmap } from '../Worldmap'
@@ -6,10 +6,14 @@ import { Worldmap } from '../Worldmap'
 export class Player extends Character {
   private portalLayer: Tilemaps.ObjectLayer | null
   private onEnterPortal: (dest: string) => void
-
-  computedSpeed: number
-  computedStamina: number
-  isExhausted = false
+  // todo: actionHitbox: physics아님. 농사용
+  // todo: hurtbox: physics.
+  // todo: attackhitbox: physics.
+  // todo: bulletbox: physics 총
+  private hurtBox: GameObjects.Rectangle
+  private computedSpeed: number
+  private computedStamina: number
+  private isExhausted = false
 
   private static readonly STAMINA_DRAIN_RATE = 25 // 초당 소모량
   private static readonly STAMINA_REGEN_DELAY_MS = 600 // 스프린트를 멈춘 뒤 회복이 시작되기까지의 대기 시간
@@ -19,6 +23,8 @@ export class Player extends Character {
 
   private regenDelayRemainingMs = 0
   private regenRampElapsedMs = 0
+
+  // todo: do i need aracade.physics for buidling hitboxes?
 
   constructor(
     scene: Scene,
@@ -38,6 +44,7 @@ export class Player extends Character {
       .setScale(3)
       .setDepth(2)
     scene.add.existing(this.charSprite)
+    scene.physics.add.existing(this.charSprite) // 겹침 판정용 Arcade 바디(이동은 여전히 수동 setPosition)
   }
 
   // 매 프레임 호출. 탈진/스태미너 상태를 반영한 "실제 스프린트 가능 여부"를 반환한다.
@@ -53,12 +60,15 @@ export class Player extends Character {
     return canSprint
   }
 
+  getPlayerPos(): WorldPos {
+    return { x: this.charSprite.x, y: this.charSprite.y }
+  }
+
   private drainStamina(deltaMs: number): void {
     this.computedStamina = Math.max(
       0,
       this.computedStamina - Player.STAMINA_DRAIN_RATE * (deltaMs / 1000)
     )
-    // 스프린트 중엔 계속 갱신되다가, 멈추는 순간부터 이 값이 줄어들며 회복 시작을 늦춘다.
     this.regenDelayRemainingMs = Player.STAMINA_REGEN_DELAY_MS
     this.regenRampElapsedMs = 0
 

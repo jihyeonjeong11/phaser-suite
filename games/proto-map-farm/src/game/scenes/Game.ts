@@ -133,6 +133,8 @@ export class Game extends BaseScene {
         }
         this.enemies.push(new Zombie(this, pos, zombie, this.worldMap))
       }
+    } else {
+      this.enemies = []
     }
 
     // this.tempPlayer = new TempPlayer(
@@ -171,7 +173,7 @@ export class Game extends BaseScene {
     })
   }
 
-  update(_time: number, delta: number) {
+  update(time: number, delta: number) {
     //  this.tempPlayer.update()
     // reconciler // todo:
     // this.quickBar.update()
@@ -185,10 +187,13 @@ export class Game extends BaseScene {
     const isSprinting = this.player.updateStamina(delta, wantsSprint)
     if (directionKey) this.player.moveCharacter(directionKey, isSprinting)
 
-    // 좀비들에게 플레이어 위치(sense 입력)를 넘겨 추격시킨다.
-    const playerPos: WorldPos = { x: this.player.charSprite.x, y: this.player.charSprite.y }
+    const playerPos: WorldPos = this.player.getPlayerPos()
     for (const enemy of this.enemies) {
-      enemy.update(playerPos)
+      enemy.update(playerPos, time)
+      // 플레이어 바디 ∩ 좀비 바디 겹침 확인(우선 콘솔로만). 무적/피해는 아직 없음.
+      if (this.physics.overlap(this.player.charSprite, enemy.getSprite())) {
+        console.log('물리박스 겹침!', enemy.properties.name)
+      }
     }
 
     this.HUD.update()
