@@ -1,4 +1,4 @@
-import { GameObjects, Scene, Tilemaps } from 'phaser'
+import { Physics, Scene, Tilemaps } from 'phaser'
 import { Character } from './Character'
 import { DIRECTION, DirectionOrNone, WorldPos } from '../../game/utils/constants/constants'
 import { Worldmap } from '../Worldmap'
@@ -6,13 +6,10 @@ import { Worldmap } from '../Worldmap'
 export class Player extends Character {
   private portalLayer: Tilemaps.ObjectLayer | null
   private onEnterPortal: (dest: string) => void
-  // todo: actionHitbox: physics아님. 농사용
-  // todo: hurtbox: physics.
-  // todo: attackhitbox: physics.
-  // todo: bulletbox: physics 총
-  private hurtBox: GameObjects.Rectangle
+
   private computedSpeed: number
   private computedStamina: number
+  private computedHP: number
   private isExhausted = false
 
   private static readonly STAMINA_DRAIN_RATE = 25 // 초당 소모량
@@ -24,7 +21,10 @@ export class Player extends Character {
   private regenDelayRemainingMs = 0
   private regenRampElapsedMs = 0
 
-  // todo: do i need aracade.physics for buidling hitboxes?
+  private static readonly INVINCIBLE_DURATION_MS = 1000 // 피격 후 무적 지속(스타듀는 1200)
+  private static readonly FLICKER_INTERVAL_MS = 60 // 무적 중 깜빡임 주기
+  public temporarilyInvincible = false
+  private invincibilityRemainingMs = 0
 
   constructor(
     scene: Scene,
@@ -35,16 +35,18 @@ export class Player extends Character {
     worldMap: Worldmap
   ) {
     super(worldMap)
+    this.computedHP = this.baseHp
     this.computedStamina = this.baseStamina
     this.computedSpeed = this.baseSpeed
     this.portalLayer = portalLayer
     this.onEnterPortal = onEnterPortal
-    this.charSprite = scene.add
-      .sprite(startPos.x, startPos.y, textureKey, 0)
-      .setScale(3)
-      .setDepth(2)
+    this.charSprite = scene.add.sprite(startPos.x, startPos.y, textureKey, 0).setDepth(2)
     scene.add.existing(this.charSprite)
     scene.physics.add.existing(this.charSprite) // 겹침 판정용 Arcade 바디(이동은 여전히 수동 setPosition)
+    // 히트박스: 현재 base_char는 64×64 좀비 복사본(46×57/9,4). base_char 재작성 후 재측정 필요.
+    const body = this.charSprite.body as Physics.Arcade.Body
+    body.setSize(46, 57)
+    body.setOffset(9, 4)
   }
 
   // 매 프레임 호출. 탈진/스태미너 상태를 반영한 "실제 스프린트 가능 여부"를 반환한다.
@@ -140,5 +142,28 @@ export class Player extends Character {
     )?.value
 
     return typeof dest === 'string' ? dest : null
+  }
+
+  takeDamage(attackPower = 0) {
+    if (this.temporarilyInvincible) return // 무적 중이면 데미지 무시 (overlap이 매 프레임 호출돼도 1회만 적용)
+    this.computedHP -= attackPower
+    this.temporarilyInvincible = true
+    this.invincibilityRemainingMs = Player.INVINCIBLE_DURATION_MS
+  }
+
+  // 매 프레임 호출. 무적 타이머를 delta(ms)만큼 깎고, 만료 시 무적 해제 + 깜빡임 처리.
+  update(deltaMs: number): void {
+    if (!this.temporarilyInvincible) return
+
+    this.invincibilityRemainingMs -= deltaMs
+    if (this.invincibilityRemainingMs <= 0) {
+      this.temporarilyInvincible = false
+      this.charSprite.setAlpha(1) // 깜빡임 원복
+      return
+    }
+
+    // FLICKER_INTERVAL_MS 주기로 반투명↔불투명 토글 → 피격 깜빡임 연출
+    const on = Math.floor(this.invincibilityRemainingMs / Player.FLICKER_INTERVAL_MS) % 2 === 0
+    this.charSprite.setAlpha(on ? 0.3 : 1)
   }
 }

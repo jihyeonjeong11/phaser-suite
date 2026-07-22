@@ -1,4 +1,4 @@
-import { GameObjects, Math, Tilemaps } from 'phaser'
+import { GameObjects, Math, Physics, Tilemaps } from 'phaser'
 import { MAP_KEYS, MapKey } from '../../game/utils/constants/mapKeys'
 import { dataManager } from '../../game/managers/Store'
 import type { InventoryItem } from '../../game/managers/Store'
@@ -18,6 +18,8 @@ export class MapObject {
   private mapKey: MapKey
   private drawnSprites = new Map<string, GameObjects.Image>()
   private cropSprites = new Map<string, GameObjects.Image>()
+  // isPassable=false인 feature(나무/표지판)의 물리 충돌 바디. 적 collider가 이걸 참조한다.
+  private blockingGroup: Physics.Arcade.StaticGroup
 
   constructor(
     belowLayer: Tilemaps.TilemapLayer,
@@ -27,6 +29,7 @@ export class MapObject {
     this.belowLayer = belowLayer
     this.worldLayer = worldLayer
     this.mapKey = mapKey
+    this.blockingGroup = worldLayer.scene.physics.add.staticGroup()
     if (mapKey === MAP_KEYS.CLIFF) {
       new StaticFeatures(mapKey, worldLayer)
       if (Object.keys(dataManager.getMap(mapKey)).length === 0) {
@@ -107,6 +110,28 @@ export class MapObject {
         this.cropSprites.delete(key)
       }
     }
+
+    this.rebuildBlocking()
+  }
+
+  getBlockingGroup(): Physics.Arcade.StaticGroup {
+    return this.blockingGroup
+  }
+
+  // isPassable=false인 feature마다 타일 크기 static 바디를 만든다(draw마다 재구성).
+  private rebuildBlocking(): void {
+    this.blockingGroup.clear(true, true)
+    const scene = this.worldLayer.scene
+    const tw = this.worldLayer.tilemap.tileWidth
+    const th = this.worldLayer.tilemap.tileHeight
+    Object.entries(dataManager.getMap(this.mapKey)).forEach(([posString, k]) => {
+      if (k.isPassable) return
+      const [col, row] = this.stringToPos(posString)
+      const wx = (this.worldLayer.tileToWorldX(col) ?? 0) + tw / 2
+      const wy = (this.worldLayer.tileToWorldY(row) ?? 0) + th / 2
+      const zone = scene.add.zone(wx, wy, tw, th)
+      this.blockingGroup.add(zone) // static 바디 자동 부여
+    })
   }
 
   removeFeature(col: number, row: number): void {

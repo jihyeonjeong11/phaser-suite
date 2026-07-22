@@ -22,7 +22,7 @@ export class HUD {
   }
 
   update() {
-    this.hpText.setText(`HP: ${Math.round(this.player.baseHp)}`)
+    this.hpText.setText(`HP: ${Math.round(this.player.computedHP)}`)
     const staminaLabel = this.player.isExhausted
       ? `Stamina: ${Math.round(this.player.computedStamina)} (EXHAUSTED)`
       : `Stamina: ${Math.round(this.player.computedStamina)}`

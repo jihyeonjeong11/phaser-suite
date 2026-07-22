@@ -1,4 +1,4 @@
-import { Scene } from 'phaser'
+import { Physics, Scene } from 'phaser'
 import { Character } from './Character'
 import { DIRECTION, DirectionOrNone, WorldPos } from '../../game/utils/constants/constants'
 import { Worldmap } from '../Worldmap'
@@ -18,30 +18,28 @@ export class Zombie extends Character {
       .setDepth(2)
     this.baseSpeed = properties.baseSpeed
     scene.add.existing(this.charSprite)
-    scene.physics.add.existing(this.charSprite) // 겹침 판정용 Arcade 바디
+    scene.physics.add.existing(this.charSprite)
+    this.charSprite.body as Physics.Arcade.Body
 
     const idleKey = `${properties.textureKey}_idle`
     if (scene.anims.exists(idleKey)) {
       this.charSprite.play(idleKey)
     }
   }
-  // 행동 ai
-  // 목표: 플레이어를 발견하지 못햇을 시 랜덤 방향으로 이동, 발견했을 시 플레이어로 이동해서 플레이어가 있는 타일로 이동함
-  // 플레이어와 좀비가 접촉하면 피해.(허트박스 미구현)
-  // 미발견: 무작위로 배회
-  // 발견: (좀비의 인지 범위에 플레이어가 접근햇을 때) 플레이어가 있는 타일로 이동
-  // 인지 범위 외(소음 등 )미구현
 
   update(target: WorldPos, time: number): void {
+    const body = this.charSprite.body as Physics.Arcade.Body
     const dx = target.x - this.charSprite.x
     const dy = target.y - this.charSprite.y
+    const speed = this.properties.baseSpeed // px/초 (velocity)
 
-    // todo: need statemachine
-    if (this.properties.awarness > Math.abs(dx) + Math.abs(dy)) {
-      this.moveCharacter(this.toDirection(dx, dy))
+    if (this.properties.awarness > Math.abs(dx) + Math.abs(dy) || true) {
+      this.charSprite.scene.physics.moveTo(this.charSprite, target.x, target.y, speed)
+      this.applyAnim(body)
       return
     }
 
+    // wander/idle 상태를 1초마다 토글 (상태 전환만 시간 게이트).
     if (time >= this.timeBeforeAIMovementAgain) {
       this.timeBeforeAIMovementAgain = time + this.properties.aiDuration
       if (this.prevAction === 'idle') {
@@ -53,27 +51,26 @@ export class Zombie extends Character {
       }
     }
 
-    this.moveCharacter(this.prevAction === 'wander' ? this.wanderDir : DIRECTION.NONE)
+    if (this.prevAction === 'wander') this.setWanderVelocity(body, speed)
+    else body.setVelocity(0, 0)
+    this.applyAnim(body)
   }
 
-  moveCharacter(directionKey: DirectionOrNone, isRunning = false, stepDistance?: number) {
-    super.moveCharacter(directionKey, isRunning, stepDistance)
-
-    const animKey =
-      directionKey !== DIRECTION.NONE
-        ? `${this.charSprite.texture.key}_walk`
-        : `${this.charSprite.texture.key}_idle`
-
-    if (!this.charSprite.anims.isPlaying || this.charSprite.anims.currentAnim?.key !== animKey) {
-      this.charSprite.play(animKey)
-    }
+  private setWanderVelocity(body: Physics.Arcade.Body, speed: number): void {
+    let vx = 0
+    let vy = 0
+    if (this.wanderDir === DIRECTION.LEFT) vx = -speed
+    else if (this.wanderDir === DIRECTION.RIGHT) vx = speed
+    else if (this.wanderDir === DIRECTION.UP) vy = -speed
+    else if (this.wanderDir === DIRECTION.DOWN) vy = speed
+    body.setVelocity(vx, vy)
   }
 
-  private toDirection(dx: number, dy: number): DirectionOrNone {
-    const DEAD_ZONE = 1 // 목표와 거의 겹치면 그 축은 무시(떨림 방지)
-    const horizontal = Math.abs(dx) <= DEAD_ZONE ? '' : dx < 0 ? 'LEFT' : 'RIGHT'
-    const vertical = Math.abs(dy) <= DEAD_ZONE ? '' : dy < 0 ? 'UP' : 'DOWN'
-    const key = vertical + horizontal
-    return key === '' ? DIRECTION.NONE : (key as DirectionOrNone)
+  // velocity 크기로 walk/idle, x부호로 좌우 flip 결정.
+  private applyAnim(body: Physics.Arcade.Body): void {
+    const moving = body.velocity.x !== 0 || body.velocity.y !== 0
+    if (body.velocity.x !== 0) this.charSprite.setFlipX(body.velocity.x < 0)
+    const key = `${this.charSprite.texture.key}_${moving ? 'walk' : 'idle'}`
+    if (this.charSprite.anims.currentAnim?.key !== key) this.charSprite.play(key)
   }
 }

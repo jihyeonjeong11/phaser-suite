@@ -1,7 +1,8 @@
-import { Scene, Tilemaps, Types } from 'phaser'
+import { Physics, Scene, Tilemaps, Types } from 'phaser'
 import { MapObject } from './mapObjects/MapObjects'
 import { MapKey } from '../game/utils/constants/mapKeys'
 import { WorldPos } from '../game/utils/constants/constants'
+import { STATIC_TILE_PROPERTIES } from '../game/utils/constants/tiles'
 
 function imageKeyFor(source: string): string {
   const base = source.split(/[\\/]/).pop() ?? source
@@ -123,8 +124,19 @@ export class Worldmap {
   private addMapCollision(scene: Scene) {
     this.worldLayer?.setCollisionByExclusion([-1])
     this.backgroundLayer?.setCollisionByExclusion([-1])
+    // 물 타일(belowLayer의 watersource 속성)만 충돌 켜기 — 나머지 바닥은 통과 가능.
+    this.belowLayer.setCollisionByProperty({ [STATIC_TILE_PROPERTIES.WATERSOURCE]: true })
 
     scene.physics.world.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels)
+  }
+
+  // 적 그룹이 벽/공백/물/맵오브젝트를 물리로 회피하도록 collider를 한 번에 건다.
+  addEnemyColliders(enemyGroup: Physics.Arcade.Group): void {
+    const physics = this.worldLayer.scene.physics
+    physics.add.collider(enemyGroup, this.worldLayer) // 벽/장애물
+    if (this.backgroundLayer) physics.add.collider(enemyGroup, this.backgroundLayer) // 공백
+    physics.add.collider(enemyGroup, this.belowLayer) // 물(충돌 켜진 타일만)
+    physics.add.collider(enemyGroup, this.mapObjects.getBlockingGroup()) // 나무/표지판
   }
 
   // todo: need to draw real tileset

@@ -5,9 +5,9 @@ export const TEMP_ENEMIES = {
     name: 'zombie',
     textureKey: 'zombies',
     frame: 0,
-    scale: 1.5,
+    scale: 1,
     hp: 100,
-    baseSpeed: 0.5,
+    baseSpeed: 40,
     awarness: 300,
     aiDuration: 1000,
     attackPower: 20

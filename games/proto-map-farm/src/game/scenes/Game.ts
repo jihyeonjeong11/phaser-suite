@@ -1,4 +1,4 @@
-import { Cameras } from 'phaser'
+import { Cameras, GameObjects, Physics } from 'phaser'
 import { DebugHud } from '../../gameobjects/hud/DebugHud'
 import { BaseScene } from './Base'
 import { dataManager } from '../managers/Store'
@@ -75,6 +75,7 @@ export class Game extends BaseScene {
   private quickBar: QuickBar
   private mapObject: MapObject
   private enemies: Zombie[] = []
+  private enemyGroup: Physics.Arcade.Group
 
   constructor() {
     super({ key: 'Game' })
@@ -123,30 +124,32 @@ export class Game extends BaseScene {
     this.camera.startFollow(this.player.charSprite)
     this.HUD = new HUD(this, this.player)
 
-    // ruin map일 경우 npc 좀비 추가. npc 배열에?
+    this.enemyGroup = this.physics.add.group()
+
     if (this.sceneData.area === MAP_KEYS.RUIN) {
       const zombie = TEMP_ENEMIES.zombie
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 101; i++) {
         const pos: WorldPos = {
           x: Math.random() * map.widthInPixels,
           y: Math.random() * map.heightInPixels
         }
-        this.enemies.push(new Zombie(this, pos, zombie, this.worldMap))
+        const z = new Zombie(this, pos, zombie, this.worldMap)
+        z.getSprite().setData('owner', z)
+        this.enemyGroup.add(z.getSprite())
+        this.enemies.push(z)
       }
-    } else {
-      this.enemies = []
     }
 
-    // this.tempPlayer = new TempPlayer(
-    //   this,
-    //   startPos,
-    //   this._controls,
-    //   this.worldMap.getWorldLayer(),
-    //   this.worldMap.getBackgroundLayer(),
-    //   this.worldMap.getPortalLayer(),
-    //   (dest) => this.enterPortal(dest),
-    //   this.worldMap.mapObjects
-    // )
+    this.worldMap.addEnemyColliders(this.enemyGroup)
+
+    this.physics.add.overlap(
+      this.player.charSprite,
+      this.enemyGroup,
+      (_playerSprite, enemySprite) => {
+        const z = (enemySprite as GameObjects.Sprite).getData('owner') as Zombie
+        this.player.takeDamage(z.properties.attackPower)
+      }
+    )
   }
 
   private getSavedPosition(): WorldPos {
@@ -187,16 +190,20 @@ export class Game extends BaseScene {
     const isSprinting = this.player.updateStamina(delta, wantsSprint)
     if (directionKey) this.player.moveCharacter(directionKey, isSprinting)
 
+    this.player.update(delta) // 무적 타이머 카운트다운 (없으면 무적이 안 풀림)
+
     const playerPos: WorldPos = this.player.getPlayerPos()
     for (const enemy of this.enemies) {
       enemy.update(playerPos, time)
-      // 플레이어 바디 ∩ 좀비 바디 겹침 확인(우선 콘솔로만). 무적/피해는 아직 없음.
-      if (this.physics.overlap(this.player.charSprite, enemy.getSprite())) {
-        console.log('물리박스 겹침!', enemy.properties.name)
-      }
     }
 
     this.HUD.update()
+
+    // 실제 히트박스(Arcade 바디) 오버레이 — P키로 토글. 플레이어=초록, 좀비=빨강.
+    this.debugHud.drawHitboxes([
+      { sprite: this.player.charSprite, color: 0x00ff00 },
+      ...this.enemies.map((e) => ({ sprite: e.getSprite(), color: 0xff0000 }))
+    ])
 
     //  this.debugHud.update(this.tempPlayer.charSprite, this.worldMap.getMap())
   }

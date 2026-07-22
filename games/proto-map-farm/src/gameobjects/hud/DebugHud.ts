@@ -110,4 +110,18 @@ export class DebugHud {
       `x: ${Math.round(target.x)}  y: ${Math.round(target.y)}\ntile: ${tx}, ${ty}`
     )
   }
+
+  // 매 프레임 호출. Arcade 물리 바디(=overlap 판정에 쓰이는 실제 히트박스)를 dynamicGraphics에 그린다.
+  // body.x/y/width/height는 월드 좌표·월드 크기라 스케일/오프셋이 그대로 반영된다.
+  drawHitboxes(entities: { sprite: Phaser.GameObjects.Sprite; color: number }[]): void {
+    this.dynamicGraphics.clear()
+    if (!this.debugVisible) return // P로 켰을 때만 그림
+
+    for (const { sprite, color } of entities) {
+      const body = sprite.body as Phaser.Physics.Arcade.Body | null
+      if (!body) continue
+      this.dynamicGraphics.lineStyle(1, color, 1)
+      this.dynamicGraphics.strokeRect(body.x, body.y, body.width, body.height)
+    }
+  }
 }
