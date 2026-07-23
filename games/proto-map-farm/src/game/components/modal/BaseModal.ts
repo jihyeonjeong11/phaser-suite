@@ -2,12 +2,58 @@ import { GameObjects, Scale, Scene } from 'phaser'
 import { DEFAULT_CONFIGS, globalConfig } from '../../utils/constants/GlobalConfig'
 import { ModalBehavoir } from 'phaser4-rex-plugins/plugins/modal'
 
-export class Modal {
+// todo: need modla manager
+// key: 'all modal key',
+// config: 'size and everything',
+// data: 'needed game data'
+
+// modal type: interactable: 옵션, 인벤토리 등
+// tooltip: 그냥 가져다대면 나오는?
+// toast: 옥수수 +1을 생각하셈.
+
+export class BaseModal {
   scene: Scene
   readonly PADDING_X = 120
   readonly PADDING_Y = 80
   constructor(scene: Scene) {
     this.scene = scene
+  }
+
+  /**
+   * Tooltip
+   * config: size(need base), descriptiopn Text
+   */
+  public openTooltip() {}
+
+  /**
+   * Toast
+   * config: size(need base size and location), msToTurnOff,
+   */
+
+  public openToast() {}
+
+  /**
+   * Interactable Modal
+   * config: Modal Type, size,
+   */
+  public openDialog() {
+    // stops the game loop
+    console.log(123)
+    // modal = 'passed key', [options, inventory, ...else] -> 말풍선?
+    const testContainer = this.scene.add
+      .rectangle(0, 0, 9999, 9999, 0x1e1e1e)
+      .setStrokeStyle(2, 0xffffff)
+      .setDepth(9999999)
+
+    // data = 'needed data for rendering selected modal type'
+    new ModalBehavoir(testContainer, {
+      cover: { color: 0x000000, alpha: 1 },
+      touchOutsideClose: true,
+      duration: { in: 200, out: 200 },
+      transitIn: 1, // fadeIn
+      transitOut: 1, // fadeOut
+      destroy: true
+    })
   }
 
   public openOptionsModal(): void {

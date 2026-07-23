@@ -2,19 +2,55 @@
 
 - godot tutorial에서 타일셋 베낄만한거 많음
 
+# GDD 작성
+
+- https://github.com/cristianCeamatu/js-phaser-shooter-game/blob/development/gdd/Official_GDD.pdf
+
 # Aesthetics
 
 - fallout 과 하베스트문 공존 가능?
-- 픽셀로 만들기 가능?
+- 픽셀로 만들기 가능? -> itch io 픽셀 있으니까, 이거 가져와서 내가 그리면 안되나?
+
+# pixel arts
+
+- itch io에 사놓은거 보고 내가 따라 그릴 것.(사이즈 ldp 3232)
 
 # TODO
 
 > excalidraw 설계 기준. 파일 박스별 책임 + 남은 작업.
-> 목표 구조: `Constants` / `game/map/Tilemap.ts` / `Game.ts`(배선) / `gameobjects/mapObjects/MapObjects.ts` / Character -> Player, NPC, Enemy?
+> 목표 구조: `Constants` / `game/map/Tilemap.ts` / `Game.ts`(배선) / `gameobjects/mapObjects/MapObjects.ts` / Character -> Player, NPC, Enemy? -> 해결
+
+# GameState Pause - 진행 뒤 모달
+
+# 모달 인터페이스(MODAL)
+
+- basemodal
+- 모달 사이즈
+- modal manager
+- pause 필요함.(interactable 시)
+
+# Data Pipeline 하고 save로 넘어가야 함
+
+- 어떻게 할것인지? 스타듀에서는 어떻게 하는지?
+- 조금 더 확인해볼 것. 지금 구조도 현재로써는 괜찮을 것으로 보임. 스타듀에서는 클래스에서 저장함.
+- 플레이어 위치는 휘발성 값. 현재 phaser sprite에서 참조함.
+
+# Save
+
+- 생각해보면, 하베스트 문 및 스타듀 밸리는 잠잘때 advanceday에서 저장되잖아? 그래서 맵 key는 받을 필요가 없는데, 이건 고민이 필요함
+- 그리고, 지금 데이터 저장소가 나눠져 있는것도 고민해야 함. 스토어(맵오브젝트, 인벤), 플레이어데이터(플레이어 클래스)
+- 맵 key
+- 플레이어 데이터
+- 인벤토리
+- 맵오브젝트
+- 저장 파이프라인 > 저장 버튼 > 위 데이터 store에 저장 > localStorage에 저장
+- 시나리오1: 로드 버튼 > locaStorage에 저장된 데이터 serialize > store에 저장 > 각 필요한 클래스로 전달
+- 시나리오2: 뉴 버튼 > 데이터 있건 없건 초기 상태
 
 # HUD
 
-- 베이스 모달 x-padding, y-padding 이외 채우기
+- 베이스 모달
+- 특화 모달. 스테이터스, 시간 정보, 퀵바, 인벤토리, 옵션 등등
 - 인벤토리 모달?
 - 메뉴?
 
@@ -40,6 +76,8 @@
 - 시간
 - 날씨
 -
+
+# 아이템 습득 및 사용 인터페이스
 
 ## future todo
 

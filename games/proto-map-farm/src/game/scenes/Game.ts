@@ -13,6 +13,7 @@ import { WorldPos } from '../utils/constants/constants'
 import { HUD } from '../../gameobjects/hud/HUD'
 import { TEMP_ENEMIES } from '../utils/constants/enemies'
 import { Bullet } from '../../gameobjects/Bullet'
+import { BaseModal } from '../components/modal/BaseModal'
 
 // 1. 맵 / 레벨 구성
 
@@ -90,6 +91,8 @@ export class Game extends BaseScene {
 
   create() {
     super.create()
+    const modal = new BaseModal(this)
+    modal.openDialog()
     this.transitioning = false
     this.worldMap = new Worldmap(this, this.sceneData.area)
     this.debugHud = new DebugHud(
@@ -118,6 +121,7 @@ export class Game extends BaseScene {
       'base_char',
       this.worldMap.getPortalLayer(),
       (dest) => this.enterPortal(dest),
+      () => this.sleep(),
       this.worldMap
     )
     this.camera.startFollow(this.player.charSprite)
@@ -197,6 +201,27 @@ export class Game extends BaseScene {
     })
   }
 
+  // temp daypassing: 화면 페이드 아웃 → 모든 맵 하루 진행 → 페이드 인.
+  private sleep(): void {
+    this._controls.lockInput = true
+    this.camera.fadeOut(500, 0, 0, 0)
+    this.camera.once(Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      dataManager.advanceAllMaps()
+      this.camera.fadeIn(500, 0, 0, 0)
+      this._controls.lockInput = false
+    })
+  }
+
+  // // new save // 날짜, 시간은 세이브 이후
+  // save(): void {
+  //   const playerData,
+  //     inventoryData,
+  //     mapObjectData,
+  //     sceneData = null
+  //   console.log(this.scene.key)
+  //   console.log(this.player.getPlayerPos())
+  // }
+
   update(time: number, delta: number) {
     const numberKey = this._controls.wasNumberKeyPressed()
     if (numberKey > -1) {
@@ -212,6 +237,8 @@ export class Game extends BaseScene {
     if (directionKey) this.player.moveCharacter(directionKey, isSprinting)
 
     this.player.update(delta, aim, firing)
+
+    if (this._controls.wasEKeyPressed()) this.player.interact(aim)
 
     const playerPos: WorldPos = this.player.getPlayerPos()
     for (const enemy of this.enemies) {

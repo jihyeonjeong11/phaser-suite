@@ -38,7 +38,6 @@ export abstract class BaseScene extends Scene {
   create() {
     this._controls = new Controls(this)
     //this._log(`[${this.constructor.name}:create] invoked`);
-    this.scene.bringToTop()
   }
   // nextScene(oldscene: Scene, newscene: Scene, payload: unknown) {
   //   this.scene.stop(oldscene)
@@ -48,37 +47,3 @@ export abstract class BaseScene extends Scene {
     console.log(`%c${message}`, 'color: orange; background: black;')
   }
 }
-
-// export class HUD extends BaseScene {
-//   quickBar: QuickBar;
-
-//   constructor() {
-//     super({
-//       key: "hud",
-//     });
-//   }
-
-//   init() {
-//     super.init();
-//   }
-
-//   create() {
-//     this.quickBar = new QuickBar(this);
-//     this.events.on(Scenes.Events.SHUTDOWN, () => {
-//       console.log("HUD scene shutdown");
-//     });
-//     // for (let fnc of ["hudFocus"]) {
-//     //   theatre.on(fnc, this[fnc], this);
-//     // }
-//     // 그렇다면 카메라 이벤트 fadeout과 fadein 콜백은 어디서?
-//     // Example of invoking theatre emitter:
-//     // foo.on("pointerdown", () => theatre.emit('barEvent', payload) );
-//   }
-
-//   hudFocus() {
-//     this.scene.run("hud");
-//     this.scene.bringToTop("hud");
-//     console.log(123);
-//     this.quickBar = new QuickBar(this);
-//   }
-// }

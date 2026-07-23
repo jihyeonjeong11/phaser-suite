@@ -5,11 +5,15 @@ import { Worldmap } from '../Worldmap'
 import { dataManager } from '../../game/managers/Store'
 import { Hand } from '../hand/Hand'
 import { Tool } from '../hand/Tool'
+import { STATIC_TILE_PROPERTIES } from '../../game/utils/constants/tiles'
+import { TEMP_CROPS } from '../../game/utils/constants/crops'
+import { TEMP_ITEMS } from '../../game/utils/constants/items'
 
 export class Player extends Character {
   scene: Scene
   private portalLayer: Tilemaps.ObjectLayer | null
   private onEnterPortal: (dest: string) => void
+  private onSleep: () => void
 
   computedSpeed: number
   computedStamina: number
@@ -40,6 +44,7 @@ export class Player extends Character {
     textureKey: string,
     portalLayer: Tilemaps.ObjectLayer | null,
     onEnterPortal: (dest: string) => void,
+    onSleep: () => void,
     worldMap: Worldmap
   ) {
     super(worldMap)
@@ -49,6 +54,7 @@ export class Player extends Character {
     this.computedSpeed = this.baseSpeed
     this.portalLayer = portalLayer
     this.onEnterPortal = onEnterPortal
+    this.onSleep = onSleep
     this.bullets = scene.add.group()
     this.charSprite = scene.add.sprite(startPos.x, startPos.y, textureKey, 0).setDepth(2)
     scene.add.existing(this.charSprite)
@@ -97,6 +103,28 @@ export class Player extends Character {
 
   getPlayerPos(): WorldPos {
     return { x: this.charSprite.x, y: this.charSprite.y }
+  }
+
+  // E키 상호작용: 마우스가 가리키는 타일이 'sleep' 액션이면 씬에 위임(카메라/입력잠금),
+  // 아니면 그 타일의 작물을 수확한다. 대상 타일은 툴과 동일하게 aim으로 결정.
+  interact(aim: WorldPos): void {
+    const layer = this.worldMap.getWorldLayer()
+    const tile = layer.tilemap.worldToTileXY(aim.x, aim.y)
+    if (!tile) return
+    const col = tile.x
+    const row = tile.y
+
+    const action = layer.getTileAt(col, row)?.properties?.[STATIC_TILE_PROPERTIES.ACTION]
+    if (action === 'sleep') {
+      this.onSleep()
+      return
+    }
+
+    const cropKey = this.worldMap.mapObjects.harvest(col, row)
+    if (cropKey) {
+      const harvestKey = TEMP_CROPS[cropKey].harvestItem as keyof typeof TEMP_ITEMS
+      dataManager.addItem(TEMP_ITEMS[harvestKey])
+    }
   }
 
   private drainStamina(deltaMs: number): void {
