@@ -30,6 +30,8 @@ export interface InventoryItem {
   soundMap?: Record<string, string>
   maxStack?: number
   currentStack?: number
+  attackPower?: number
+  bulletVelocity?: number
 }
 
 export interface PlayerData {

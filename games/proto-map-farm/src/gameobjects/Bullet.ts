@@ -3,17 +3,22 @@ import { Physics, Scene } from "phaser";
 export class Bullet extends Physics.Arcade.Image {
   private static readonly LIFESPAN = 1000;
 
+  readonly damage: number;
+
   constructor(
     scene: Scene,
     x: number,
     y: number,
     angle: number,
     speed: number,
+    damage = 0,
   ) {
     Bullet.ensureTexture(scene);
     super(scene, x, y, "bullet");
     scene.add.existing(this);
     scene.physics.add.existing(this);
+
+    this.damage = damage;
 
     this.setRotation(angle).setDepth(25);
     scene.physics.velocityFromRotation(

@@ -25,9 +25,8 @@ export const TEMP_ITEMS = {
     type: 'weapon',
     textureKey: 'sprites/weapons',
     frame: 0,
-    soundMap: {
-      //fire, reload
-    }
+    attackPower: 30,
+    bulletVelocity: 600
   },
   testing_watering_can: {
     name: 'testing_watering_can',

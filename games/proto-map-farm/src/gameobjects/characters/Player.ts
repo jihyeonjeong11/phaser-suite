@@ -1,4 +1,4 @@
-import { Physics, Scene, Scenes, Tilemaps } from 'phaser'
+import { GameObjects, Physics, Scene, Scenes, Tilemaps } from 'phaser'
 import { Character } from './Character'
 import { DIRECTION, DirectionOrNone, WorldPos } from '../../game/utils/constants/constants'
 import { Worldmap } from '../Worldmap'
@@ -30,6 +30,9 @@ export class Player extends Character {
   private invincibilityRemainingMs = 0
 
   private hand: Hand | null = null
+  // 순수 그룹으로 둔다. Bullet은 자체 물리 바디를 갖는데, physics.add.group에
+  // 넣으면 add 시 그룹 기본값이 velocity를 0으로 리셋해 총알이 멈춰버린다.
+  private bullets: GameObjects.Group
 
   constructor(
     scene: Scene,
@@ -46,6 +49,7 @@ export class Player extends Character {
     this.computedSpeed = this.baseSpeed
     this.portalLayer = portalLayer
     this.onEnterPortal = onEnterPortal
+    this.bullets = scene.add.group()
     this.charSprite = scene.add.sprite(startPos.x, startPos.y, textureKey, 0).setDepth(2)
     scene.add.existing(this.charSprite)
     scene.physics.add.existing(this.charSprite)
@@ -69,8 +73,12 @@ export class Player extends Character {
 
     const current = dataManager.getInventory()[dataManager.getCurrentSelectedIdx()]
     if (current?.type === 'weapon') {
-      this.hand = new Hand(this.scene, this.charSprite, current)
+      this.hand = new Hand(this.scene, this.charSprite, current, this.bullets)
     }
+  }
+
+  getBullets(): GameObjects.Group {
+    return this.bullets
   }
 
   updateStamina(deltaMs: number, wantsSprint: boolean): boolean {
@@ -174,8 +182,9 @@ export class Player extends Character {
     this.invincibilityRemainingMs = Player.INVINCIBLE_DURATION_MS
   }
 
-  update(deltaMs: number): void {
-    this.hand?.sync()
+  update(deltaMs: number, aim: WorldPos, firing: boolean): void {
+    this.hand?.sync(aim)
+    if (firing) this.hand?.fire(this.scene.time.now)
 
     if (!this.temporarilyInvincible) return
 

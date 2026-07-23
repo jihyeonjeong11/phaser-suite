@@ -8,10 +8,14 @@ export class Zombie extends Character {
   properties: EnemyDef
   timeBeforeAIMovementAgain: number = 0
   prevAction: 'wander' | 'idle'
+  private isFoundPlayer: boolean
   private wanderDir: DirectionOrNone = DIRECTION.NONE
+  private hp: number
   constructor(scene: Scene, startPos: WorldPos, properties: EnemyDef, worldMap: Worldmap) {
     super(worldMap)
+    this.isFoundPlayer = false
     this.properties = properties
+    this.hp = properties.hp
     this.prevAction = 'idle'
     this.charSprite = scene.add
       .sprite(startPos.x, startPos.y, properties.textureKey, properties.frame)
@@ -19,7 +23,6 @@ export class Zombie extends Character {
     this.baseSpeed = properties.baseSpeed
     scene.add.existing(this.charSprite)
     scene.physics.add.existing(this.charSprite)
-    // 1:1.5 슬림화 후 히트박스: content 39×57, x[12..50] y[4..60] 실측
     const body = this.charSprite.body as Physics.Arcade.Body
     body.setSize(39, 57)
     body.setOffset(12, 4)
@@ -30,13 +33,22 @@ export class Zombie extends Character {
     }
   }
 
+  takeDamage(amount: number): boolean {
+    this.hp -= amount
+    // 피격 피드백: 잠깐 붉게 틴트 후 복구
+    this.charSprite.setTint(0xff4444)
+    this.charSprite.scene.time.delayedCall(80, () => this.charSprite.clearTint())
+    return this.hp <= 0
+  }
+
   update(target: WorldPos, time: number): void {
     const body = this.charSprite.body as Physics.Arcade.Body
     const dx = target.x - this.charSprite.x
     const dy = target.y - this.charSprite.y
     const speed = this.properties.baseSpeed
 
-    if (this.properties.awarness > Math.abs(dx) + Math.abs(dy)) {
+    if (this.properties.awarness > Math.abs(dx) + Math.abs(dy) || this.isFoundPlayer) {
+      this.isFoundPlayer = true
       this.charSprite.scene.physics.moveTo(this.charSprite, target.x, target.y, speed)
       this.applyAnim(body)
       return

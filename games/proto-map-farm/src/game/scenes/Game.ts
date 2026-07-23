@@ -13,6 +13,7 @@ import { Zombie } from '../../gameobjects/characters/Zombie'
 import { WorldPos } from '../utils/constants/constants'
 import { HUD } from '../../gameobjects/hud/HUD'
 import { TEMP_ENEMIES } from '../utils/constants/enemies'
+import { Bullet } from '../../gameobjects/Bullet'
 
 // 1. 맵 / 레벨 구성
 
@@ -149,6 +150,21 @@ export class Game extends BaseScene {
         this.player.takeDamage(z.properties.attackPower)
       }
     )
+
+    const bullets = this.player.getBullets()
+    this.physics.add.collider(bullets, this.worldMap.getWorldLayer(), (bullet) =>
+      (bullet as GameObjects.GameObject).destroy()
+    )
+    this.physics.add.overlap(bullets, this.enemyGroup, (bullet, enemySprite) => {
+      const b = bullet as Bullet
+      const z = (enemySprite as GameObjects.Sprite).getData('owner') as Zombie
+      b.destroy()
+      const died = z.takeDamage(b.damage)
+      if (died) {
+        this.enemies = this.enemies.filter((e) => e !== z)
+        enemySprite.destroy()
+      }
+    })
     this.events.once(
       Scenes.Events.SHUTDOWN,
       () => {
@@ -188,12 +204,15 @@ export class Game extends BaseScene {
       dataManager.setCurrentSelectedIdx(numberKey)
     }
 
+    const aim = this._controls.getPointerWorldPos()
+    const firing = this._controls.isPointerDown()
+
     const directionKey = this._controls.getDirectionKeyPressed()
     const wantsSprint = !!directionKey && this._controls.isShiftKeyDown()
     const isSprinting = this.player.updateStamina(delta, wantsSprint)
     if (directionKey) this.player.moveCharacter(directionKey, isSprinting)
 
-    this.player.update(delta)
+    this.player.update(delta, aim, firing)
 
     const playerPos: WorldPos = this.player.getPlayerPos()
     for (const enemy of this.enemies) {

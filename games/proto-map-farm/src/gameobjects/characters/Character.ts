@@ -73,7 +73,7 @@ export abstract class Character {
       }
     }
 
-    const speed = stepDistance ?? (isRunning ? this.baseSpeed + 0.5 : this.baseSpeed)
+    const speed = stepDistance ?? (isRunning ? this.baseSpeed + 3 : this.baseSpeed)
 
     const targetPos = {
       x: this.charSprite.x + dest.x * speed,

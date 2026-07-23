@@ -1,5 +1,5 @@
 import { Input, Scene, Types } from 'phaser'
-import { DIRECTION } from './constants/constants'
+import { DIRECTION, WorldPos } from './constants/constants'
 
 // 퀵바 키 순서 = 슬롯 인덱스. 배열 인덱스가 곧 0-based 슬롯 번호.
 // "1"(ONE) → 0, "2"(TWO) → 1, ... "9"(NINE) → 8, "0"(ZERO) → 9
@@ -94,6 +94,16 @@ export class Controls {
       }
     }
     return -1
+  }
+
+  getPointerWorldPos(): WorldPos {
+    const p = this.#scene.input.activePointer
+    const world = this.#scene.cameras.main.getWorldPoint(p.x, p.y)
+    return { x: world.x, y: world.y }
+  }
+
+  isPointerDown(): boolean {
+    return this.#scene.input.activePointer.isDown
   }
 
   getDirectionKeyPressed() {
