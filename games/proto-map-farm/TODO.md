@@ -10,6 +10,8 @@
 
 - fallout 과 하베스트문 공존 가능?
 - 픽셀로 만들기 가능? -> itch io 픽셀 있으니까, 이거 가져와서 내가 그리면 안되나?
+- https://weburbanist.com/2015/05/23/rural-retrofuturism-dystopian-visions-of-swedish-countrysides/
+- 컬러 스킴 정하기. fallout style countryside
 
 # pixel arts
 
