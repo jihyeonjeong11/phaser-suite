@@ -24,18 +24,16 @@ export abstract class BaseScene extends Scene {
     super(config)
   }
 
-  init(data: unknown) {
+  init() {
     // declare variables and constants to be referenced in all regular game scenes here with the prefix this
     // e.g. this.foo = 'bar';
     // DO NOT declare listeners to the theatre here with .on, as they will spam in every new scene
-    if (data) {
-      this._log(`[${this.constructor.name}:init] invoked, data provided: ${JSON.stringify(data)}`)
-      return
-    }
-    this._log(`[${this.constructor.name}:init] invoked`)
   }
 
   create() {
+    // Example of invoking theatre emitter:
+    // foo.on("pointerdown", () => theatre.emit('barEvent', payload) );
+
     this._controls = new Controls(this)
     //this._log(`[${this.constructor.name}:create] invoked`);
   }
@@ -45,5 +43,9 @@ export abstract class BaseScene extends Scene {
   // }
   _log(message: string) {
     console.log(`%c${message}`, 'color: orange; background: black;')
+  }
+
+  hello() {
+    console.log('does this emit works')
   }
 }

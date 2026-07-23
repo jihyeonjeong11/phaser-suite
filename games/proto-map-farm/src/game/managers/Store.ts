@@ -71,6 +71,8 @@ class DataManager extends Events.EventEmitter {
     this.store = new Data.DataManager(this)
     // initialize state with initial values
     this.reset()
+    // pause는 세션 상태(세이브 대상 아님) — initialState와 분리해 항상 false로 시작.
+    this.store.set('isPaused', false)
     //this.#updateDataManger(initialState);
   }
 
@@ -92,11 +94,27 @@ class DataManager extends Events.EventEmitter {
     try {
       const parsed = JSON.parse(raw)
       this.store.set(parsed)
+      this.store.set('isPaused', false) // 세이브에 섞여 들어온 stale pause 방지
       return true
     } catch (e) {
       console.log('[DIAG] load() FAILED', e)
       return false
     }
+  }
+
+  // pause (세션 상태). 여러 시스템이 이 플래그를 단일 소스로 읽는다.
+  getPaused(): boolean {
+    return this.store.get('isPaused') ?? false
+  }
+
+  setPaused(val: boolean) {
+    this.store.set('isPaused', val)
+  }
+
+  togglePaused(): boolean {
+    const next = !this.getPaused()
+    this.setPaused(next)
+    return next
   }
 
   getCurrentSelectedIdx() {

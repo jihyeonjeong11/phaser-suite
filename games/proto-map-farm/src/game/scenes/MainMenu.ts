@@ -12,6 +12,7 @@ const BTN_MARGIN_BOTTOM = 90
 export class MainMenu extends Scene {
   title: GameObjects.Text
   modal: BaseModal
+  private bg: GameObjects.Image
   private buttons: GameObjects.Container[] = []
 
   constructor() {
@@ -21,6 +22,9 @@ export class MainMenu extends Scene {
 
   create() {
     this.sound.play('bgm', { loop: true, volume: globalConfig.getVolume() })
+
+    // 배경: 화면을 꽉 채우고, 다른 UI보다 뒤에 오도록 가장 먼저 생성.
+    this.bg = this.add.image(0, 0, 'menu-bg').setOrigin(0.5).setDepth(-1)
 
     this.title = this.add
       .text(0, 0, 'Apocalyptic farming game proto', {
@@ -48,6 +52,9 @@ export class MainMenu extends Scene {
   private layout(): void {
     const w = this.scale.width
     const h = this.scale.height
+
+    // 배경을 화면 중앙에 놓고 화면 전체를 덮도록 크기 조정.
+    this.bg.setPosition(w / 2, h / 2).setDisplaySize(w, h)
 
     this.title.setPosition(w / 2, 120)
 

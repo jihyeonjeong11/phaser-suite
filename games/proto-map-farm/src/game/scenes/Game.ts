@@ -14,6 +14,7 @@ import { HUD } from '../../gameobjects/hud/HUD'
 import { TEMP_ENEMIES } from '../utils/constants/enemies'
 import { Bullet } from '../../gameobjects/Bullet'
 import { BaseModal } from '../components/modal/BaseModal'
+import { theatre } from '../managers/EventEmitter'
 
 // 1. 맵 / 레벨 구성
 
@@ -82,7 +83,7 @@ export class Game extends BaseScene {
   }
 
   init(data: { area?: MapKey; fromSave?: boolean } = {}) {
-    super.init({})
+    super.init()
     this.sceneData = {
       area: data.area ?? DEFAULT_MAP_KEY,
       fromSave: data.fromSave ?? false
@@ -91,8 +92,7 @@ export class Game extends BaseScene {
 
   create() {
     super.create()
-    const modal = new BaseModal(this)
-    modal.openDialog()
+
     this.transitioning = false
     this.worldMap = new Worldmap(this, this.sceneData.area)
     this.debugHud = new DebugHud(
@@ -212,6 +212,24 @@ export class Game extends BaseScene {
     })
   }
 
+  public pauseOrResume() {
+    this.applyPause(dataManager.togglePaused())
+  }
+
+  private applyPause(paused: boolean) {
+    if (paused) {
+      this.physics.pause()
+      this.anims.pauseAll()
+      this.tweens.pauseAll()
+      this.time.paused = true
+    } else {
+      this.physics.resume()
+      this.anims.resumeAll()
+      this.tweens.resumeAll()
+      this.time.paused = false
+    }
+  }
+
   // // new save // 날짜, 시간은 세이브 이후
   // save(): void {
   //   const playerData,
@@ -223,6 +241,13 @@ export class Game extends BaseScene {
   // }
 
   update(time: number, delta: number) {
+    if (this._controls.wasESCKeyPressed()) {
+      theatre.emit('modal-inventory')
+      this.pauseOrResume()
+    }
+    // pause 중에는 게임 로직 스킵. (update 자체는 계속 돌아 ESC를 계속 읽음)
+    if (dataManager.getPaused()) return
+
     const numberKey = this._controls.wasNumberKeyPressed()
     if (numberKey > -1) {
       dataManager.setCurrentSelectedIdx(numberKey)

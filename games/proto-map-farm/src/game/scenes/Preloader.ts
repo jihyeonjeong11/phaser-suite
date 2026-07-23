@@ -67,6 +67,9 @@ export class Preloader extends Scene {
     // Image keys must equal each tileset image's basename (Worldmap.imageKeyFor).
     this.load.json(DATA_KEYS.ANIMATIONS, 'json/animation.json')
 
+    // 메인 메뉴 배경 (Gemini 생성 픽셀아트)
+    this.load.image('menu-bg', 'gemini-pixelart.jpg')
+
     this.load.tilemapTiledJSON(MAP_KEYS.FARM, 'json/farm_json.json')
     // 96×192, 32px 셀 → 3열×6행. 타일셋이자 개별 프레임(갈린 흙)으로 접근하므로 스프라이트시트로 로드.
     this.load.spritesheet('plowed_soil', 'tilesets/farm/plowed_soil.png', {
@@ -205,6 +208,9 @@ export class Preloader extends Scene {
     this.registerPlantFrames()
     this.createAnimations()
     this.scene.start('MainMenu')
+
+    // event sub
+    this.scene.run('hud')
   }
 
   private createAnimations(): void {

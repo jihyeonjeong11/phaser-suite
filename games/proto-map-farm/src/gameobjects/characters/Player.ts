@@ -8,6 +8,7 @@ import { Tool } from '../hand/Tool'
 import { STATIC_TILE_PROPERTIES } from '../../game/utils/constants/tiles'
 import { TEMP_CROPS } from '../../game/utils/constants/crops'
 import { TEMP_ITEMS } from '../../game/utils/constants/items'
+import { theatre } from '../../game/managers/EventEmitter'
 
 export class Player extends Character {
   scene: Scene
@@ -108,6 +109,7 @@ export class Player extends Character {
   // E키 상호작용: 마우스가 가리키는 타일이 'sleep' 액션이면 씬에 위임(카메라/입력잠금),
   // 아니면 그 타일의 작물을 수확한다. 대상 타일은 툴과 동일하게 aim으로 결정.
   interact(aim: WorldPos): void {
+    theatre.emit('hello')
     const layer = this.worldMap.getWorldLayer()
     const tile = layer.tilemap.worldToTileXY(aim.x, aim.y)
     if (!tile) return

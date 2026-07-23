@@ -24,7 +24,7 @@ export class Controls {
   #enterKey: Input.Keyboard.Key | undefined
   #eKey: Input.Keyboard.Key | undefined
   #shiftKey: Input.Keyboard.Key | undefined
-
+  #escKey: Input.Keyboard.Key | undefined
   //#fKey: Input.Keyboard.Key | undefined
   #cKey: Input.Keyboard.Key | undefined
   #numberKeys: Record<string, Input.Keyboard.Key> | undefined
@@ -33,6 +33,8 @@ export class Controls {
     this.#scene = scene
     this.#cursorKeys = this.#scene.input.keyboard?.createCursorKeys()
     this.#enterKey = this.#scene.input.keyboard?.addKey(Input.Keyboard.KeyCodes.ENTER)
+    this.#escKey = this.#scene.input.keyboard?.addKey(Input.Keyboard.KeyCodes.ESC)
+
     this.#wasdKeys = this.#scene.input.keyboard?.addKeys('w, a, s, d') as Record<
       string,
       Input.Keyboard.Key
@@ -53,6 +55,21 @@ export class Controls {
 
   set lockInput(val: boolean) {
     this.lockPlayerInput = val
+  }
+
+  isESCKeyDown() {
+    if (this.#escKey === undefined) {
+      return false
+    }
+    return this.#escKey.isDown
+  }
+
+  // 토글용: 누른 순간 한 번만 true. pause↔resume 깜빡임 방지.
+  wasESCKeyPressed() {
+    if (this.#escKey === undefined) {
+      return false
+    }
+    return Input.Keyboard.JustDown(this.#escKey)
   }
 
   isShiftKeyDown() {

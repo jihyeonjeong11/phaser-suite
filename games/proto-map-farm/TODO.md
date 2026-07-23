@@ -22,6 +22,8 @@
 
 # GameState Pause - 진행 뒤 모달
 
+- https://github.com/devshareacademy/monster-tamer/blob/main/src/utils/state-machine.js
+
 # 모달 인터페이스(MODAL)
 
 - basemodal
