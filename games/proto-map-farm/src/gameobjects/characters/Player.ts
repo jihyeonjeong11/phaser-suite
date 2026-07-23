@@ -4,6 +4,7 @@ import { DIRECTION, DirectionOrNone, WorldPos } from '../../game/utils/constants
 import { Worldmap } from '../Worldmap'
 import { dataManager } from '../../game/managers/Store'
 import { Hand } from '../hand/Hand'
+import { Tool } from '../hand/Tool'
 
 export class Player extends Character {
   scene: Scene
@@ -30,9 +31,8 @@ export class Player extends Character {
   private invincibilityRemainingMs = 0
 
   private hand: Hand | null = null
-  // 순수 그룹으로 둔다. Bullet은 자체 물리 바디를 갖는데, physics.add.group에
-  // 넣으면 add 시 그룹 기본값이 velocity를 0으로 리셋해 총알이 멈춰버린다.
   private bullets: GameObjects.Group
+  private tool: Tool
 
   constructor(
     scene: Scene,
@@ -56,6 +56,8 @@ export class Player extends Character {
     const body = this.charSprite.body as Physics.Arcade.Body
     body.setSize(39, 57)
     body.setOffset(12, 4)
+
+    this.tool = new Tool(scene, worldMap.getWorldLayer(), worldMap.mapObjects)
 
     const onSelectChange = () => this.equipSelected()
     dataManager.on('changedata-currentSelectedIdx', onSelectChange)
@@ -184,7 +186,12 @@ export class Player extends Character {
 
   update(deltaMs: number, aim: WorldPos, firing: boolean): void {
     this.hand?.sync(aim)
-    if (firing) this.hand?.fire(this.scene.time.now)
+    if (firing) {
+      const now = this.scene.time.now
+      const current = dataManager.getInventory()[dataManager.getCurrentSelectedIdx()]
+      if (current?.type === 'weapon') this.hand?.fire(now)
+      else if (current?.type === 'tool' || current?.type === 'seed') this.tool.use(aim, now)
+    }
 
     if (!this.temporarilyInvincible) return
 

@@ -4,7 +4,9 @@ import { WorldPos } from '../../game/utils/constants/constants'
 import { Bullet } from '../Bullet'
 import { playSound } from '../../game/utils/audios'
 import { AUDIO_KEYS } from '../../game/utils/constants/audioKeys'
-
+// TODO: need weapon and tool class.-
+// TODO: Hand > Weapon or Tool 구조로. 여기서는 useTool만 다룸.
+// 현재 여기는 총만 다룸.
 export class Hand {
   private scene: Scene
   private sprite: GameObjects.Sprite
@@ -18,8 +20,6 @@ export class Hand {
   private static readonly OFFSET_X = 8
   private static readonly OFFSET_Y = 6
   private static readonly FIRE_RATE = 250
-  // 아이템에 bulletVelocity가 없을 때의 기본 속도
-  private static readonly DEFAULT_BULLET_SPEED = 600
 
   constructor(
     scene: Scene,
@@ -32,7 +32,7 @@ export class Hand {
     this.owner = owner
     this.bullets = bullets
     this.attackPower = item.attackPower ?? 0
-    this.bulletVelocity = item.bulletVelocity ?? Hand.DEFAULT_BULLET_SPEED
+    this.bulletVelocity = item.bulletVelocity!
     this.sprite = scene.add
       .sprite(owner.x, owner.y, item.textureKey, item.frame ?? 0)
       .setOrigin(0.2, 0.5)
@@ -50,12 +50,10 @@ export class Hand {
     this.sprite.setFlipY(Math.abs(this.rotation) > Math.PI / 2)
   }
 
-  // 클릭(누름) 시 매 프레임 호출. fire-rate로 연사 속도를 제한한다.
   fire(now: number): void {
     if (now < this.lastFired + Hand.FIRE_RATE) return
     this.lastFired = now
 
-    // 총구(muzzle)는 스프라이트 origin 반대편 끝. 회전각 방향으로 밀어낸다.
     const muzzle = (1 - this.sprite.originX) * this.sprite.displayWidth
     const mx = this.sprite.x + Math.cos(this.rotation) * muzzle
     const my = this.sprite.y + Math.sin(this.rotation) * muzzle

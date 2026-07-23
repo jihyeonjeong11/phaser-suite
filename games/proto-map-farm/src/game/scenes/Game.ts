@@ -5,7 +5,6 @@ import { dataManager } from '../managers/Store'
 import { Worldmap } from '../../gameobjects/Worldmap'
 import { QuickBar } from '../../gameobjects/hud/QuickBar'
 import { DEFAULT_MAP_KEY, MAP_KEYS, MapKey } from '../utils/constants/mapKeys'
-import { TempPlayer } from '../../gameobjects/TempPlayer'
 import { MapObject } from '../../gameobjects/mapObjects/MapObjects'
 import { stopAllSfx } from '../utils/audios'
 import { Player } from '../../gameobjects/characters/Player'
@@ -225,53 +224,5 @@ export class Game extends BaseScene {
       { sprite: this.player.charSprite, color: 0x00ff00 },
       ...this.enemies.map((e) => ({ sprite: e.getSprite(), color: 0xff0000 }))
     ])
-
-    //  this.debugHud.update(this.tempPlayer.charSprite, this.worldMap.getMap())
   }
-
-  //   const bullets = player.getBullets();
-  //   if (bullets && worldLayer) {
-  //     this.physics.add.collider(bullets, worldLayer, (bullet) =>
-  //       (bullet as GameObjects.GameObject).destroy(),
-  //     );
-  //   }
-
-  //   this.portals = new Portals(this, this.map);
-
-  //   this.physics.add.overlap(
-  //     this.player,
-  //     this.portals.getPortals,
-  //     (_player, portal) => {
-  //       this.handlePortalEnteredCallback(portal as GameObjects.Zone);
-  //     },
-  //     undefined,
-  //     this,
-  //   );
-
-  //   this.scene.run("hud");
-  //   theatre.emit("hudFocus");
-  // }
-
-  // handlePortalEnteredCallback(portal: GameObjects.Zone) {
-  //   this._controls.lockInput = true;
-  //   this.cameras.main.fadeOut(
-  //     1000,
-  //     0,
-  //     0,
-  //     0,
-  //     (_camera: Cameras.Scene2D.Camera, progress: number) => {
-  //       this.physics.world.disable(this.player);
-  //       if (progress === 1) {
-  //         const dataToPass = {
-  //           area: portal.getData("dest"),
-  //         };
-  //         this.scene.start("Game", dataToPass);
-  //       }
-  //     },
-  //   );
-  // }
-
-  // update() {
-  //   this.debugHud.update(this.player, this.map);
-  // }
 }
