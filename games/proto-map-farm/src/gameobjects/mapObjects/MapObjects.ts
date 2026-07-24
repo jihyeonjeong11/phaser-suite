@@ -166,7 +166,7 @@ export class MapObject {
     const scene = this.worldLayer.scene
     const wx = (this.worldLayer.tileToWorldX(col) ?? 0) + 16
     const wy = (this.worldLayer.tileToWorldY(row) ?? 0) + 32
-    //todo: texture placing failed
+    // 32×64 프레임을 앵커 타일 바닥에 맞춤 → 위로 2타일 차지, 충돌은 앵커 1타일만.
     const img = scene.add.image(wx, wy, k.texture, k.frame).setOrigin(0.5, 1).setDepth(1)
     this.drawnSprites.set(key, img)
   }

@@ -23,8 +23,9 @@ export const TEMP_OBJECT_TILES = {
   tree: {
     name: 'tree',
     type: 'resource',
-    texture: 'heart_anim',
-    frame: 3,
+    // farm_tiles.png의 32×64 뷰. 프레임 8 = (col 8, row 0), 실제 그림 25×63px.
+    texture: 'farm_objects',
+    frame: 8,
     isPassable: false,
     isOccupied: true
   },

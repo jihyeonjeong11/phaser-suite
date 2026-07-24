@@ -72,6 +72,12 @@ export class Preloader extends Scene {
 
     // TEMP: 직접 그린 farm_tiles 4종 타일 느낌 테스트용 맵.
     this.load.image('farm_tiles', 'sprites/farm_tiles.png')
+    // 같은 farm_tiles.png를 32×64 셀(10열×5행)로 다시 로드. 타일이 아니라
+    // 오브젝트(2타일 높이)를 프레임 인덱스로 꺼내 쓰기 위한 뷰. 나무 = 프레임 8.
+    this.load.spritesheet('farm_objects', 'sprites/farm_tiles.png', {
+      frameWidth: 32,
+      frameHeight: 64
+    })
     // TEMP: 흙↔풀 코너셋 전이 14장 (farm_tiles의 흙(0,0)/풀(1,1)로 생성).
     this.load.image('farm_edges', 'sprites/farm_edges.png')
     this.load.tilemapTiledJSON(MAP_KEYS.TEST, 'json/test_json.json')
