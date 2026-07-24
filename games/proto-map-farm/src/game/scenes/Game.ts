@@ -10,7 +10,6 @@ import { stopAllSfx } from '../utils/audios'
 import { Player } from '../../gameobjects/characters/Player'
 import { Zombie } from '../../gameobjects/characters/Zombie'
 import { WorldPos } from '../utils/constants/constants'
-import { HUD } from '../../gameobjects/hud/HUD'
 import { TEMP_ENEMIES } from '../utils/constants/enemies'
 import { Bullet } from '../../gameobjects/Bullet'
 import { BaseModal } from '../components/modal/BaseModal'
@@ -66,7 +65,6 @@ export class Game extends BaseScene {
   private camera: Cameras.Scene2D.Camera
   private worldMap: Worldmap
   private debugHud: DebugHud
-  private HUD: HUD
   private sceneData: { area: MapKey; fromSave: boolean } = {
     area: DEFAULT_MAP_KEY,
     fromSave: false
@@ -125,7 +123,6 @@ export class Game extends BaseScene {
       this.worldMap
     )
     this.camera.startFollow(this.player.charSprite)
-    this.HUD = new HUD(this, this.player)
 
     this.enemyGroup = this.physics.add.group()
 
@@ -172,6 +169,7 @@ export class Game extends BaseScene {
       Scenes.Events.SHUTDOWN,
       () => {
         this.enemies = []
+        theatre.emit('hud-hide')
       },
       this
     )
@@ -270,7 +268,12 @@ export class Game extends BaseScene {
       enemy.update(playerPos, time)
     }
 
-    this.HUD.update()
+    theatre.emit('hud-update', {
+      hp: this.player.computedHP,
+      maxHp: this.player.baseHp,
+      stamina: this.player.computedStamina,
+      maxStamina: this.player.baseStamina
+    })
 
     this.debugHud.drawHitboxes([
       { sprite: this.player.charSprite, color: 0x00ff00 },

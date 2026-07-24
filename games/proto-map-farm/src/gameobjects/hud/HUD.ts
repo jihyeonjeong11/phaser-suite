@@ -1,28 +1,38 @@
 import { GameObjects, Scene } from 'phaser'
-import { Player } from '../characters/Player'
+
+export interface HudStats {
+  hp: number
+  maxHp: number
+  stamina: number
+  maxStamina: number
+}
 
 export class HUD {
   private scene: Scene
-  private player: Player
   private container: GameObjects.Container
   private hpIcon: GameObjects.Sprite
   private staminaIcon: GameObjects.Sprite
 
-  constructor(scene: Scene, player: Player) {
+  constructor(scene: Scene) {
     this.scene = scene
-    this.player = player
 
     this.hpIcon = this.drawHealth()
     this.staminaIcon = this.drawStamina()
+    // hud 신은 상시 떠 있으므로, 게임 스탯을 받기 전(MainMenu 등)에는 숨겨둔다.
     this.container = scene.add
       .container(30, 30, [this.hpIcon, this.staminaIcon])
-      .setScrollFactor(0)
       .setDepth(10000)
+      .setVisible(false)
   }
 
-  update() {
-    this.tintByRatio(this.hpIcon, this.player.computedHP, this.player.baseHp)
-    this.tintByRatio(this.staminaIcon, this.player.computedStamina, this.player.baseStamina)
+  setVisible(visible: boolean) {
+    this.container.setVisible(visible)
+  }
+
+  update(stats: HudStats) {
+    this.container.setVisible(true)
+    this.tintByRatio(this.hpIcon, stats.hp, stats.maxHp)
+    this.tintByRatio(this.staminaIcon, stats.stamina, stats.maxStamina)
   }
 
   private tintByRatio(icon: GameObjects.Sprite, current: number, max: number): void {
