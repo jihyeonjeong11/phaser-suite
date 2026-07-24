@@ -70,6 +70,12 @@ export class Preloader extends Scene {
     // 메인 메뉴 배경 (Gemini 생성 픽셀아트)
     this.load.image('menu-bg', 'gemini-pixelart.jpg')
 
+    // TEMP: 직접 그린 farm_tiles 4종 타일 느낌 테스트용 맵.
+    this.load.image('farm_tiles', 'sprites/farm_tiles.png')
+    // TEMP: 흙↔풀 코너셋 전이 14장 (farm_tiles의 흙(0,0)/풀(1,1)로 생성).
+    this.load.image('farm_edges', 'sprites/farm_edges.png')
+    this.load.tilemapTiledJSON(MAP_KEYS.TEST, 'json/test_json.json')
+
     this.load.tilemapTiledJSON(MAP_KEYS.FARM, 'json/farm_json.json')
     // 96×192, 32px 셀 → 3열×6행. 타일셋이자 개별 프레임(갈린 흙)으로 접근하므로 스프라이트시트로 로드.
     this.load.spritesheet('plowed_soil', 'tilesets/farm/plowed_soil.png', {

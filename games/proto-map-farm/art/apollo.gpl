@@ -1,0 +1,51 @@
+GIMP Palette
+Name: Apollo
+Columns: 6
+# Apollo by AdamCYounis - https://lospec.com/palette-list/apollo
+#
+ 23  32  56	blue 1  #172038
+ 37  58  94	blue 2  #253a5e
+ 60  94 139	blue 3  #3c5e8b
+ 79 143 186	blue 4  #4f8fba
+115 190 211	blue 5  #73bed3
+164 221 219	blue 6  #a4dddb
+ 25  51  45	green 1  #19332d
+ 37  86  46	green 2  #25562e
+ 70 130  50	green 3  #468232
+117 167  67	green 4  #75a743
+168 202  88	green 5  #a8ca58
+208 218 145	green 6  #d0da91
+ 77  43  50	brown 1  #4d2b32
+122  72  65	brown 2  #7a4841
+173 119  87	brown 3  #ad7757
+192 148 115	brown 4  #c09473
+215 181 148	brown 5  #d7b594
+231 213 179	brown 6  #e7d5b3
+ 52  28  39	orange 1  #341c27
+ 96  44  44	orange 2  #602c2c
+136  75  43	orange 3  #884b2b
+190 119  43	orange 4  #be772b
+222 158  65	orange 5  #de9e41
+232 193 112	orange 6  #e8c170
+ 36  21  39	red 1  #241527
+ 65  29  49	red 2  #411d31
+117  36  56	red 3  #752438
+165  48  48	red 4  #a53030
+207  87  60	red 5  #cf573c
+218 134  62	red 6  #da863e
+ 30  29  57	purple 1  #1e1d39
+ 64  39  81	purple 2  #402751
+122  54 123	purple 3  #7a367b
+162  62 140	purple 4  #a23e8c
+198  81 151	purple 5  #c65197
+223 132 165	purple 6  #df84a5
+  9  10  20	gray 1  #090a14
+ 16  20  31	gray 2  #10141f
+ 21  29  40	gray 3  #151d28
+ 32  46  55	gray 4  #202e37
+ 57  74  80	gray 5  #394a50
+ 87 114 119	gray 6  #577277
+129 151 150	gray 7  #819796
+168 181 178	gray 8  #a8b5b2
+199 207 204	gray 9  #c7cfcc
+235 237 233	gray 10  #ebede9
